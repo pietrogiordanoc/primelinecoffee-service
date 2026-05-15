@@ -9,6 +9,7 @@ import TechnicianLayout from '@/components/layouts/TechnicianLayout';
 
 // Pages
 import Login from '@/pages/auth/Login';
+import Setup from '@/pages/Setup';
 import Dashboard from '@/pages/admin/Dashboard';
 import TechniciansPage from '@/pages/admin/Technicians';
 import CompaniesPage from '@/pages/admin/Companies';
@@ -54,6 +55,7 @@ function App() {
   return (
     <Routes>
       {/* Public Routes */}
+      <Route path="/setup" element={<Setup />} />
       <Route
         path="/login"
         element={!user ? <Login /> : <Navigate to="/" replace />}

@@ -36,7 +36,8 @@ const handler: Handler = async (event: HandlerEvent) => {
 
     if (!createUserResponse.ok) {
       const error = await createUserResponse.json();
-      throw new Error(error.message || 'Failed to create user');
+      console.error('Supabase auth error:', error);
+      throw new Error(JSON.stringify(error) || 'Failed to create user');
     }
 
     const authData = await createUserResponse.json();
