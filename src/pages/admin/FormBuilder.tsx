@@ -287,6 +287,7 @@ function FormModal({ isOpen, onClose, form, onSuccess, isDemoMode }: FormModalPr
           const newForm: DynamicForm = {
             id: newFormId,
             ...data,
+            version: 1,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
@@ -594,11 +595,10 @@ function AddFieldForm({ formId, orderIndex, onSuccess, onCancel, isDemoMode }: A
         field_name: data.field_name,
         field_label: data.field_label,
         field_type: fieldType,
-        placeholder: data.placeholder || null,
+        placeholder: data.placeholder || undefined,
         is_required: data.is_required || false,
-        help_text: data.help_text || null,
+        help_text: data.help_text || undefined,
         order_index: orderIndex,
-        created_at: new Date().toISOString(),
       };
 
       if (isDemoMode) {

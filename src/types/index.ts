@@ -11,7 +11,7 @@ export interface User {
   phone?: string;
   is_active: boolean;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface Technician {
@@ -19,7 +19,7 @@ export interface Technician {
   user_id: string;
   employee_id?: string;
   specialization?: string;
-  certifications?: string[];
+  certifications?: string[] | string;
   is_active: boolean;
   user?: User;
   assigned_companies?: Company[];
@@ -38,7 +38,7 @@ export interface Company {
   notes?: string;
   is_active: boolean;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface DynamicForm {
@@ -108,7 +108,7 @@ export interface ServiceReport {
   reviewed_at?: string;
   notes?: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
   form?: DynamicForm;
   technician?: Technician;
   company?: Company;
@@ -157,7 +157,7 @@ export interface ReportSummary {
   form_name: string;
   company_name: string;
   technician_name: string;
-  technician_email: string;
+  technician_email?: string;
   photo_count: number;
 }
 

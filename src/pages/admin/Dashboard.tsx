@@ -4,12 +4,10 @@ import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { Users, Building2, FileText, CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import type { DashboardStats } from '@/types';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useDemoData } from '@/utils/useDemoData';
 import { useReportStore } from '@/stores/reportStore';
 import { useTechnicianStore } from '@/stores/technicianStore';
 import { useCompanyStore } from '@/stores/companyStore';
-import { useAuthStore } from '@/stores/authStore';
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -41,7 +39,8 @@ export default function Dashboard() {
           completed_reports: completedReports,
           total_technicians: technicians.filter(t => t.is_active).length,
           total_companies: companies.filter(c => c.is_active).length,
-          monthly_trend: 15.5,
+          reports_this_month: 0,
+          reports_this_week: 0,
         });
         
         setRecentReports(reportSummaries.slice(0, 5));
@@ -75,13 +74,13 @@ export default function Dashboard() {
       });
 
       // Load recent reports
-      const { data: reports } = await supabase
+      const { data: recentReportsData } = await supabase
         .from('report_summary')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(5);
 
-      setRecentReports(reports || []);
+      setRecentReports(recentReportsData || []);
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {

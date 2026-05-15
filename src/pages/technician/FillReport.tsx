@@ -74,6 +74,10 @@ export default function FillReport() {
         const foundForm = storeForms.find(f => f.id === formId);
         if (foundForm) setForm(foundForm);
       } else {
+        if (!formId) {
+          setForm(null);
+          return;
+        }
         const { data: formData, error: formError } = await supabase
           .from('dynamic_forms')
           .select('*')
@@ -245,6 +249,7 @@ export default function FillReport() {
           form_data: reportData,
           submitted_at: new Date().toISOString(),
           created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
         addReport(newReport);
         alert('Report submitted successfully');
