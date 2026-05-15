@@ -6,8 +6,8 @@ import { useFormStore } from '@/stores/formStore';
 import { useReportStore } from '@/stores/reportStore';
 
 /**
- * Hook para cargar datos demo en todos los stores
- * Se ejecuta automáticamente cuando el usuario está en modo demo
+ * Hook to load demo data into all stores
+ * Runs automatically when the user is in demo mode
  */
 export function useDemoData() {
   const { isDemoMode } = useAuthStore();
@@ -18,7 +18,7 @@ export function useDemoData() {
 
   useEffect(() => {
     if (isDemoMode) {
-      // Cargar datos demo solo si no están ya cargados
+      // Load demo data only if not already loaded
       if (companies.length === 0) loadCompanies();
       if (technicians.length === 0) loadTechnicians();
       if (forms.length === 0) loadForms();

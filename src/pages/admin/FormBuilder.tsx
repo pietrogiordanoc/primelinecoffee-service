@@ -434,12 +434,12 @@ function FieldBuilderModal({ form, isOpen, onClose, isDemoMode }: FieldBuilderMo
       setLoading(true);
       
       if (isDemoMode) {
-        // Modo demo: cargar desde store
+        // Demo mode: load from store
         const formFieldsForForm = formFields.filter(f => f.form_id === form.id)
           .sort((a, b) => a.order_index - b.order_index);
         setFields(formFieldsForForm);
       } else {
-        // Modo producción: cargar desde Supabase
+        // Production mode: load from Supabase
         const { data, error } = await supabase
           .from('form_fields')
           .select('*')
@@ -602,11 +602,11 @@ function AddFieldForm({ formId, orderIndex, onSuccess, onCancel, isDemoMode }: A
       };
 
       if (isDemoMode) {
-        // Modo demo: agregar al store
+        // Demo mode: add to store
         setFormFields([...formFields, fieldData]);
         onSuccess();
       } else {
-        // Modo producción: guardar en Supabase
+        // Production mode: save to Supabase
         const { error } = await supabase.from('form_fields').insert([fieldData]);
         if (error) throw error;
         onSuccess();
@@ -725,12 +725,12 @@ function FormPreviewModal({ form, isOpen, onClose, isDemoMode }: FormPreviewModa
       setLoading(true);
       
       if (isDemoMode) {
-        // Modo demo: cargar desde store
+        // Demo mode: load from store
         const formFieldsForForm = formFields.filter(f => f.form_id === form.id)
           .sort((a, b) => a.order_index - b.order_index);
         setFields(formFieldsForForm);
       } else {
-        // Modo producción: cargar desde Supabase
+        // Production mode: load from Supabase
         const { data, error } = await supabase
           .from('form_fields')
           .select('*')

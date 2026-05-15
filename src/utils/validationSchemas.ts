@@ -2,27 +2,27 @@ import { z } from 'zod';
 
 // Auth schemas
 export const loginSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  email: z.string().email('Invalid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 export const registerSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-  full_name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  email: z.string().email('Invalid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  full_name: z.string().min(2, 'Name must be at least 2 characters'),
   phone: z.string().optional(),
   role: z.enum(['super_admin', 'admin', 'technician']),
 });
 
 // Company schemas
 export const companySchema = z.object({
-  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
   postal_code: z.string().optional(),
   contact_name: z.string().optional(),
-  contact_email: z.string().email('Email inválido').optional().or(z.literal('')),
+  contact_email: z.string().email('Invalid email').optional().or(z.literal('')),
   contact_phone: z.string().optional(),
   notes: z.string().optional(),
   is_active: z.boolean().default(true),
@@ -39,7 +39,7 @@ export const technicianSchema = z.object({
 
 // Form schemas
 export const dynamicFormSchema = z.object({
-  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
   description: z.string().optional(),
   category: z.string().optional(),
   is_active: z.boolean().default(true),
@@ -47,8 +47,8 @@ export const dynamicFormSchema = z.object({
 
 export const formFieldSchema = z.object({
   form_id: z.string().uuid(),
-  field_name: z.string().min(1, 'El nombre del campo es requerido'),
-  field_label: z.string().min(1, 'La etiqueta es requerida'),
+  field_name: z.string().min(1, 'Field name is required'),
+  field_label: z.string().min(1, 'Label is required'),
   field_type: z.enum([
     'text',
     'textarea',

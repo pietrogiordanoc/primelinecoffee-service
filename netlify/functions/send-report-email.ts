@@ -117,7 +117,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: 'Prime Line Coffee Service <no-reply@primelinecoffee.com>',
       to: recipientEmails,
-      subject: `Nuevo Reporte de Servicio - ${report.company.name}`,
+      subject: `New Service Report - ${report.company.name}`,
       html: emailHtml,
       attachments:
         attachments.length > 0
@@ -137,7 +137,7 @@ const handler: Handler = async (event: HandlerEvent) => {
       {
         report_id: reportId,
         recipient_email: recipientEmails.join(', '),
-        subject: `Nuevo Reporte de Servicio - ${report.company.name}`,
+        subject: `New Service Report - ${report.company.name}`,
         status: 'sent',
         resend_id: emailData?.id,
       },
@@ -183,15 +183,15 @@ function generateEmailHtml(report: any, photoLinks: string[]): string {
   const photoLinksHtml =
     photoLinks.length > 0
       ? `
-    <h3 style="color: #1f2937; margin-top: 24px;">Enlaces de Descarga</h3>
-    <p style="color: #6b7280;">Las fotos son muy grandes para enviarlas por email. Usa los siguientes enlaces para descargarlas (válidos por 7 días):</p>
+    <h3 style="color: #1f2937; margin-top: 24px;">Photo Download Links</h3>
+    <p style="color: #6b7280;">Photos are too large to attach to the email. Use the following links to download them (valid for 7 days):</p>
     <ul style="list-style: none; padding: 0;">
       ${photoLinks
         .map(
           (link, index) => `
         <li style="margin: 8px 0;">
           <a href="${link}" style="color: #2563eb; text-decoration: none;">
-            📸 Foto ${index + 1} - Descargar
+            📸 Photo ${index + 1} - Download
           </a>
         </li>
       `
@@ -207,7 +207,7 @@ function generateEmailHtml(report: any, photoLinks: string[]): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reporte de Servicio</title>
+  <title>Service Report</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
@@ -217,51 +217,44 @@ function generateEmailHtml(report: any, photoLinks: string[]): string {
         ☕ Prime Line Coffee Service
       </h1>
       <p style="color: #e0f2fe; margin: 8px 0 0 0;">
-        Nuevo Reporte de Servicio Técnico
-      </p>
-    </div>
-
-    <!-- Content -->
-    <div style="padding: 32px;">
-      <!-- Summary -->
-      <div style="background-color: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 16px; margin-bottom: 24px;">
+        New Technical Service Report
         <h2 style="margin: 0 0 12px 0; color: #0369a1; font-size: 18px;">
-          📋 Resumen del Reporte
+          📋 Report Summary
         </h2>
         <p style="margin: 4px 0; color: #374151;">
-          <strong>Empresa:</strong> ${report.company.name}
+          <strong>Company:</strong> ${report.company.name}
         </p>
         <p style="margin: 4px 0; color: #374151;">
-          <strong>Técnico:</strong> ${report.technician.user.full_name}
+          <strong>Technician:</strong> ${report.technician.user.full_name}
         </p>
         <p style="margin: 4px 0; color: #374151;">
-          <strong>Formulario:</strong> ${report.form.name}
+          <strong>Form:</strong> ${report.form.name}
         </p>
         <p style="margin: 4px 0; color: #374151;">
-          <strong>Fecha:</strong> ${new Date(report.submitted_at).toLocaleString('es-ES')}
+          <strong>Date:</strong> ${new Date(report.submitted_at).toLocaleString('en-US')}
         </p>
       </div>
 
       <!-- Company Details -->
       <h3 style="color: #1f2937; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
-        🏢 Datos de la Empresa
+        🏢 Company Details
       </h3>
       <p style="color: #4b5563; margin: 8px 0;">
-        <strong>Contacto:</strong> ${report.company.contact_name || 'N/A'}
+        <strong>Contact:</strong> ${report.company.contact_name || 'N/A'}
       </p>
       <p style="color: #4b5563; margin: 8px 0;">
         <strong>Email:</strong> ${report.company.contact_email || 'N/A'}
       </p>
       <p style="color: #4b5563; margin: 8px 0;">
-        <strong>Teléfono:</strong> ${report.company.contact_phone || 'N/A'}
+        <strong>Phone:</strong> ${report.company.contact_phone || 'N/A'}
       </p>
       <p style="color: #4b5563; margin: 8px 0;">
-        <strong>Dirección:</strong> ${report.company.address || 'N/A'}
+        <strong>Address:</strong> ${report.company.address || 'N/A'}
       </p>
 
       <!-- Form Data -->
       <h3 style="color: #1f2937; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 24px;">
-        📝 Información del Servicio
+        📝 Service Information
       </h3>
       <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
         ${formDataHtml}
@@ -273,7 +266,7 @@ function generateEmailHtml(report: any, photoLinks: string[]): string {
         report.notes
           ? `
         <h3 style="color: #1f2937; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 24px;">
-          💬 Notas Adicionales
+          💬 Additional Notes
         </h3>
         <p style="color: #4b5563; padding: 12px; background-color: #f9fafb; border-radius: 6px;">
           ${report.notes}
@@ -286,10 +279,10 @@ function generateEmailHtml(report: any, photoLinks: string[]): string {
     <!-- Footer -->
     <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
       <p style="color: #6b7280; margin: 0; font-size: 14px;">
-        Este es un correo automático generado por el sistema de gestión de Prime Line Coffee Service
+        This is an automated email generated by the Prime Line Coffee Service management system
       </p>
       <p style="color: #9ca3af; margin: 8px 0 0 0; font-size: 12px;">
-        © ${new Date().getFullYear()} Prime Line Coffee Service. Todos los derechos reservados.
+        © ${new Date().getFullYear()} Prime Line Coffee Service. All rights reserved.
       </p>
     </div>
   </div>

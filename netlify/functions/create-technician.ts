@@ -19,7 +19,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     if (!full_name || !email || !password) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Faltan campos requeridos: full_name, email, password' }),
+        body: JSON.stringify({ error: 'Missing required fields: full_name, email, password' }),
       };
     }
 
@@ -58,7 +58,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     console.error('Error creating technician:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Error al crear técnico' }),
+      body: JSON.stringify({ error: error.message || 'Error creating technician' }),
     };
   }
 };

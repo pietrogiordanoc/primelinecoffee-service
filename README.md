@@ -1,24 +1,24 @@
-# Prime Line Coffee Service - Sistema de Gestión de Servicios Técnicos
+# Prime Line Coffee Service - Technical Service Management System
 
-Sistema completo de gestión de servicios técnicos desarrollado con React, TypeScript, Tailwind CSS, Supabase y Netlify.
+Complete technical service management system built with React, TypeScript, Tailwind CSS, Supabase, and Netlify.
 
-## 🚀 Características Principales
+## 🚀 Main Features
 
-- **🔐 Autenticación Multi-Rol**: Super Admin, Admin y Técnico
-- **👥 Gestión de Técnicos**: CRUD completo de técnicos con asignación a empresas
-- **🏢 Gestión de Empresas**: Administración de empresas clientes
-- **📋 Form Builder Dinámico**: Crea formularios personalizados sin programar
-- **📱 Interfaz Móvil**: Optimizada para técnicos en campo
-- **📸 Optimización de Imágenes**: Compresión automática antes de enviar
-- **📧 Notificaciones Email**: Sistema automático con Resend
-- **📊 Dashboard Analytics**: KPIs y estadísticas en tiempo real
-- **🗄️ Base de Datos Segura**: Supabase con RLS policies
-- **☁️ Almacenamiento**: Supabase Storage para archivos
+- **🔐 Multi-Role Authentication**: Super Admin, Admin, and Technician
+- **👥 Technician Management**: Complete CRUD for technicians with company assignment
+- **🏢 Company Management**: Administration of client companies
+- **📋 Dynamic Form Builder**: Create custom forms without coding
+- **📱 Mobile Interface**: Optimized for field technicians
+- **📸 Image Optimization**: Automatic compression before sending
+- **📧 Email Notifications**: Automatic system with Resend
+- **📊 Dashboard Analytics**: KPIs and real-time statistics
+- **🗄️ Secure Database**: Supabase with RLS policies
+- **☁️ Storage**: Supabase Storage for files
 
-## 🛠️ Stack Tecnológico
+## 🛠️ Technology Stack
 
 ### Frontend
-- **React 18** con TypeScript
+- **React 18** with TypeScript
 - **Vite** - Build tool
 - **Tailwind CSS** - Styling
 - **Zustand** - State management
@@ -99,156 +99,156 @@ cd ../..
 
 #### 3.2 Ejecutar el Schema SQL
 
-1. Abre el SQL Editor en Supabase
-2. Copia el contenido de `supabase/schema.sql`
-3. Ejecuta el script
-4. Verifica que todas las tablas y políticas se crearon correctamente
+1. Open SQL Editor in Supabase
+2. Copy content from `supabase/schema.sql`
+3. Run the script
+4. Verify all tables and policies were created correctly
 
-#### 3.3 Crear Bucket de Storage
+#### 3.3 Create Storage Bucket
 
-1. Ve a Storage en Supabase
-2. Verifica que el bucket `service-reports` existe
-3. Configura las políticas de acceso (ya están en el schema)
+1. Go to Storage in Supabase
+2. Verify that the `service-reports` bucket exists
+3. Configure access policies (already in schema)
 
-### 4. Configurar Variables de Entorno
+### 4. Configure Environment Variables
 
-Crea un archivo `.env` en la raíz del proyecto:
+Create a `.env` file in the project root:
 
 ```env
 # Supabase
-VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
-VITE_SUPABASE_ANON_KEY=tu_anon_key
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
 
 # App
 VITE_APP_NAME=Prime Line Coffee Service
-VITE_APP_URL=https://tu-app.netlify.app
+VITE_APP_URL=https://your-app.netlify.app
 
-# Server-side only (para Netlify Functions)
-SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
-RESEND_API_KEY=re_tu_api_key
+# Server-side only (for Netlify Functions)
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+RESEND_API_KEY=re_your_api_key
 ```
 
-### 5. Configurar Resend
+### 5. Configure Resend
 
-1. Crea una cuenta en [resend.com](https://resend.com)
-2. Verifica tu dominio de email
-3. Genera una API key
-4. Actualiza `RESEND_API_KEY` en `.env`
+1. Create account at [resend.com](https://resend.com)
+2. Verify your email domain
+3. Generate an API key
+4. Update `RESEND_API_KEY` in `.env`
 
-### 6. Desarrollo Local
+### 6. Local Development
 
 ```bash
-# Iniciar servidor de desarrollo
+# Start development server
 npm run dev
 
-# En otra terminal, iniciar Netlify Functions
+# In another terminal, start Netlify Functions
 netlify dev
 ```
 
-La aplicación estará disponible en `http://localhost:3000` (o el puerto que asigne Vite).
+The app will be available at `http://localhost:3000` (or the port Vite assigns).
 
-## 🚀 Deployment a Netlify
+## 🚀 Deploy to Netlify
 
-### 1. Conectar Repositorio
+### 1. Connect Repository
 
-1. Sube el código a GitHub
-2. Ve a [netlify.com](https://netlify.com)
-3. Click en "Add new site" > "Import an existing project"
-4. Conecta tu repositorio de GitHub
+1. Push code to GitHub
+2. Go to [netlify.com](https://netlify.com)
+3. Click "Add new site" > "Import an existing project"
+4. Connect your GitHub repository
 
-### 2. Configurar Build Settings
+### 2. Configure Build Settings
 
-Netlify debería detectar automáticamente la configuración de `netlify.toml`, pero verifica:
+Netlify should automatically detect the `netlify.toml` configuration, but verify:
 
 - **Build command**: `npm run build`
 - **Publish directory**: `dist`
 - **Functions directory**: `netlify/functions`
 
-### 3. Configurar Variables de Entorno en Netlify
+### 3. Configure Environment Variables in Netlify
 
-Ve a Site Settings > Environment Variables y agrega:
+Go to Site Settings > Environment Variables and add:
 
 ```
-VITE_SUPABASE_URL=tu_url
-VITE_SUPABASE_ANON_KEY=tu_anon_key
+VITE_SUPABASE_URL=your_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
 VITE_APP_NAME=Prime Line Coffee Service
-VITE_APP_URL=https://tu-app.netlify.app
-SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
-RESEND_API_KEY=tu_resend_key
+VITE_APP_URL=https://your-app.netlify.app
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+RESEND_API_KEY=your_resend_key
 ```
 
 ### 4. Deploy
 
-1. Click en "Deploy site"
-2. Espera a que termine el build
-3. ¡Tu aplicación está en línea! 🎉
+1. Click "Deploy site"
+2. Wait for the build to complete
+3. Your app is live! 🎉
 
-## 👤 Crear el Primer Usuario Super Admin
+## 👤 Create First Super Admin User
 
-Después del deployment, necesitas crear el primer usuario manualmente en Supabase:
+After deployment, create the first user manually in Supabase:
 
-1. Ve a Authentication en Supabase
-2. Click en "Add user" > "Create new user"
-3. Ingresa email y password
-4. Ve a Table Editor > `users`
-5. Encuentra el usuario recién creado
-6. Cambia el campo `role` a `super_admin`
+1. Go to Authentication in Supabase
+2. Click "Add user" > "Create new user"
+3. Enter email and password
+4. Go to Table Editor > `users`
+5. Find the newly created user
+6. Change the `role` field to `super_admin`
 
-Ahora puedes iniciar sesión con ese usuario.
+Now you can log in with that user.
 
-## 📖 Guía de Uso
+## 📖 Usage Guide
 
-### Para Super Admins / Admins
+### For Super Admins / Admins
 
 #### Dashboard
-- Ver estadísticas generales del sistema
-- Revisar reportes recientes
-- Monitorear actividad
+- View general system statistics
+- Review recent reports
+- Monitor activity
 
-#### Gestión de Técnicos
-1. Ir a "Técnicos"
-2. Click en "Agregar Técnico"
-3. Llenar formulario con datos del técnico
-4. El técnico recibirá sus credenciales
+#### Technician Management
+1. Go to "Technicians"
+2. Click "Add Technician"
+3. Fill form with technician data
+4. Technician will receive credentials
 
-#### Gestión de Empresas
-1. Ir a "Empresas"
-2. Click en "Agregar Empresa"
-3. Completar información de la empresa cliente
-4. Asignar técnicos a empresas
+#### Company Management
+1. Go to "Companies"
+2. Click "Add Company"
+3. Complete client company information
+4. Assign technicians to companies
 
-#### Constructor de Formularios
-1. Ir a "Formularios"
-2. Click en "Nuevo Formulario"
-3. Dar nombre y descripción
-4. Click en "Ver campos" para agregar campos:
-   - Texto corto/largo
-   - Números, fechas, emails
-   - Selección, radio, checkbox
-   - Firma, archivos
-5. Los técnicos verán estos formularios en su app móvil
+#### Form Builder
+1. Go to "Forms"
+2. Click "New Form"
+3. Enter name and description
+4. Click "View fields" to add fields:
+   - Short/long text
+   - Numbers, dates, emails
+   - Selection, radio, checkbox
+   - Signature, files
+5. Technicians will see these forms in their mobile app
 
-#### Revisar Reportes
-1. Ir a "Reportes"
-2. Usar filtros para buscar
-3. Ver detalles de cada reporte
-4. Descargar PDF
+#### Review Reports
+1. Go to "Reports"
+2. Use filters to search
+3. View details of each report
+4. Download PDF
 
-### Para Técnicos (Mobile)
+### For Technicians (Mobile)
 
-#### Llenar un Reporte
-1. Abrir la app en el móvil
-2. Seleccionar empresa asignada
-3. Seleccionar tipo de servicio (formulario)
-4. Llenar todos los campos requeridos
-5. Tomar/subir fotos del servicio
-6. Click en "Enviar Reporte"
-7. El sistema enviará email automático
+#### Fill a Report
+1. Open app on mobile
+2. Select assigned company
+3. Select service type (form)
+4. Fill all required fields
+5. Take/upload service photos
+6. Click "Submit Report"
+7. System sends automatic email
 
-#### Ver Historial
-- Tap en "Historial" en la barra inferior
-- Ver todos los reportes enviados
-- Revisar estado de cada reporte
+#### View History
+- Tap "History" in bottom navigation
+- View all submitted reports
+- Review status of each report
 
 ## 🔐 Seguridad
 

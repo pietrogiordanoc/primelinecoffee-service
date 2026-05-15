@@ -1,40 +1,40 @@
-# Guía de Deployment - Prime Line Coffee Service
+# Deployment Guide - Prime Line Coffee Service
 
-## Pre-requisitos Completados
+## Completed Prerequisites
 
-✅ Código fuente completo
-✅ Configuración de Vite, TypeScript, Tailwind
-✅ Netlify Functions configuradas
-✅ Schema SQL de Supabase
-✅ Sistema de optimización de imágenes
-✅ Templates de email
+✅ Complete source code
+✅ Vite, TypeScript, Tailwind configuration
+✅ Netlify Functions configured
+✅ Supabase SQL schema
+✅ Image optimization system
+✅ Email templates
 
-## Pasos de Deployment
+## Deployment Steps
 
-### 1. Preparación de Supabase
+### 1. Supabase Setup
 
-#### a) Crear Proyecto
-1. Ir a https://supabase.com
-2. Click en "New Project"
-3. Nombre: `prime-line-coffee`
-4. Password de base de datos: [usar un password fuerte]
-5. Region: Seleccionar la más cercana
-6. Click en "Create new project"
-7. Esperar a que se complete la creación
+#### a) Create Project
+1. Go to https://supabase.com
+2. Click "New Project"
+3. Name: `prime-line-coffee`
+4. Database password: [use a strong password]
+5. Region: Select the closest one
+6. Click "Create new project"
+7. Wait for creation to complete
 
-#### b) Obtener Credenciales
-Ir a Project Settings > API:
-- `Project URL`: Copiar URL
-- `anon public`: Copiar API Key (anon key)
-- `service_role`: Copiar API Key (service role) - ⚠️ MANTENER SECRETO
+#### b) Get Credentials
+Go to Project Settings > API:
+- `Project URL`: Copy URL
+- `anon public`: Copy API Key (anon key)
+- `service_role`: Copy API Key (service role) - ⚠️ KEEP SECRET
 
-#### c) Ejecutar Schema SQL
-1. Ir a SQL Editor
-2. Click en "New Query"
-3. Copiar TODO el contenido de `supabase/schema.sql`
-4. Click en "Run"
-5. Verificar que no haya errores
-6. Ir a Table Editor y verificar que todas las tablas existen:
+#### c) Run SQL Schema
+1. Go to SQL Editor
+2. Click "New Query"
+3. Copy ALL content from `supabase/schema.sql`
+4. Click "Run"
+5. Verify there are no errors
+6. Go to Table Editor and verify all tables exist:
    - users
    - companies
    - technicians
@@ -47,78 +47,78 @@ Ir a Project Settings > API:
    - email_logs
    - system_settings
 
-#### d) Verificar Storage
-1. Ir a Storage
-2. Verificar que existe el bucket `service-reports`
-3. Si no existe, crearlo manualmente
-4. Las políticas ya están aplicadas por el SQL
+#### d) Verify Storage
+1. Go to Storage
+2. Verify that the `service-reports` bucket exists
+3. If it doesn't exist, create it manually
+4. Policies are already applied by the SQL
 
-### 2. Configuración de Resend
+### 2. Resend Configuration
 
-#### a) Crear Cuenta
-1. Ir a https://resend.com
-2. Crear cuenta gratuita
-3. Verificar email
+#### a) Create Account
+1. Go to https://resend.com
+2. Create a free account
+3. Verify email
 
-#### b) Configurar Dominio (Opcional pero Recomendado)
-1. Ir a Domains
-2. Click en "Add Domain"
-3. Agregar tu dominio (ej: primelinecoffee.com)
-4. Configurar registros DNS según instrucciones
-5. Esperar verificación
+#### b) Configure Domain (Optional but Recommended)
+1. Go to Domains
+2. Click "Add Domain"
+3. Add your domain (e.g., primelinecoffee.com)
+4. Configure DNS records as instructed
+5. Wait for verification
 
-O usar el dominio de prueba: `onboarding.resend.dev`
+Or use the test domain: `onboarding.resend.dev`
 
-#### c) Obtener API Key
-1. Ir a API Keys
-2. Click en "Create API Key"
-3. Nombre: "Prime Line Production"
-4. Copiar la API Key - ⚠️ GUARDAR DE FORMA SEGURA
+#### c) Get API Key
+1. Go to API Keys
+2. Click "Create API Key"
+3. Name: "Prime Line Production"
+4. Copy the API Key - ⚠️ SAVE SECURELY
 
-### 3. Preparar Código para Deploy
+### 3. Prepare Code for Deploy
 
-#### a) Crear Repositorio Git
+#### a) Create Git Repository
 ```bash
 git init
 git add .
 git commit -m "Initial commit - Prime Line Coffee Service"
 ```
 
-#### b) Subir a GitHub
-1. Ir a https://github.com
-2. Click en "New Repository"
-3. Nombre: `prime-line-coffee-service`
-4. Público o Privado (recomendado)
-5. NO inicializar con README
-6. Click en "Create repository"
+#### b) Push to GitHub
+1. Go to https://github.com
+2. Click "New Repository"
+3. Name: `prime-line-coffee-service`
+4. Public or Private (recommended)
+5. Do NOT initialize with README
+6. Click "Create repository"
 
 ```bash
-git remote add origin https://github.com/tu-usuario/prime-line-coffee-service.git
+git remote add origin https://github.com/your-username/prime-line-coffee-service.git
 git branch -M main
 git push -u origin main
 ```
 
-### 4. Deploy en Netlify
+### 4. Deploy on Netlify
 
-#### a) Conectar Proyecto
-1. Ir a https://netlify.com
-2. Login con GitHub
-3. Click en "Add new site" > "Import an existing project"
-4. Click en "GitHub"
-5. Autorizar Netlify
-6. Buscar tu repositorio: `prime-line-coffee-service`
-7. Click en el repositorio
+#### a) Connect Project
+1. Go to https://netlify.com
+2. Login with GitHub
+3. Click "Add new site" > "Import an existing project"
+4. Click "GitHub"
+5. Authorize Netlify
+6. Find your repository: `prime-line-coffee-service`
+7. Click on the repository
 
-#### b) Configurar Build Settings
-Netlify debería auto-detectar:
+#### b) Configure Build Settings
+Netlify should auto-detect:
 - **Build command**: `npm run build`
 - **Publish directory**: `dist`
 - **Functions directory**: `netlify/functions`
 
-Si no lo hace, configurar manualmente.
+If not, configure manually.
 
-#### c) Agregar Variables de Entorno
-Click en "Add environment variables":
+#### c) Add Environment Variables
+Click "Add environment variables":
 
 ```
 VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
@@ -129,44 +129,44 @@ SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key_aqui
 RESEND_API_KEY=re_tu_api_key_aqui
 ```
 
-⚠️ **IMPORTANTE**: Usa las credenciales reales de Supabase y Resend.
+⚠️ **IMPORTANT**: Use the actual credentials from Supabase and Resend.
 
 #### d) Deploy
-1. Click en "Deploy site"
-2. Esperar 2-5 minutos
-3. Si hay errores, revisar logs
-4. Una vez completado, obtendrás una URL tipo: `https://random-name.netlify.app`
+1. Click "Deploy site"
+2. Wait 2-5 minutes
+3. If there are errors, check logs
+4. Once complete, you will get a URL like: `https://random-name.netlify.app`
 
-#### e) Configurar Dominio Personalizado (Opcional)
-1. Ir a "Domain settings"
-2. Click en "Add custom domain"
-3. Agregar tu dominio: `primelinecoffee.com`
-4. Seguir instrucciones para configurar DNS
-5. Netlify proveerá certificado SSL automático
+#### e) Configure Custom Domain (Optional)
+1. Go to "Domain settings"
+2. Click "Add custom domain"
+3. Add your domain: `primelinecoffee.com`
+4. Follow instructions to configure DNS
+5. Netlify will automatically provide SSL certificate
 
-### 5. Configuración Post-Deployment
+### 5. Post-Deployment Configuration
 
-#### a) Actualizar URL en Variables
-1. Ir a Site settings > Environment variables
-2. Editar `VITE_APP_URL`
-3. Poner la URL final de tu sitio
-4. Click en "Save"
+#### a) Update URL in Variables
+1. Go to Site settings > Environment variables
+2. Edit `VITE_APP_URL`
+3. Set the final URL of your site
+4. Click "Save"
 5. Re-deploy: Deploys > Trigger deploy > Deploy site
 
-#### b) Crear Super Admin
-1. Ir a tu proyecto Supabase
+#### b) Create Super Admin
+1. Go to your Supabase project
 2. Authentication > Users
-3. Click en "Add user" > "Create new user"
-4. Email: admin@primelinecoffee.com (o el que prefieras)
-5. Password: [crear password seguro]
-6. Click en "Create user"
-7. Ir a Table Editor > users
-8. Buscar el usuario recién creado
-9. Click para editar
-10. Cambiar `role` a `super_admin`
-11. Click en "Save"
+3. Click "Add user" > "Create new user"
+4. Email: admin@primelinecoffee.com (or your preference)
+5. Password: [create a secure password]
+6. Click "Create user"
+7. Go to Table Editor > users
+8. Find the newly created user
+9. Click to edit
+10. Change `role` to `super_admin`
+11. Click "Save"
 
-#### c) Configurar Emails de Notificación
+#### c) Configure Notification Emails
 ```sql
 -- Ejecutar en Supabase SQL Editor
 UPDATE system_settings
@@ -180,31 +180,31 @@ SET setting_value = jsonb_build_object(
 WHERE setting_key = 'email_notifications';
 ```
 
-### 6. Verificación del Sistema
+### 6. System Verification
 
-#### a) Test de Login
-1. Ir a tu sitio: `https://tu-sitio.netlify.app`
-2. Intentar login con el super admin creado
-3. Verificar que redirija al dashboard admin
+#### a) Login Test
+1. Go to your site: `https://your-site.netlify.app`
+2. Try logging in with the super admin created
+3. Verify it redirects to the admin dashboard
 
-#### b) Crear Datos de Prueba
+#### b) Create Test Data
 
-**Crear una Empresa**:
-1. Login como admin
-2. Ir a "Empresas"
-3. Click en "Agregar Empresa"
-4. Llenar datos de prueba
-5. Guardar
+**Create a Company**:
+1. Login as admin
+2. Go to "Companies"
+3. Click "Add Company"
+4. Fill in test data
+5. Save
 
-**Crear un Técnico**:
-1. Ir a "Técnicos"
-2. Click en "Agregar Técnico"
-3. Email: tecnico@test.com
+**Create a Technician**:
+1. Go to "Technicians"
+2. Click "Add Technician"
+3. Email: technician@test.com
 4. Password: Test123456
-5. Nombre: Juan Técnico
-6. Guardar
+5. Name: John Technician
+6. Save
 
-**Asignar Técnico a Empresa**:
+**Assign Technician to Company**:
 ```sql
 -- En Supabase SQL Editor
 INSERT INTO technician_companies (technician_id, company_id)
@@ -216,88 +216,88 @@ CROSS JOIN companies c
 LIMIT 1;
 ```
 
-**Crear un Formulario**:
-1. Ir a "Formularios"
-2. Click en "Nuevo Formulario"
-3. Nombre: "Mantenimiento de Máquinas"
-4. Categoría: "Mantenimiento"
-5. Guardar
-6. Click en "Ver campos"
-7. Agregar campos:
-   - Nombre cliente (text)
-   - Modelo máquina (text)
-   - Descripción servicio (textarea)
-   - Estado (select con opciones: Bueno, Regular, Malo)
-8. Guardar cada campo
+**Create a Form**:
+1. Go to "Forms"
+2. Click "New Form"
+3. Name: "Machine Maintenance"
+4. Category: "Maintenance"
+5. Save
+6. Click "View fields"
+7. Add fields:
+   - Customer name (text)
+   - Machine model (text)
+   - Service description (textarea)
+   - Status (select with options: Good, Fair, Poor)
+8. Save each field
 
-#### c) Test de Reporte desde Móvil
-1. Abrir el sitio en un móvil (o usar Chrome DevTools en modo responsive)
-2. Login con el técnico: tecnico@test.com
-3. Seleccionar la empresa
-4. Seleccionar el formulario
-5. Llenar datos
-6. Tomar/subir una foto de prueba
-7. Enviar reporte
-8. Verificar:
-   - Reporte aparece en "Historial" del técnico
-   - Reporte aparece en "Reportes" del admin
-   - Email llegó a los destinatarios configurados
+#### c) Mobile Report Test
+1. Open the site on a mobile device (or use Chrome DevTools in responsive mode)
+2. Login as the technician: technician@test.com
+3. Select the company
+4. Select the form
+5. Fill in data
+6. Take/upload a test photo
+7. Submit report
+8. Verify:
+   - Report appears in technician "History"
+   - Report appears in admin "Reports"
+   - Email arrived at configured recipients
 
-### 7. Monitoreo y Logs
+### 7. Monitoring and Logs
 
 #### Netlify Functions Logs
-1. Ir a Functions
-2. Click en `send-report-email`
-3. Ver logs de ejecución
-4. Verificar que no haya errores
+1. Go to Functions
+2. Click on `send-report-email`
+3. View execution logs
+4. Verify no errors
 
 #### Supabase Logs
-1. Ir a Logs
-2. Revisar queries
-3. Verificar que no haya errores de RLS
+1. Go to Logs
+2. Review queries
+3. Verify no RLS errors
 
-### 8. Seguridad Post-Deploy
+### 8. Post-Deploy Security
 
-✅ Verificar que las variables de entorno estén configuradas
-✅ NO commitear archivos `.env` a Git
-✅ Service Role Key NUNCA en el frontend
-✅ URLs de producción configuradas correctamente
-✅ HTTPS habilitado (Netlify lo hace automático)
-✅ RLS policies activas en Supabase
+✅ Verify environment variables are configured
+✅ Do NOT commit `.env` files to Git
+✅ Service Role Key NEVER in the frontend
+✅ Production URLs correctly configured
+✅ HTTPS enabled (Netlify does this automatically)
+✅ RLS policies active in Supabase
 
-## Problemas Comunes y Soluciones
+## Common Issues and Solutions
 
 ### "Missing environment variables"
-- Verificar variables en Netlify
-- Re-deploy después de agregar variables
+- Verify variables in Netlify
+- Re-deploy after adding variables
 
-### Email no se envía
-- Verificar RESEND_API_KEY
-- Ver logs en Netlify Functions
-- Verificar dominio verificado en Resend
+### Email not sending
+- Verify RESEND_API_KEY
+- View logs in Netlify Functions
+- Verify verified domain in Resend
 
-### Errores de RLS
-- Verificar que el schema SQL se ejecutó completamente
-- Verificar rol del usuario en tabla `users`
+### RLS Errors
+- Verify that the SQL schema executed completely
+- Verify user role in `users` table
 
-### Fotos no se suben
-- Verificar Storage policies en Supabase
-- Verificar que el bucket existe
-- Ver logs en consola del navegador
+### Photos not uploading
+- Verify Storage policies in Supabase
+- Verify that the bucket exists
+- View logs in browser console
 
-## Mantenimiento
+## Maintenance
 
-### Actualizar Código
+### Update Code
 ```bash
 git add .
-git commit -m "Descripción del cambio"
+git commit -m "Description of change"
 git push origin main
 ```
 
-Netlify auto-desplegará los cambios.
+Netlify will automatically deploy the changes.
 
-### Backup de Base de Datos
-Supabase hace backups automáticos, pero puedes hacer manuales:
+### Database Backup
+Supabase makes automatic backups, but you can make manual ones:
 1. Ir a Database > Backups
 2. Click en "Create backup"
 
@@ -310,24 +310,24 @@ git commit -m "Update dependencies"
 git push
 ```
 
-## Checklist Final
+## Final Checklist
 
-- [ ] Supabase proyecto creado y schema ejecutado
-- [ ] Resend configurado y API key obtenida
-- [ ] Código subido a GitHub
-- [ ] Netlify conectado y desplegado
-- [ ] Variables de entorno configuradas
-- [ ] Super admin creado
-- [ ] Empresa de prueba creada
-- [ ] Técnico de prueba creado
-- [ ] Formulario de prueba creado
-- [ ] Reporte de prueba enviado exitosamente
-- [ ] Email recibido correctamente
-- [ ] Dominio personalizado configurado (opcional)
-- [ ] SSL activo (verificar candado en navegador)
+- [ ] Supabase project created and schema executed
+- [ ] Resend configured and API key obtained
+- [ ] Code pushed to GitHub
+- [ ] Netlify connected and deployed
+- [ ] Environment variables configured
+- [ ] Super admin created
+- [ ] Test company created
+- [ ] Test technician created
+- [ ] Test form created
+- [ ] Test report sent successfully
+- [ ] Email received correctly
+- [ ] Custom domain configured (optional)
+- [ ] SSL active (verify lock icon in browser)
 
-## ¡Deployment Completado! 🎉
+## Deployment Complete! 🎉
 
-Tu sistema está en producción y listo para usar.
+Your system is in production and ready to use.
 
-Para soporte: admin@primelinecoffee.com
+For support: admin@primelinecoffee.com

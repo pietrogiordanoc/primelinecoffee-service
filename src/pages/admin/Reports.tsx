@@ -60,8 +60,8 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reportes de Servicio</h1>
-          <p className="text-gray-600 mt-1">Revisa y gestiona los reportes técnicos</p>
+          <h1 className="text-2xl font-bold text-gray-900">Service Reports</h1>
+          <p className="text-gray-600 mt-1">Review and manage technical reports</p>
         </div>
       </div>
 
@@ -74,7 +74,7 @@ export default function ReportsPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Buscar por empresa, técnico o formulario..."
+                  placeholder="Search by company, technician or form..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -85,11 +85,11 @@ export default function ReportsPage() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               options={[
-                { value: '', label: 'Todos los estados' },
-                { value: 'draft', label: 'Borrador' },
-                { value: 'submitted', label: 'Enviado' },
-                { value: 'reviewed', label: 'Revisado' },
-                { value: 'completed', label: 'Completado' },
+                { value: '', label: 'All statuses' },
+                { value: 'draft', label: 'Draft' },
+                { value: 'submitted', label: 'Submitted' },
+                { value: 'reviewed', label: 'Reviewed' },
+                { value: 'completed', label: 'Completed' },
               ]}
             />
           </div>
@@ -103,25 +103,25 @@ export default function ReportsPage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Empresa
+                  Company
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Técnico
+                  Technician
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Formulario
+                  Form
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
+                  Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Fotos
+                  Photos
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Fecha
+                  Date
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -129,7 +129,7 @@ export default function ReportsPage() {
               {filteredReports.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    No se encontraron reportes
+                      No reports found
                   </td>
                 </tr>
               ) : (
@@ -172,13 +172,13 @@ export default function ReportsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           className="text-primary-600 hover:text-primary-900"
-                          title="Ver detalles"
+                          title="View details"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           className="text-gray-600 hover:text-gray-900"
-                          title="Descargar PDF"
+                          title="Download PDF"
                         >
                           <Download className="w-4 h-4" />
                         </button>

@@ -270,14 +270,14 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
         });
 
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Error al crear técnico');
+        if (!response.ok) throw new Error(result.error || 'Error creating technician');
       }
 
       reset();
       onClose();
       onSuccess();
     } catch (err: any) {
-      setError(err.message || 'Error al guardar técnico');
+      setError(err.message || 'Error saving technician');
     } finally {
       setLoading(false);
     }
@@ -287,7 +287,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={technician ? 'Editar Técnico' : 'Agregar Técnico'}
+      title={technician ? 'Edit Technician' : 'Add Technician'}
       size="md"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -299,7 +299,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
 
         <Input
           {...register('full_name')}
-          label="Nombre Completo"
+          label="Full Name"
           error={errors.full_name?.message}
           required
         />
@@ -309,7 +309,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
             <Input
               {...register('email')}
               type="email"
-              label="Correo Electrónico"
+              label="Email"
               error={errors.email?.message}
               required
             />
@@ -317,7 +317,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
             <Input
               {...register('password')}
               type="password"
-              label="Contraseña"
+              label="Password"
               error={errors.password?.message}
               required
             />
@@ -326,16 +326,16 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
 
         <Input
           {...register('phone')}
-          label="Teléfono"
+          label="Phone"
           error={errors.phone?.message}
         />
 
         <div className="flex justify-end gap-3 pt-4">
           <Button type="button" variant="secondary" onClick={onClose}>
-            Cancelar
+            Cancel
           </Button>
           <Button type="submit" loading={loading}>
-            {technician ? 'Actualizar' : 'Crear'} Técnico
+            {technician ? 'Update' : 'Create'} Technician
           </Button>
         </div>
       </form>

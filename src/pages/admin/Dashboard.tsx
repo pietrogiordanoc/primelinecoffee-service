@@ -28,7 +28,7 @@ export default function Dashboard() {
       setLoading(true);
 
       if (isDemoMode) {
-        // Usar datos demo
+        // Use demo data
         const totalReports = reports.length;
         const completedReports = reports.filter(r => r.status === 'completed').length;
         const pendingReports = reports.filter(r => ['draft', 'submitted'].includes(r.status)).length;
@@ -98,37 +98,37 @@ export default function Dashboard() {
 
   const statCards = [
     {
-      name: 'Total Reportes',
+      name: 'Total Reports',
       value: stats?.total_reports || 0,
       icon: FileText,
       color: 'blue',
     },
     {
-      name: 'Reportes Pendientes',
+      name: 'Pending Reports',
       value: stats?.pending_reports || 0,
       icon: Clock,
       color: 'yellow',
     },
     {
-      name: 'Reportes Completados',
+      name: 'Completed Reports',
       value: stats?.completed_reports || 0,
       icon: CheckCircle,
       color: 'green',
     },
     {
-      name: 'Técnicos Activos',
+      name: 'Active Technicians',
       value: stats?.total_technicians || 0,
       icon: Users,
       color: 'purple',
     },
     {
-      name: 'Empresas Activas',
+      name: 'Active Companies',
       value: stats?.total_companies || 0,
       icon: Building2,
       color: 'indigo',
     },
     {
-      name: 'Tendencia',
+      name: 'Trend',
       value: '+12%',
       icon: TrendingUp,
       color: 'green',
@@ -148,7 +148,7 @@ export default function Dashboard() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Resumen de actividades del sistema</p>
+        <p className="text-gray-600 mt-1">System activity summary</p>
       </div>
 
       {/* Stats Grid */}
@@ -177,11 +177,11 @@ export default function Dashboard() {
       <Card>
         <div className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Reportes Recientes
+            Recent Reports
           </h2>
           {recentReports.length === 0 ? (
             <p className="text-gray-500 text-center py-8">
-              No hay reportes recientes
+              No recent reports
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -189,19 +189,19 @@ export default function Dashboard() {
                 <thead>
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Empresa
+                      Company
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Técnico
+                      Technician
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Formulario
+                      Form
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Estado
+                      Status
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Fecha
+                      Date
                     </th>
                   </tr>
                 </thead>
@@ -231,7 +231,7 @@ export default function Dashboard() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">
-                        {new Date(report.created_at).toLocaleDateString('es-ES')}
+                        {new Date(report.created_at).toLocaleDateString('en-US')}
                       </td>
                     </tr>
                   ))}

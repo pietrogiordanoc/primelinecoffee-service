@@ -1,63 +1,63 @@
-# Comandos Útiles - Prime Line Coffee Service
+# Useful Commands - Prime Line Coffee Service
 
-## Desarrollo
+## Development
 
 ```bash
-# Instalar dependencias
+# Install dependencies
 npm install
 
-# Instalar dependencias de Netlify Functions
-cd netlify/functions && npm install && cd ../..
+# Install Netlify Functions dependencies
+cd netlify/functions && npm install && cd ../...
 
-# Iniciar desarrollo
+# Start development
 npm run dev
 
-# Iniciar con Netlify Dev (incluye functions)
+# Start with Netlify Dev (includes functions)
 netlify dev
 
 # Linting
 npm run lint
 
-# Build de producción
+# Production build
 npm run build
 
-# Preview del build
+# Preview build
 npm run preview
 ```
 
 ## Git
 
 ```bash
-# Ver estado
+# Check status
 git status
 
-# Agregar cambios
+# Stage changes
 git add .
 
 # Commit
-git commit -m "Descripción del cambio"
+git commit -m "Description of change"
 
-# Push a GitHub
+# Push to GitHub
 git push origin main
 
-# Crear nueva branch
-git checkout -b feature/nueva-funcionalidad
+# Create new branch
+git checkout -b feature/new-feature
 
 # Merge branch
 git checkout main
-git merge feature/nueva-funcionalidad
+git merge feature/new-feature
 ```
 
 ## Supabase (Local Development)
 
 ```bash
-# Instalar Supabase CLI (una vez)
+# Install Supabase CLI (once)
 npm install -g supabase
 
 # Login
 supabase login
 
-# Inicializar proyecto local
+# Initialize local project
 supabase init
 
 # Start local Supabase
@@ -70,47 +70,47 @@ supabase stop
 supabase status
 
 # Migrations
-supabase migration new nombre_migracion
+supabase migration new migration_name
 supabase db push
 ```
 
 ## Netlify
 
 ```bash
-# Instalar Netlify CLI (una vez)
+# Install Netlify CLI (once)
 npm install -g netlify-cli
 
 # Login
 netlify login
 
-# Inicializar proyecto
+# Initialize project
 netlify init
 
-# Deploy manual
+# Manual deploy
 netlify deploy
 
-# Deploy a producción
+# Deploy to production
 netlify deploy --prod
 
-# Ver logs de functions
+# View function logs
 netlify functions:log send-report-email
 
-# Ver variables de entorno
+# View environment variables
 netlify env:list
 
-# Agregar variable de entorno
+# Add environment variable
 netlify env:set KEY value
 ```
 
-## Database (Queries Útiles)
+## Database (Useful Queries)
 
 ```sql
--- Ver todos los usuarios con sus roles
+-- View all users with their roles
 SELECT id, email, full_name, role, is_active, created_at
 FROM users
 ORDER BY created_at DESC;
 
--- Ver técnicos con sus usuarios
+-- View technicians with their users
 SELECT 
   t.id,
   u.full_name,
@@ -122,19 +122,19 @@ FROM technicians t
 JOIN users u ON u.id = t.user_id
 ORDER BY u.full_name;
 
--- Ver empresas activas
+-- View active companies
 SELECT name, city, contact_name, contact_email
 FROM companies
 WHERE is_active = true
 ORDER BY name;
 
--- Ver reportes recientes
+-- View recent reports
 SELECT *
 FROM report_summary
 ORDER BY created_at DESC
 LIMIT 10;
 
--- Ver asignaciones técnico-empresa
+-- View technician-company assignments
 SELECT 
   u.full_name as technician,
   c.name as company,
@@ -145,19 +145,19 @@ JOIN users u ON u.id = t.user_id
 JOIN companies c ON c.id = tc.company_id
 ORDER BY tc.assigned_at DESC;
 
--- Ver formularios activos
+-- View active forms
 SELECT id, name, category, is_active, created_at
 FROM dynamic_forms
 WHERE is_active = true
 ORDER BY name;
 
--- Ver campos de un formulario específico
+-- View fields for a specific form
 SELECT field_label, field_type, is_required, order_index
 FROM form_fields
-WHERE form_id = 'form-id-aqui'
+WHERE form_id = 'form-id-here'
 ORDER BY order_index;
 
--- Estadísticas rápidas
+-- Quick statistics
 SELECT 
   (SELECT COUNT(*) FROM service_reports) as total_reports,
   (SELECT COUNT(*) FROM service_reports WHERE status = 'completed') as completed,
@@ -165,22 +165,22 @@ SELECT
   (SELECT COUNT(*) FROM technicians WHERE is_active = true) as active_technicians,
   (SELECT COUNT(*) FROM companies WHERE is_active = true) as active_companies;
 
--- Cambiar rol de usuario
+-- Change user role
 UPDATE users
 SET role = 'super_admin'
-WHERE email = 'usuario@email.com';
+WHERE email = 'user@email.com';
 
--- Activar/desactivar usuario
+-- Activate/deactivate user
 UPDATE users
 SET is_active = true
-WHERE email = 'usuario@email.com';
+WHERE email = 'user@email.com';
 
--- Limpiar reportes de prueba
+-- Delete test reports
 DELETE FROM service_reports
 WHERE created_at < NOW() - INTERVAL '1 day'
 AND status = 'draft';
 
--- Ver logs de actividad recientes
+-- View recent activity logs
 SELECT 
   u.full_name,
   al.action,
@@ -191,7 +191,7 @@ LEFT JOIN users u ON u.id = al.user_id
 ORDER BY al.created_at DESC
 LIMIT 20;
 
--- Ver logs de emails
+-- View email logs
 SELECT 
   recipient_email,
   subject,
@@ -203,27 +203,27 @@ ORDER BY sent_at DESC
 LIMIT 10;
 ```
 
-## Mantenimiento
+## Maintenance
 
 ```bash
-# Actualizar dependencias
+# Update dependencies
 npm update
 
-# Verificar dependencias obsoletas
+# Check outdated dependencies
 npm outdated
 
-# Limpiar cache
+# Clear cache
 npm cache clean --force
 
-# Reinstalar dependencias
+# Reinstall dependencies
 rm -rf node_modules package-lock.json
 npm install
 
-# Build de producción local
+# Local production build
 npm run build
 npm run preview
 
-# Verificar tamaño del bundle
+# Check bundle size
 npm run build -- --stats
 ```
 
@@ -243,13 +243,13 @@ npm test -- --coverage
 ## Backup
 
 ```bash
-# Backup de código
+# Code backup
 git archive --format=zip --output=backup-$(date +%Y%m%d).zip main
 
-# Backup de Supabase (vía dashboard o CLI)
+# Supabase backup (via dashboard or CLI)
 # Dashboard: Database > Backups > Create backup
 
-# Descargar backup desde CLI
+# Download backup from CLI
 supabase db dump > backup.sql
 ```
 
@@ -274,20 +274,20 @@ netstat -ano | findstr :3000
 # Windows
 taskkill /PID [PID] /F
 
-# Ver logs de Netlify en tiempo real
+# View Netlify logs in real time
 netlify logs --live
 ```
 
 ## Productividad
 
 ```bash
-# Alias útiles (agregar a .bashrc o .zshrc)
+# Useful aliases (add to .bashrc or .zshrc)
 alias dev='npm run dev'
 alias build='npm run build'
 alias ndev='netlify dev'
 alias gdeploy='git add . && git commit -m "Quick update" && git push'
 
-# Scripts personalizados en package.json
+# Custom scripts in package.json
 {
   "scripts": {
     "dev": "vite",

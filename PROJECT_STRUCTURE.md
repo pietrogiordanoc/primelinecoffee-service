@@ -1,206 +1,206 @@
-# Estructura Completa del Proyecto - Prime Line Coffee Service
+# Complete Project Structure - Prime Line Coffee Service
 
-## ✅ Archivos Creados
+## ✅ Files Created
 
 ```
 prime-line-coffee-service/
 │
 ├── 📁 public/
-│   └── logo.svg                         ✅ Logo de la aplicación
+│   └── logo.svg                         ✅ Application logo
 │
 ├── 📁 src/
 │   ├── 📁 components/
 │   │   ├── 📁 auth/
-│   │   │   └── ProtectedRoute.tsx       ✅ Rutas protegidas por rol
+│   │   │   └── ProtectedRoute.tsx       ✅ Role-protected routes
 │   │   ├── 📁 layouts/
-│   │   │   ├── AdminLayout.tsx          ✅ Layout para administradores
-│   │   │   └── TechnicianLayout.tsx     ✅ Layout para técnicos (mobile)
+│   │   │   ├── AdminLayout.tsx          ✅ Admin layout
+│   │   │   └── TechnicianLayout.tsx     ✅ Technician layout (mobile)
 │   │   └── 📁 ui/
-│   │       ├── Button.tsx               ✅ Componente de botón
-│   │       ├── Card.tsx                 ✅ Componente de tarjeta
-│   │       ├── Input.tsx                ✅ Componente de input
-│   │       ├── LoadingSpinner.tsx       ✅ Spinner de carga
-│   │       ├── Modal.tsx                ✅ Componente modal
-│   │       ├── Select.tsx               ✅ Componente select
-│   │       └── Textarea.tsx             ✅ Componente textarea
+│   │       ├── Button.tsx               ✅ Button component
+│   │       ├── Card.tsx                 ✅ Card component
+│   │       ├── Input.tsx                ✅ Input component
+│   │       ├── LoadingSpinner.tsx       ✅ Loading spinner
+│   │       ├── Modal.tsx                ✅ Modal component
+│   │       ├── Select.tsx               ✅ Select component
+│   │       └── Textarea.tsx             ✅ Textarea component
 │   │
 │   ├── 📁 lib/
-│   │   └── supabase.ts                  ✅ Cliente de Supabase
+│   │   └── supabase.ts                  ✅ Supabase client
 │   │
 │   ├── 📁 pages/
 │   │   ├── 📁 admin/
-│   │   │   ├── Companies.tsx            ✅ Gestión de empresas
-│   │   │   ├── Dashboard.tsx            ✅ Dashboard admin
-│   │   │   ├── FormBuilder.tsx          ✅ Constructor de formularios
-│   │   │   ├── Reports.tsx              ✅ Vista de reportes
-│   │   │   ├── Settings.tsx             ✅ Configuración
-│   │   │   └── Technicians.tsx          ✅ Gestión de técnicos
+│   │   │   ├── Companies.tsx            ✅ Company management
+│   │   │   ├── Dashboard.tsx            ✅ Admin dashboard
+│   │   │   ├── FormBuilder.tsx          ✅ Form builder
+│   │   │   ├── Reports.tsx              ✅ Reports view
+│   │   │   ├── Settings.tsx             ✅ Settings
+│   │   │   └── Technicians.tsx          ✅ Technician management
 │   │   ├── 📁 auth/
-│   │   │   └── Login.tsx                ✅ Página de login
+│   │   │   └── Login.tsx                ✅ Login page
 │   │   └── 📁 technician/
-│   │       ├── FillReport.tsx           ✅ Llenar reporte (mobile)
-│   │       ├── History.tsx              ✅ Historial de reportes
-│   │       └── Home.tsx                 ✅ Inicio técnico (mobile)
+│   │       ├── FillReport.tsx           ✅ Fill report (mobile)
+│   │       ├── History.tsx              ✅ Report history
+│   │       └── Home.tsx                 ✅ Technician home (mobile)
 │   │
 │   ├── 📁 stores/
-│   │   ├── authStore.ts                 ✅ Store de autenticación
-│   │   ├── companyStore.ts              ✅ Store de empresas
-│   │   ├── formStore.ts                 ✅ Store de formularios
-│   │   ├── reportStore.ts               ✅ Store de reportes
-│   │   └── technicianStore.ts           ✅ Store de técnicos
+│   │   ├── authStore.ts                 ✅ Authentication store
+│   │   ├── companyStore.ts              ✅ Company store
+│   │   ├── formStore.ts                 ✅ Forms store
+│   │   ├── reportStore.ts               ✅ Reports store
+│   │   └── technicianStore.ts           ✅ Technician store
 │   │
 │   ├── 📁 types/
-│   │   ├── database.ts                  ✅ Tipos de base de datos
-│   │   └── index.ts                     ✅ Tipos generales
+│   │   ├── database.ts                  ✅ Database types
+│   │   └── index.ts                     ✅ General types
 │   │
 │   ├── 📁 utils/
-│   │   ├── dateUtils.ts                 ✅ Utilidades de fechas
-│   │   ├── helpers.ts                   ✅ Funciones auxiliares
-│   │   ├── imageOptimization.ts         ✅ Optimización de imágenes
-│   │   └── validationSchemas.ts         ✅ Esquemas de validación Zod
+│   │   ├── dateUtils.ts                 ✅ Date utilities
+│   │   ├── helpers.ts                   ✅ Helper functions
+│   │   ├── imageOptimization.ts         ✅ Image optimization
+│   │   └── validationSchemas.ts         ✅ Zod validation schemas
 │   │
-│   ├── App.tsx                          ✅ Componente principal
-│   ├── index.css                        ✅ Estilos globales Tailwind
+│   ├── App.tsx                          ✅ Main component
+│   ├── index.css                        ✅ Global Tailwind styles
 │   └── main.tsx                         ✅ Entry point
 │
 ├── 📁 netlify/
 │   └── 📁 functions/
-│       ├── send-report-email.ts         ✅ Function para enviar emails
-│       └── package.json                 ✅ Dependencias de functions
+│       ├── send-report-email.ts         ✅ Email sending function
+│       └── package.json                 ✅ Functions dependencies
 │
 ├── 📁 supabase/
-│   └── schema.sql                       ✅ Esquema completo de BD
+│   └── schema.sql                       ✅ Complete database schema
 │
-├── .env.example                         ✅ Ejemplo de variables de entorno
-├── .eslintrc.cjs                        ✅ Configuración ESLint
-├── .gitignore                           ✅ Archivos ignorados por Git
-├── COMMANDS.md                          ✅ Comandos útiles
-├── DEPLOYMENT.md                        ✅ Guía de deployment
-├── index.html                           ✅ HTML principal
-├── netlify.toml                         ✅ Configuración de Netlify
-├── package.json                         ✅ Dependencias del proyecto
-├── postcss.config.js                    ✅ Configuración PostCSS
-├── README.md                            ✅ Documentación principal
-├── tailwind.config.js                   ✅ Configuración Tailwind
-├── tsconfig.json                        ✅ Configuración TypeScript
-├── tsconfig.node.json                   ✅ TypeScript para Node
-└── vite.config.ts                       ✅ Configuración Vite
+├── .env.example                         ✅ Environment variables example
+├── .eslintrc.cjs                        ✅ ESLint configuration
+├── .gitignore                           ✅ Git ignored files
+├── COMMANDS.md                          ✅ Useful commands
+├── DEPLOYMENT.md                        ✅ Deployment guide
+├── index.html                           ✅ Main HTML
+├── netlify.toml                         ✅ Netlify configuration
+├── package.json                         ✅ Project dependencies
+├── postcss.config.js                    ✅ PostCSS configuration
+├── README.md                            ✅ Main documentation
+├── tailwind.config.js                   ✅ Tailwind configuration
+├── tsconfig.json                        ✅ TypeScript configuration
+├── tsconfig.node.json                   ✅ TypeScript for Node
+└── vite.config.ts                       ✅ Vite configuration
 ```
 
-## 📊 Estadísticas del Proyecto
+## 📊 Project Statistics
 
-- **Total de archivos**: ~50 archivos
-- **Líneas de código**: ~5,000+ líneas
-- **Componentes React**: 20+
-- **Páginas**: 9
-- **Stores Zustand**: 5
-- **Utilidades**: 4 módulos
+- **Total files**: ~50 files
+- **Lines of code**: ~5,000+ lines
+- **React components**: 20+
+- **Pages**: 9
+- **Zustand stores**: 5
+- **Utilities**: 4 modules
 - **Netlify Functions**: 1
-- **Tablas de BD**: 11
+- **Database tables**: 11
 - **RLS Policies**: 25+
 
-## 🎯 Funcionalidades Implementadas
+## 🎯 Implemented Features
 
-### ✅ Autenticación y Autorización
-- Login con email/password
-- Roles: Super Admin, Admin, Técnico
-- Rutas protegidas por rol
+### ✅ Authentication and Authorization
+- Email/password login
+- Roles: Super Admin, Admin, Technician
+- Role-protected routes
 - Session persistence
 
-### ✅ Panel de Administración
-- Dashboard con estadísticas
-- Gestión CRUD de técnicos
-- Gestión CRUD de empresas
-- Asignación técnico-empresa
-- Constructor de formularios dinámicos
-- Vista de reportes con filtros
-- Configuración del sistema
+### ✅ Admin Panel
+- Dashboard with statistics
+- Technician CRUD management
+- Company CRUD management
+- Technician-company assignment
+- Dynamic form builder
+- Reports view with filters
+- System configuration
 
-### ✅ Interfaz Móvil para Técnicos
-- Selección de empresa
-- Selección de formulario
-- Llenado dinámico de campos
-- Captura/upload de fotos
-- Optimización automática de imágenes
-- Historial de reportes
+### ✅ Mobile Interface for Technicians
+- Company selection
+- Form selection
+- Dynamic field filling
+- Photo capture/upload
+- Automatic image optimization
+- Report history
 
-### ✅ Sistema de Formularios Dinámicos
-- Crear formularios personalizados
-- Tipos de campos: text, textarea, number, email, phone, date, time, datetime, select, radio, checkbox, signature, file
-- Campos requeridos
-- Placeholder y textos de ayuda
-- Reordenamiento de campos
+### ✅ Dynamic Forms System
+- Create custom forms
+- Field types: text, textarea, number, email, phone, date, time, datetime, select, radio, checkbox, signature, file
+- Required fields
+- Placeholder and help text
+- Field reordering
 
-### ✅ Gestión de Reportes
-- Creación de reportes en campo
-- Almacenamiento en Supabase
-- Fotos optimizadas automáticamente
-- Estado: draft, submitted, reviewed, completed
-- Historial completo
+### ✅ Reports Management
+- Field report creation
+- Supabase storage
+- Automatically optimized photos
+- Status: draft, submitted, reviewed, completed
+- Complete history
 
-### ✅ Sistema de Emails
-- Emails automáticos al enviar reporte
-- Templates HTML profesionales
-- Adjuntos optimizados (< 12MB)
-- Enlaces de descarga para archivos grandes
-- Integración con Resend
-- Log de emails enviados
+### ✅ Email System
+- Automatic emails on report submission
+- Professional HTML templates
+- Optimized attachments (< 12MB)
+- Download links for large files
+- Resend integration
+- Email log
 
-### ✅ Optimización de Imágenes
-- Compresión automática
-- Máximo 1500x1500px
-- Calidad 75%
-- Tamaño objetivo < 1MB
-- Generación de thumbnails
-- Formato JPEG/WebP
+### ✅ Image Optimization
+- Automatic compression
+- Maximum 1500x1500px
+- 75% quality
+- Target size < 1MB
+- Thumbnail generation
+- JPEG/WebP format
 
-### ✅ Seguridad
-- Row Level Security (RLS) en todas las tablas
-- Políticas por rol
-- Storage privado con signed URLs
-- Variables de entorno seguras
-- Service role key en backend only
-- HTTPS en producción
+### ✅ Security
+- Row Level Security (RLS) on all tables
+- Role-based policies
+- Private storage with signed URLs
+- Secure environment variables
+- Service role key backend only
+- HTTPS in production
 
-## 🚀 Próximos Pasos
+## 🚀 Next Steps
 
-1. **Instalación de dependencias**:
+1. **Install dependencies**:
    ```bash
    npm install
    cd netlify/functions && npm install && cd ../..
    ```
 
-2. **Configurar Supabase**:
-   - Crear proyecto
-   - Ejecutar `supabase/schema.sql`
-   - Copiar credenciales
+2. **Configure Supabase**:
+   - Create project
+   - Execute `supabase/schema.sql`
+   - Copy credentials
 
-3. **Configurar Resend**:
-   - Crear cuenta
-   - Obtener API key
+3. **Configure Resend**:
+   - Create account
+   - Get API key
 
-4. **Configurar variables de entorno**:
-   - Copiar `.env.example` a `.env`
-   - Completar con credenciales reales
+4. **Configure environment variables**:
+   - Copy `.env.example` to `.env`
+   - Fill in with actual credentials
 
-5. **Desarrollo local**:
+5. **Local development**:
    ```bash
    npm run dev
-   # En otra terminal
+   # In another terminal
    netlify dev
    ```
 
-6. **Deploy a producción**:
-   - Seguir guía en `DEPLOYMENT.md`
+6. **Deploy to production**:
+   - Follow guide in `DEPLOYMENT.md`
 
-## 📚 Documentación Disponible
+## 📚 Available Documentation
 
-- **README.md**: Documentación completa del proyecto
-- **DEPLOYMENT.md**: Guía paso a paso de deployment
-- **COMMANDS.md**: Comandos útiles para desarrollo
-- **PROJECT_STRUCTURE.md**: Este archivo
+- **README.md**: Complete project documentation
+- **DEPLOYMENT.md**: Step-by-step deployment guide
+- **COMMANDS.md**: Useful development commands
+- **PROJECT_STRUCTURE.md**: This file
 
-## 🎨 Stack Tecnológico
+## 🎨 Technology Stack
 
 - **Frontend**: React 18, TypeScript, Vite
 - **Styling**: Tailwind CSS
@@ -216,9 +216,9 @@ prime-line-coffee-service/
 - **Email**: Resend
 - **Hosting**: Netlify
 
-## 🔧 Configuración Necesaria
+## 🔧 Required Configuration
 
-### Variables de Entorno (`.env`)
+### Environment Variables (`.env`)
 ```env
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
@@ -228,32 +228,32 @@ SUPABASE_SERVICE_ROLE_KEY=
 RESEND_API_KEY=
 ```
 
-### Cuentas Requeridas
-- ✅ Supabase (Base de datos y Auth)
-- ✅ Netlify (Hosting y Functions)
+### Required Accounts
+- ✅ Supabase (Database and Auth)
+- ✅ Netlify (Hosting and Functions)
 - ✅ Resend (Emails)
-- ✅ GitHub (Control de versiones)
+- ✅ GitHub (Version control)
 
-## ✨ Características Destacadas
+## ✨ Highlights
 
-1. **Mobile-first design**: Optimizado para técnicos en campo
-2. **Offline-ready structure**: Base preparada para PWA
-3. **Modular architecture**: Fácil de extender y mantener
-4. **Type-safe**: TypeScript en todo el proyecto
-5. **Scalable**: Preparado para crecer
-6. **Production-ready**: Listo para deploy inmediato
+1. **Mobile-first design**: Optimized for field technicians
+2. **Offline-ready structure**: PWA-ready foundation
+3. **Modular architecture**: Easy to extend and maintain
+4. **Type-safe**: TypeScript throughout
+5. **Scalable**: Ready to grow
+6. **Production-ready**: Ready for immediate deployment
 
-## 🎉 Estado del Proyecto
+## 🎉 Project Status
 
-**✅ PROYECTO COMPLETO Y LISTO PARA USAR**
+**✅ PROJECT COMPLETE AND READY TO USE**
 
-Todos los componentes core están implementados y funcionando. El sistema está listo para:
-- Deployment a producción
-- Uso inmediato
-- Personalización según necesidades
-- Extensión con nuevas funcionalidades
+All core components are implemented and working. The system is ready for:
+- Production deployment
+- Immediate use
+- Customization per requirements
+- Extension with new features
 
 ---
 
-**Desarrollado para Prime Line Coffee Service**
-**© 2026 - Sistema Profesional de Gestión de Servicios Técnicos**
+**Built for Prime Line Coffee Service**
+**© 2026 - Professional Technical Service Management System**

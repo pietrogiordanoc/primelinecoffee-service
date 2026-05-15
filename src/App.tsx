@@ -27,11 +27,11 @@ function App() {
   const { user, loading, setUser, setLoading, setUserProfile, isDemoMode } = useAuthStore();
 
   useEffect(() => {
-    // Verificar si hay sesión demo en localStorage
+    // Check if there is a demo session in localStorage
     const demoUser = localStorage.getItem('demo_user');
     
     if (demoUser) {
-      // Restaurar sesión demo
+      // Restore demo session
       try {
         const parsedUser = JSON.parse(demoUser);
         setUserProfile(parsedUser);
@@ -42,7 +42,7 @@ function App() {
       }
     }
 
-    // Si no está en modo demo, intentar con Supabase
+    // If not in demo mode, try with Supabase
     if (!isDemoMode) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         setUser(session?.user ?? null);

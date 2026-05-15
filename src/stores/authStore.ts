@@ -34,7 +34,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     );
 
     if (demoUser) {
-      // Crear un objeto mock de SupabaseUser
+      // Create a mock SupabaseUser object
       const mockUser = {
         id: demoUser.id,
         email: demoUser.email,
@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isDemoMode: true,
       });
       
-      // Guardar en localStorage
+      // Save to localStorage
       localStorage.setItem('demo_user', JSON.stringify(demoUser));
       
       return true;

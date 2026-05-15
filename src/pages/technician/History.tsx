@@ -53,13 +53,13 @@ export default function ReportHistory() {
 
   return (
     <div className="p-4 space-y-4 pb-24">
-      <h1 className="text-2xl font-bold text-gray-900">Historial de Reportes</h1>
+      <h1 className="text-2xl font-bold text-gray-900">Report History</h1>
 
       {reports.length === 0 ? (
         <Card>
           <div className="p-12 text-center">
             <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500">No has creado reportes aún</p>
+            <p className="text-gray-500">You have no reports yet</p>
           </div>
         </Card>
       ) : (
@@ -84,12 +84,12 @@ export default function ReportHistory() {
                     }`}
                   >
                     {report.status === 'completed'
-                      ? 'Completado'
+                      ? 'Completed'
                       : report.status === 'reviewed'
-                      ? 'Revisado'
+                      ? 'Reviewed'
                       : report.status === 'submitted'
-                      ? 'Enviado'
-                      : 'Borrador'}
+                      ? 'Submitted'
+                      : 'Draft'}
                   </span>
                 </div>
 
@@ -99,13 +99,13 @@ export default function ReportHistory() {
                     <span>{formatRelativeTime(report.created_at)}</span>
                   </div>
                   {report.photo_count > 0 && (
-                    <span className="text-xs">{report.photo_count} fotos</span>
+                    <span className="text-xs">{report.photo_count} photos</span>
                   )}
                 </div>
 
                 {report.submitted_at && (
                   <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
-                    Enviado: {formatDate(report.submitted_at, 'PPp')}
+                    Submitted: {formatDate(report.submitted_at, 'PPp')}
                   </div>
                 )}
               </div>
