@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
@@ -150,8 +150,16 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <p>Forgot your password? Contact administrator</p>
+          <div className="mt-6 text-center space-y-2">
+            <p className="text-sm text-gray-600">
+              Forgot your password? Contact administrator
+            </p>
+            <Link 
+              to="/setup" 
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium inline-block"
+            >
+              Create first admin account →
+            </Link>
           </div>
         </div>
 
