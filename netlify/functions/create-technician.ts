@@ -35,16 +35,11 @@ const handler: Handler = async (event: HandlerEvent) => {
 
     const userId = authData.user.id;
 
-    // Insert into users table (trigger may handle this, but we ensure it)
-    const { error: userError } = await supabase.from('users').upsert({
-      id: userId,
-      email,
-      full_name,
-      phone: phone || null,
-      role: 'technician',
-    });
+    // Wait briefly for the DB trigger to create the users record
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    if (userError) throw userError;
+    // Update the user record created by the trigger with the full_name and phone
+    await supabase.from('users').update({ full_name, phone: phone || null }).eq('id', userId);
 
     // Insert into technicians table
     const { error: techError } = await supabase.from('technicians').insert({
