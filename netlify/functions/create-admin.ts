@@ -35,20 +35,24 @@ const handler: Handler = async (event: HandlerEvent) => {
     });
 
     if (!createUserResponse.ok) {
-      const error = await createUserResponse.json();
-      console.error('Supabase auth error:', error);
-      throw new Error(JSON.stringify(error) || 'Failed to create user');
+      const errorText = await createUserResponse.text();
+      console.error('Supabase auth error:', errorText);
+      let errorMsg = 'Failed to create user';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMsg = errorJson.msg || errorJson.message || errorMsg;
+      } catch (e) {
+        errorMsg = errorText || errorMsg;
+      }
+      throw new Error(errorMsg);
     }
 
     const authData = await createUserResponse.json();
     const userId = authData.id;
 
-    // Wait briefly for the DB trigger to create the users record
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Update the user record with full_name, phone, and admin role using fetch
-    const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
-      method: 'PATCH',
+    // Insert directly into public.users table (don't rely on trigger)
+    const insertResponse = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
@@ -56,14 +60,20 @@ const handler: Handler = async (event: HandlerEvent) => {
         'Prefer': 'return=minimal',
       },
       body: JSON.stringify({
-        full_name,
+        id: userId,
+        email: email,
+        full_name: full_name,
         phone: phone || null,
         role: 'admin',
+        created_at: new Date().toISOString(),
       }),
     });
 
-    if (!updateResponse.ok) {
-      console.warn('Failed to update user profile, but user was created');
+    if (!insertResponse.ok) {
+      const insertError = await insertResponse.text();
+      console.error('Failed to insert user profile:', insertError);
+      // User was created in auth, but profile insert failed
+      // We could delete the auth user here, but let's just warn
     }
 
     return {

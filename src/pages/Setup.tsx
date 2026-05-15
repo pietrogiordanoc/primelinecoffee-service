@@ -27,13 +27,14 @@ export default function Setup() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create admin');
+        throw new Error(data.error || `Server error: ${response.status}`);
       }
 
       setSuccess(true);
       setTimeout(() => navigate('/login'), 2000);
     } catch (err: any) {
-      setError(err.message);
+      console.error('Setup error:', err);
+      setError(err.message || 'Unknown error occurred');
     } finally {
       setLoading(false);
     }
