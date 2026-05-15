@@ -27,8 +27,8 @@ function App() {
   const { user, loading, setUser, setLoading, setUserProfile, isDemoMode } = useAuthStore();
 
   useEffect(() => {
-    // Check if there is a demo session in localStorage
-    const demoUser = localStorage.getItem('demo_user');
+    // Check if there is a demo session in sessionStorage
+    const demoUser = sessionStorage.getItem('demo_user');
     
     if (demoUser) {
       // Restore demo session
@@ -38,7 +38,7 @@ function App() {
         setLoading(false);
         return;
       } catch (e) {
-        localStorage.removeItem('demo_user');
+        sessionStorage.removeItem('demo_user');
       }
     }
 

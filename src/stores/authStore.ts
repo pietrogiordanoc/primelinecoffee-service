@@ -50,8 +50,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isDemoMode: true,
       });
       
-      // Save to localStorage
-      localStorage.setItem('demo_user', JSON.stringify(demoUser));
+      // Save to sessionStorage (cleared when browser closes for security)
+      sessionStorage.setItem('demo_user', JSON.stringify(demoUser));
       
       return true;
     }
@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   
   logout: () => {
     set({ user: null, userProfile: null, isDemoMode: false });
-    localStorage.removeItem('demo_user');
+    sessionStorage.removeItem('demo_user');
   },
 
   isRole: (role) => {
