@@ -1,0 +1,19 @@
+
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="95" fill="#0EA5E9"/>
+  
+  <!-- Coffee Cup -->
+  <path d="M140 80H60C58.3431 80 57 81.3431 57 83V115C57 127.703 67.2975 138 80 138H120C132.703 138 143 127.703 143 115V83C143 81.3431 141.657 80 140 80Z" fill="white"/>
+  
+  <!-- Handle -->
+  <path d="M143 90H150C155.523 90 160 94.4772 160 100V105C160 110.523 155.523 115 150 115H143" stroke="white" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- Steam Lines -->
+  <path d="M75 65C75 65 77 55 75 50" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <path d="M100 60C100 60 102 50 100 45" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <path d="M125 65C125 65 127 55 125 50" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Checkmark -->
+  <path d="M80 105L95 120L125 90" stroke="#0EA5E9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
