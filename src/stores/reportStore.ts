@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import type { ServiceReport, ReportSummary } from '@/types';
-import { demoReports, getReportSummaries } from '@/utils/demoData';
 
 interface ReportState {
   reports: ServiceReport[];
@@ -16,7 +15,6 @@ interface ReportState {
   removeReport: (id: string) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  loadDemoData: () => void;
 }
 
 export const useReportStore = create<ReportState>((set) => ({
@@ -50,9 +48,4 @@ export const useReportStore = create<ReportState>((set) => ({
   setLoading: (loading) => set({ loading }),
 
   setError: (error) => set({ error }),
-  
-  loadDemoData: () => set({ 
-    reports: demoReports as ServiceReport[], 
-    reportSummaries: getReportSummaries() as ReportSummary[] 
-  }),
 }));

@@ -2,9 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
-import { useFormStore } from '@/stores/formStore';
-import { useReportStore } from '@/stores/reportStore';
-import { useDemoData } from '@/utils/useDemoData';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -31,9 +28,6 @@ export default function FillReport() {
   const [searchParams] = useSearchParams();
   const companyId = searchParams.get('company');
   const { userProfile } = useAuthStore();
-  const { forms: storeForms } = useFormStore();
-  const { addReport } = useReportStore();
-  const { isDemoMode } = useDemoData();
 
   const [form, setForm] = useState<DynamicForm | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,27 +59,25 @@ export default function FillReport() {
 
   useEffect(() => {
     loadForm();
-  }, [formId, isDemoMode, storeForms]);
+  }, [formId]);
 
   async function loadForm() {
     try {
       setLoading(true);
-      if (isDemoMode) {
-        const foundForm = storeForms.find(f => f.id === formId);
-        if (foundForm) setForm(foundForm);
-      } else {
-        if (!formId) {
-          setForm(null);
-          return;
-        }
-        const { data: formData, error: formError } = await supabase
-          .from('dynamic_forms')
-          .select('*')
-          .eq('id', formId)
-          .single();
-        if (formError) throw formError;
-        setForm(formData);
+      
+      if (!formId) {
+        setForm(null);
+        return;
       }
+      
+      const { data: formData, error: formError } = await supabase
+        .from('dynamic_forms')
+        .select('*')
+        .eq('id', formId)
+        .single();
+        
+      if (formError) throw formError;
+      setForm(formData);
     } catch (error) {
       console.error('Error loading form:', error);
     } finally {
@@ -239,25 +231,28 @@ export default function FillReport() {
         },
       };
 
-      if (isDemoMode) {
-        const newReport = {
-          id: `demo-${Date.now()}`,
+      // Save to Supabase
+      const { data: techData } = await supabase
+        .from('technicians')
+        .select('id')
+        .eq('user_id', userProfile?.id)
+        .single();
+
+      if (!techData) throw new Error('Technician not found');
+
+      const { error: reportError } = await supabase
+        .from('service_reports')
+        .insert({
           form_id: formId!,
-          technician_id: '1',
+          technician_id: techData.id,
           company_id: companyId,
-          status: 'submitted' as const,
+          status: 'submitted',
           form_data: reportData,
           submitted_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        addReport(newReport);
-        alert('Report submitted successfully');
-        navigate('/technician');
-        return;
-      }
+        });
 
-      // Production mode: save to Supabase (similar logic)
+      if (reportError) throw reportError;
+
       alert('Report submitted successfully');
       navigate('/technician');
     } catch (error: any) {

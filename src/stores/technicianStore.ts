@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import type { Technician } from '@/types';
-import { demoTechnicians } from '@/utils/demoData';
 
 interface TechnicianState {
   technicians: Technician[];
@@ -14,7 +13,6 @@ interface TechnicianState {
   removeTechnician: (id: string) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  loadDemoData: () => void;
 }
 
 export const useTechnicianStore = create<TechnicianState>((set) => ({
@@ -45,6 +43,4 @@ export const useTechnicianStore = create<TechnicianState>((set) => ({
   setLoading: (loading) => set({ loading }),
 
   setError: (error) => set({ error }),
-  
-  loadDemoData: () => set({ technicians: demoTechnicians as Technician[] }),
 }));

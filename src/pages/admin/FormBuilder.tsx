@@ -13,7 +13,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { dynamicFormSchema, type DynamicFormInput } from '@/utils/validationSchemas';
 import type { DynamicForm, FormField, FieldType } from '@/types';
-import { useDemoData } from '@/utils/useDemoData';
 
 export default function FormBuilderPage() {
   const { forms, setForms, loading, setLoading, formFields, setFormFields } = useFormStore();
@@ -22,13 +21,10 @@ export default function FormBuilderPage() {
   const [selectedForm, setSelectedForm] = useState<DynamicForm | null>(null);
   const [previewForm, setPreviewForm] = useState<DynamicForm | null>(null);
   const [newlyCreatedFormId, setNewlyCreatedFormId] = useState<string | null>(null);
-  const { isDemoMode } = useDemoData();
 
   useEffect(() => {
-    if (!isDemoMode) {
-      loadForms();
-    }
-  }, [isDemoMode]);
+    loadForms();
+  }, []);
 
   async function loadForms() {
     try {

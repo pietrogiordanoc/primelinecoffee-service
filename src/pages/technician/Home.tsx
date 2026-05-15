@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
-import { useCompanyStore } from '@/stores/companyStore';
-import { useFormStore } from '@/stores/formStore';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
@@ -12,42 +10,35 @@ import Input from '@/components/ui/Input';
 import { FileText, ChevronRight, Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import type { DynamicForm, Company } from '@/types';
-import { useDemoData } from '@/utils/useDemoData';
 
 export default function TechnicianHome() {
   const navigate = useNavigate();
   const { userProfile } = useAuthStore();
-  const { companies: storeCompanies, setCompanies: setStoreCompanies } = useCompanyStore();
-  const { forms: storeForms } = useFormStore();
   const [forms, setForms] = useState<DynamicForm[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
-  const { isDemoMode } = useDemoData();
 
   useEffect(() => {
     loadData();
-  }, [userProfile, isDemoMode, storeCompanies, storeForms]);
+  }, [userProfile]);
 
   async function loadData() {
     try {
       setLoading(true);
 
-      if (isDemoMode) {
-        // Demo mode: load from store
-        setCompanies(storeCompanies);
-        // In demo, use forms from store (wait for them to load)
-        if (storeForms.length > 0) {
-          setForms(storeForms.filter(f => f.is_active));
-        }
-      } else {
-        // Get technician ID
-        const { data: techData } = await supabase
-          .from('technicians')
-          .select('id')
-          .eq('user_id', userProfile?.id)
-          .single();
+      if (!userProfile?.id) {
+        setLoading(false);
+        return;
+      }
+
+      // Get technician ID
+      const { data: techData } = await supabase
+        .from('technicians')
+        .select('id')
+        .eq('user_id', userProfile?.id)
+        .single();
 
         if (!techData) throw new Error('Technician not found');
 
@@ -188,7 +179,6 @@ export default function TechnicianHome() {
           setSelectedCompany(newCompany);
           setIsAddCompanyModalOpen(false);
         }}
-        isDemoMode={isDemoMode}
       />
     </div>
   );
@@ -198,13 +188,11 @@ interface AddCompanyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (company: Company) => void;
-  isDemoMode?: boolean;
 }
 
-function AddCompanyModal({ isOpen, onClose, onSuccess, isDemoMode }: AddCompanyModalProps) {
+function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { companies, setCompanies } = useCompanyStore();
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
 
   const onSubmit = async (data: any) => {
@@ -212,31 +200,36 @@ function AddCompanyModal({ isOpen, onClose, onSuccess, isDemoMode }: AddCompanyM
       setLoading(true);
       setError(null);
 
-      const newCompany: Company = {
-        id: `company_${Date.now()}`,
-        name: data.name,
-        address: data.address || '',
-        city: data.city || '',
-        state: data.state || '',
-        postal_code: data.postal_code || '',
-        contact_name: data.contact_name || '',
-        contact_email: data.contact_email || '',
-        contact_phone: data.contact_phone || '',
-        notes: data.notes || '',
-        is_active: true,
-        created_at: new Date().toISOString(),
-      };
+      // Use Netlify function to create company
+      const response = await fetch('/.netlify/functions/upsert-company', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          address: data.address || null,
+          city: data.city || null,
+          state: data.state || null,
+          postal_code: data.postal_code || null,
+          contact_name: data.contact_name || null,
+          contact_email: data.contact_email || null,
+          contact_phone: data.contact_phone || null,
+          notes: data.notes || null,
+        }),
+      });
 
-      if (isDemoMode) {
-        // Demo mode: add to store
-        setCompanies([...companies, newCompany]);
-        onSuccess(newCompany);
-      } else {
-        // Production mode: save to Supabase
-        const { data: insertedData, error: insertError } = await supabase
-          .from('companies')
-          .insert([newCompany])
-          .select()
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Error creating company');
+
+      // Fetch the created company
+      const { data: newCompanyData, error: fetchError } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', result.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      onSuccess(newCompanyData);
           .single();
 
         if (insertError) throw insertError;

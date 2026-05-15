@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import type { DynamicForm, FormField } from '@/types';
-import { demoForms, demoFormFields } from '@/utils/demoData';
 
 interface FormState {
   forms: DynamicForm[];
@@ -20,7 +19,6 @@ interface FormState {
   reorderFields: (fields: FormField[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  loadDemoData: () => void;
 }
 
 export const useFormStore = create<FormState>((set) => ({
@@ -71,9 +69,4 @@ export const useFormStore = create<FormState>((set) => ({
   setLoading: (loading) => set({ loading }),
 
   setError: (error) => set({ error }),
-  
-  loadDemoData: () => set({ 
-    forms: demoForms as DynamicForm[], 
-    formFields: demoFormFields as FormField[] 
-  }),
 }));

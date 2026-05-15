@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import type { Company } from '@/types';
-import { demoCompanies } from '@/utils/demoData';
 
 interface CompanyState {
   companies: Company[];
@@ -14,7 +13,6 @@ interface CompanyState {
   removeCompany: (id: string) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  loadDemoData: () => void;
 }
 
 export const useCompanyStore = create<CompanyState>((set) => ({
@@ -45,6 +43,4 @@ export const useCompanyStore = create<CompanyState>((set) => ({
   setLoading: (loading) => set({ loading }),
 
   setError: (error) => set({ error }),
-  
-  loadDemoData: () => set({ companies: demoCompanies as Company[] }),
 }));

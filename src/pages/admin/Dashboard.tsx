@@ -4,7 +4,6 @@ import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { Users, Building2, FileText, CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import type { DashboardStats } from '@/types';
-import { useDemoData } from '@/utils/useDemoData';
 import { useReportStore } from '@/stores/reportStore';
 import { useTechnicianStore } from '@/stores/technicianStore';
 import { useCompanyStore } from '@/stores/companyStore';
@@ -13,42 +12,14 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [recentReports, setRecentReports] = useState<any[]>([]);
-  
-  const { isDemoMode } = useDemoData();
-  const { reports, reportSummaries } = useReportStore();
-  const { technicians } = useTechnicianStore();
-  const { companies } = useCompanyStore();
 
   useEffect(() => {
     loadDashboardData();
-  }, [isDemoMode, reports, technicians, companies]);
+  }, []);
 
   async function loadDashboardData() {
     try {
       setLoading(true);
-
-      if (isDemoMode) {
-        // Use demo data
-        const totalReports = reports.length;
-        const completedReports = reports.filter(r => r.status === 'completed').length;
-        const pendingReports = reports.filter(r => ['draft', 'submitted'].includes(r.status)).length;
-        
-        setStats({
-          total_reports: totalReports,
-          pending_reports: pendingReports,
-          completed_reports: completedReports,
-          total_technicians: technicians.filter(t => t.is_active).length,
-          total_companies: companies.filter(c => c.is_active).length,
-          reports_this_month: 0,
-          reports_this_week: 0,
-        });
-        
-        setRecentReports(reportSummaries.slice(0, 5));
-        setLoading(false);
-        return;
-      }
-
-      // Load stats from Supabase
       const [
         { count: totalReports },
         { count: totalTechnicians },

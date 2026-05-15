@@ -12,7 +12,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { companySchema, type CompanyInput } from '@/utils/validationSchemas';
 import type { Company } from '@/types';
-import { useDemoData } from '@/utils/useDemoData';
 
 type SortField = 'name' | 'contact_name' | 'city' | 'contact_email' | 'contact_phone';
 type SortDirection = 'asc' | 'desc';
@@ -23,13 +22,10 @@ export default function CompaniesPage() {
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const { isDemoMode } = useDemoData();
 
   useEffect(() => {
-    if (!isDemoMode) {
-      loadCompanies();
-    }
-  }, [isDemoMode]);
+    loadCompanies();
+  }, []);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {

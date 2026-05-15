@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTechnicianStore } from '@/stores/technicianStore';
-import { useDemoData } from '@/utils/useDemoData';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -14,35 +13,28 @@ import { registerSchema, type RegisterInput } from '@/utils/validationSchemas';
 import type { Technician } from '@/types';
 
 export default function TechniciansPage() {
-  const { technicians, setTechnicians, loading, setLoading, loadDemoData } = useTechnicianStore();
-  const { isDemoMode } = useDemoData();
+  const { technicians, setTechnicians, loading, setLoading } = useTechnicianStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTechnician, setEditingTechnician] = useState<Technician | null>(null);
 
   useEffect(() => {
     loadTechnicians();
-  }, [isDemoMode]);
+  }, []);
 
   async function loadTechnicians() {
     try {
       setLoading(true);
       
-      if (isDemoMode) {
-        // Demo mode: load from store
-        loadDemoData();
-      } else {
-        // Production mode: load from Supabase
-        const { data, error } = await supabase
-          .from('technicians')
-          .select(`
-            *,
-            user:users(*)
-          `)
-          .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('technicians')
+        .select(`
+          *,
+          user:users(*)
+        `)
+        .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        setTechnicians(data || []);
-      }
+      if (error) throw error;
+      setTechnicians(data || []);
     } catch (error) {
       console.error('Error loading technicians:', error);
     } finally {
@@ -51,15 +43,6 @@ export default function TechniciansPage() {
   }
 
   async function handleToggleActive(technician: Technician) {
-    if (isDemoMode) {
-      // Demo mode: toggle in store
-      const updatedTechs = technicians.map(t => 
-        t.id === technician.id ? { ...t, is_active: !t.is_active } : t
-      );
-      setTechnicians(updatedTechs);
-      return;
-    }
-    
     // Production mode: use Netlify function
     try {
       const response = await fetch('/.netlify/functions/toggle-technician-status', {

@@ -24,43 +24,24 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 function App() {
-  const { user, loading, setUser, setLoading, setUserProfile, isDemoMode } = useAuthStore();
+  const { user, loading, setUser, setLoading } = useAuthStore();
 
   useEffect(() => {
-    // Check if there is a demo session in sessionStorage
-    const demoUser = sessionStorage.getItem('demo_user');
-    
-    if (demoUser) {
-      // Restore demo session
-      try {
-        const parsedUser = JSON.parse(demoUser);
-        setUserProfile(parsedUser);
-        setLoading(false);
-        return;
-      } catch (e) {
-        sessionStorage.removeItem('demo_user');
-      }
-    }
+    // Get session from Supabase
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    // If not in demo mode, try with Supabase
-    if (!isDemoMode) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      });
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
 
-      // Listen for auth changes
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user ?? null);
-      });
-
-      return () => subscription.unsubscribe();
-    }
-    
-    setLoading(false);
-  }, [setUser, setLoading, setUserProfile, isDemoMode]);
+    return () => subscription.unsubscribe();
+  }, [setUser, setLoading]);
 
   if (loading) {
     return (
