@@ -1,24 +1,7 @@
 import { Handler, HandlerEvent } from '@netlify/functions';
-import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    },
-    realtime: {
-      params: {
-        eventsPerSecond: 0
-      }
-    },
-    global: {
-      headers: {}
-    }
-  }
-);
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod !== 'POST') {
@@ -35,30 +18,52 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
-    // Create auth user with service role key
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name, role: 'admin' },
+    // Create auth user with service role key using fetch
+    const createUserResponse = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'apikey': SERVICE_ROLE_KEY,
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name, role: 'admin' },
+      }),
     });
 
-    if (authError) throw authError;
+    if (!createUserResponse.ok) {
+      const error = await createUserResponse.json();
+      throw new Error(error.message || 'Failed to create user');
+    }
 
-    const userId = authData.user.id;
+    const authData = await createUserResponse.json();
+    const userId = authData.id;
 
     // Wait briefly for the DB trigger to create the users record
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Update the user record with full_name, phone, and admin role
-    await supabase
-      .from('users')
-      .update({ 
-        full_name, 
+    // Update the user record with full_name, phone, and admin role using fetch
+    const updateResponse = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'apikey': SERVICE_ROLE_KEY,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        full_name,
         phone: phone || null,
-        role: 'admin' 
-      })
-      .eq('id', userId);
+        role: 'admin',
+      }),
+    });
+
+    if (!updateResponse.ok) {
+      console.warn('Failed to update user profile, but user was created');
+    }
 
     return {
       statusCode: 200,
