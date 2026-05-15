@@ -30,7 +30,10 @@ const handler: Handler = async (event: HandlerEvent) => {
         email,
         password,
         email_confirm: true,
-        user_metadata: { full_name, role: 'admin' },
+        user_metadata: {
+          full_name,
+          role: 'admin'
+        },
       }),
     });
 
@@ -50,30 +53,21 @@ const handler: Handler = async (event: HandlerEvent) => {
     const authData = await createUserResponse.json();
     const userId = authData.id;
 
-    // Insert directly into public.users table (don't rely on trigger)
-    const insertResponse = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-        'apikey': SERVICE_ROLE_KEY,
-        'Prefer': 'return=minimal',
-      },
-      body: JSON.stringify({
-        id: userId,
-        email: email,
-        full_name: full_name,
-        phone: phone || null,
-        role: 'admin',
-        created_at: new Date().toISOString(),
-      }),
-    });
+    // Wait for the trigger to create the users record
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    if (!insertResponse.ok) {
-      const insertError = await insertResponse.text();
-      console.error('Failed to insert user profile:', insertError);
-      // User was created in auth, but profile insert failed
-      // We could delete the auth user here, but let's just warn
+    // Update user profile with phone if provided (trigger already created the record)
+    if (phone) {
+      await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+          'apikey': SERVICE_ROLE_KEY,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({ phone }),
+      });
     }
 
     return {
