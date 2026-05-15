@@ -53,21 +53,29 @@ const handler: Handler = async (event: HandlerEvent) => {
     const authData = await createUserResponse.json();
     const userId = authData.id;
 
-    // Wait for the trigger to create the users record
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // Admin API doesn't trigger PostgreSQL triggers, so we insert manually
+    const insertUserResponse = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'apikey': SERVICE_ROLE_KEY,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        id: userId,
+        email: email,
+        full_name: full_name,
+        phone: phone || null,
+        role: 'admin',
+        is_active: true,
+      }),
+    });
 
-    // Update user profile with phone if provided (trigger already created the record)
-    if (phone) {
-      await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-          'apikey': SERVICE_ROLE_KEY,
-          'Prefer': 'return=minimal',
-        },
-        body: JSON.stringify({ phone }),
-      });
+    if (!insertUserResponse.ok) {
+      const errorText = await insertUserResponse.text();
+      console.error('Failed to create user profile:', errorText);
+      throw new Error('Failed to create user profile in database');
     }
 
     return {
