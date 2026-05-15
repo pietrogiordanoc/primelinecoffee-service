@@ -59,7 +59,6 @@ export default function TechnicianHome() {
           .order('name');
 
         setForms(formsData || []);
-      }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -230,12 +229,6 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
       if (fetchError) throw fetchError;
 
       onSuccess(newCompanyData);
-          .single();
-
-        if (insertError) throw insertError;
-        onSuccess(insertedData);
-      }
-
       reset();
     } catch (err: any) {
       setError(err.message || 'Error creating company');

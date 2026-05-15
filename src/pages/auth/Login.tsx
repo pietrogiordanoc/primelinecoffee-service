@@ -4,10 +4,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginInput } from '@/utils/validationSchemas';
 import { useAuthStore } from '@/stores/authStore';
+import { supabase } from '@/lib/supabase';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { loginDemo } = useAuthStore();
+  const { setUser, setUserProfile } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -24,15 +25,26 @@ export default function Login() {
       setLoading(true);
       setError(null);
 
-      // Use demo login
-      const success = await loginDemo(data.email, data.password);
+      // Sign in with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
 
-      if (!success) {
-        throw new Error('Invalid credentials');
-      }
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('No user data returned');
 
-      // Get profile to determine role
-      const userProfile = useAuthStore.getState().userProfile;
+      setUser(authData.user);
+
+      // Get user profile
+      const { data: userProfile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      setUserProfile(userProfile);
 
       // Redirect by role
       if (userProfile?.role === 'technician') {
@@ -45,13 +57,6 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemoCredentials = (email: string, password: string) => {
-    const emailInput = document.getElementById('email') as HTMLInputElement;
-    const passwordInput = document.getElementById('password') as HTMLInputElement;
-    if (emailInput) emailInput.value = email;
-    if (passwordInput) passwordInput.value = password;
   };
 
   return (
@@ -79,51 +84,6 @@ export default function Login() {
               Prime Line Coffee Service
             </h1>
             <p className="text-gray-600 mt-2">Technical Service Management System</p>
-          </div>
-
-          {/* Demo Mode Notice */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start">
-              <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-blue-900 mb-2">Demo Mode</h3>
-                <p className="text-xs text-blue-700 mb-3">Test the application with sample data:</p>
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => fillDemoCredentials('admin@demo.com', 'admin123')}
-                    className="w-full text-left px-3 py-2 bg-white rounded border border-blue-200 hover:bg-blue-50 transition text-xs"
-                  >
-                    <div className="font-medium text-blue-900">👤 Admin</div>
-                    <div className="text-blue-600">admin@demo.com / admin123</div>
-                  </button>
-                  <div className="bg-white rounded border border-blue-200 px-3 py-2">
-                    <div className="font-medium text-blue-900 text-xs mb-2">🔧 Technicians</div>
-                    <select
-                      onChange={(e) => {
-                        const [email, password] = e.target.value.split('|');
-                        if (email && password) fillDemoCredentials(email, password);
-                      }}
-                      className="w-full text-xs border border-blue-200 rounded px-2 py-1"
-                      defaultValue=""
-                    >
-                      <option value="">Select a technician...</option>
-                      <option value="andy.hernandez@primelinedist.com|tech123">Andy Hernandez</option>
-                      <option value="sergio.tabares@primelinedist.com|tech123">Sergio Tabares</option>
-                      <option value="neftali.borrero@primelinedist.com|tech123">Neftali Borrero</option>
-                      <option value="Onier@primelinedist.com|tech123">Onier Guillen</option>
-                      <option value="Ernesto@primelinedist.com|tech123">Ernesto Sanchez</option>
-                      <option value="Alberto@primelinedist.com|tech123">Alberto Martinez</option>
-                      <option value="oscar.encinas@primelinedist.com|tech123">Oscar Encinas</option>
-                      <option value="alejandro@eliaontheriver.com|tech123">Alejandro</option>
-                    </select>
-                    <div className="text-blue-600 text-xs mt-1">Password: tech123</div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Form */}

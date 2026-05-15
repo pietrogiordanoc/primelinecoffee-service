@@ -51,22 +51,14 @@ export default function FormBuilderPage() {
     try {
       setLoading(true);
       
-      if (isDemoMode) {
-        // Delete from store and associated fields
-        const updatedForms = forms.filter(f => f.id !== form.id);
-        setForms(updatedForms);
-        const updatedFields = formFields.filter(f => f.form_id !== form.id);
-        setFormFields(updatedFields);
-      } else {
-        // Delete from Supabase (cascade will delete fields)
-        const { error } = await supabase
-          .from('dynamic_forms')
-          .delete()
-          .eq('id', form.id);
+      // Delete from Supabase (cascade will delete fields)
+      const { error } = await supabase
+        .from('dynamic_forms')
+        .delete()
+        .eq('id', form.id);
 
-        if (error) throw error;
-        await loadForms();
-      }
+      if (error) throw error;
+      await loadForms();
     } catch (error) {
       console.error('Error deleting form:', error);
       alert('Error deleting form');
@@ -205,15 +197,13 @@ export default function FormBuilderPage() {
             setNewlyCreatedFormId(newFormId);
             // Give time for the form to load
             setTimeout(() => {
-              const form = forms.find(f => f.id === newFormId) || 
-                (isDemoMode ? forms[forms.length - 1] : null);
+              const form = forms.find(f => f.id === newFormId);
               if (form) {
                 setSelectedForm(form);
               }
             }, 100);
           }
         }}
-        isDemoMode={isDemoMode}
       />
 
       {/* Field Builder Modal */}
@@ -222,7 +212,6 @@ export default function FormBuilderPage() {
           form={selectedForm}
           isOpen={!!selectedForm}
           onClose={() => setSelectedForm(null)}
-          isDemoMode={isDemoMode}
         />
       )}
 
@@ -232,7 +221,6 @@ export default function FormBuilderPage() {
           form={previewForm}
           isOpen={!!previewForm}
           onClose={() => setPreviewForm(null)}
-          isDemoMode={isDemoMode}
         />
       )}
     </div>
@@ -244,10 +232,9 @@ interface FormModalProps {
   onClose: () => void;
   form: DynamicForm | null;
   onSuccess: (newFormId?: string) => void;
-  isDemoMode?: boolean;
 }
 
-function FormModal({ isOpen, onClose, form, onSuccess, isDemoMode }: FormModalProps) {
+function FormModal({ isOpen, onClose, form, onSuccess }: FormModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { forms, setForms } = useFormStore();
@@ -269,45 +256,23 @@ function FormModal({ isOpen, onClose, form, onSuccess, isDemoMode }: FormModalPr
 
       let newFormId: string | undefined;
       
-      if (isDemoMode) {
-        // Demo mode: save in memory
-        if (form) {
-          // Update existing form
-          const updatedForms = forms.map(f => 
-            f.id === form.id ? { ...f, ...data } : f
-          );
-          setForms(updatedForms);
-        } else {
-          // Create new form
-          newFormId = `form_${Date.now()}`;
-          const newForm: DynamicForm = {
-            id: newFormId,
-            ...data,
-            version: 1,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-          setForms([...forms, newForm]);
-        }
+      // Save to Supabase
+      if (form) {
+        const { error: updateError } = await supabase
+          .from('dynamic_forms')
+          .update(data)
+          .eq('id', form.id);
+
+        if (updateError) throw updateError;
       } else {
-        // Production mode: save to Supabase
-        if (form) {
-          const { error: updateError } = await supabase
-            .from('dynamic_forms')
-            .update(data)
-            .eq('id', form.id);
+        const { data: insertedData, error: insertError } = await supabase
+          .from('dynamic_forms')
+          .insert([data])
+          .select()
+          .single();
 
-          if (updateError) throw updateError;
-        } else {
-          const { data: insertedData, error: insertError } = await supabase
-            .from('dynamic_forms')
-            .insert([data])
-            .select()
-            .single();
-
-          if (insertError) throw insertError;
-          if (insertedData) newFormId = insertedData.id;
-        }
+        if (insertError) throw insertError;
+        if (insertedData) newFormId = insertedData.id;
       }
 
       reset();
@@ -410,10 +375,9 @@ interface FieldBuilderModalProps {
   form: DynamicForm;
   isOpen: boolean;
   onClose: () => void;
-  isDemoMode?: boolean;
 }
 
-function FieldBuilderModal({ form, isOpen, onClose, isDemoMode }: FieldBuilderModalProps) {
+function FieldBuilderModal({ form, isOpen, onClose }: FieldBuilderModalProps) {
   const [fields, setFields] = useState<FormField[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddingField, setIsAddingField] = useState(false);
@@ -429,22 +393,15 @@ function FieldBuilderModal({ form, isOpen, onClose, isDemoMode }: FieldBuilderMo
     try {
       setLoading(true);
       
-      if (isDemoMode) {
-        // Demo mode: load from store
-        const formFieldsForForm = formFields.filter(f => f.form_id === form.id)
-          .sort((a, b) => a.order_index - b.order_index);
-        setFields(formFieldsForForm);
-      } else {
-        // Production mode: load from Supabase
-        const { data, error } = await supabase
-          .from('form_fields')
-          .select('*')
-          .eq('form_id', form.id)
-          .order('order_index', { ascending: true });
+      // Load from Supabase
+      const { data, error } = await supabase
+        .from('form_fields')
+        .select('*')
+        .eq('form_id', form.id)
+        .order('order_index', { ascending: true });
 
-        if (error) throw error;
-        setFields(data || []);
-      }
+      if (error) throw error;
+      setFields(data || []);
     } catch (error) {
       console.error('Error loading fields:', error);
     } finally {
@@ -456,21 +413,14 @@ function FieldBuilderModal({ form, isOpen, onClose, isDemoMode }: FieldBuilderMo
     if (!confirm('Are you sure you want to delete this field?')) return;
 
     try {
-      if (isDemoMode) {
-        // Demo mode: delete from store
-        const updatedFields = formFields.filter(f => f.id !== fieldId);
-        setFormFields(updatedFields);
-        await loadFields();
-      } else {
-        // Production mode: delete from Supabase
-        const { error } = await supabase
-          .from('form_fields')
-          .delete()
-          .eq('id', fieldId);
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('form_fields')
+        .delete()
+        .eq('id', fieldId);
 
-        if (error) throw error;
-        await loadFields();
-      }
+      if (error) throw error;
+      await loadFields();
     } catch (error) {
       console.error('Error deleting field:', error);
     }
@@ -552,7 +502,6 @@ function FieldBuilderModal({ form, isOpen, onClose, isDemoMode }: FieldBuilderMo
                   loadFields();
                 }}
                 onCancel={() => setIsAddingField(false)}
-                isDemoMode={isDemoMode}
               />
             )}
           </>
@@ -567,10 +516,9 @@ interface AddFieldFormProps {
   orderIndex: number;
   onSuccess: () => void;
   onCancel: () => void;
-  isDemoMode?: boolean;
 }
 
-function AddFieldForm({ formId, orderIndex, onSuccess, onCancel, isDemoMode }: AddFieldFormProps) {
+function AddFieldForm({ formId, orderIndex, onSuccess, onCancel }: AddFieldFormProps) {
   const [loading, setLoading] = useState(false);
   const [fieldType, setFieldType] = useState<FieldType>('text');
   const { formFields, setFormFields } = useFormStore();
@@ -597,16 +545,10 @@ function AddFieldForm({ formId, orderIndex, onSuccess, onCancel, isDemoMode }: A
         order_index: orderIndex,
       };
 
-      if (isDemoMode) {
-        // Demo mode: add to store
-        setFormFields([...formFields, fieldData]);
-        onSuccess();
-      } else {
-        // Production mode: save to Supabase
-        const { error } = await supabase.from('form_fields').insert([fieldData]);
-        if (error) throw error;
-        onSuccess();
-      }
+      // Save to Supabase
+      const { error } = await supabase.from('form_fields').insert([fieldData]);
+      if (error) throw error;
+      onSuccess();
     } catch (error) {
       console.error('Error adding field:', error);
     } finally {
@@ -702,10 +644,9 @@ interface FormPreviewModalProps {
   form: DynamicForm;
   isOpen: boolean;
   onClose: () => void;
-  isDemoMode?: boolean;
 }
 
-function FormPreviewModal({ form, isOpen, onClose, isDemoMode }: FormPreviewModalProps) {
+function FormPreviewModal({ form, isOpen, onClose }: FormPreviewModalProps) {
   const [fields, setFields] = useState<FormField[]>([]);
   const [loading, setLoading] = useState(true);
   const { formFields } = useFormStore();
@@ -720,22 +661,15 @@ function FormPreviewModal({ form, isOpen, onClose, isDemoMode }: FormPreviewModa
     try {
       setLoading(true);
       
-      if (isDemoMode) {
-        // Demo mode: load from store
-        const formFieldsForForm = formFields.filter(f => f.form_id === form.id)
-          .sort((a, b) => a.order_index - b.order_index);
-        setFields(formFieldsForForm);
-      } else {
-        // Production mode: load from Supabase
-        const { data, error } = await supabase
-          .from('form_fields')
-          .select('*')
-          .eq('form_id', form.id)
-          .order('order_index', { ascending: true });
+      // Load from Supabase
+      const { data, error } = await supabase
+        .from('form_fields')
+        .select('*')
+        .eq('form_id', form.id)
+        .order('order_index', { ascending: true });
 
-        if (error) throw error;
-        setFields(data || []);
-      }
+      if (error) throw error;
+      setFields(data || []);
     } catch (error) {
       console.error('Error loading fields:', error);
     } finally {
