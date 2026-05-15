@@ -6,7 +6,21 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 0
+      }
+    },
+    global: {
+      headers: {}
+    }
+  }
 );
 
 interface EmailAttachment {
