@@ -252,19 +252,18 @@ function CompanyModal({ isOpen, onClose, company, onSuccess }: CompanyModalProps
       setLoading(true);
       setError(null);
 
-      if (company) {
-        const { error: updateError } = await supabase
-          .from('companies')
-          .update(data)
-          .eq('id', company.id);
+      const payload = company ? { ...data, id: company.id } : data;
 
-        if (updateError) throw updateError;
-      } else {
-        const { error: insertError } = await supabase
-          .from('companies')
-          .insert([data]);
+      const response = await fetch('/.netlify/functions/upsert-company', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-        if (insertError) throw insertError;
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error saving company');
       }
 
       reset();

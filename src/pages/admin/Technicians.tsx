@@ -60,14 +60,20 @@ export default function TechniciansPage() {
       return;
     }
     
-    // Production mode
+    // Production mode: use Netlify function
     try {
-      const { error } = await supabase
-        .from('technicians')
-        .update({ is_active: !technician.is_active })
-        .eq('id', technician.id);
+      const response = await fetch('/.netlify/functions/toggle-technician-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          technician_id: technician.id,
+          is_active: !technician.is_active,
+        }),
+      });
 
-      if (error) throw error;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Error toggling technician');
+
       await loadTechnicians();
     } catch (error) {
       console.error('Error toggling technician status:', error);
@@ -246,16 +252,19 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
       setError(null);
 
       if (technician) {
-        // Update existing technician
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({
+        // Update existing technician via Netlify function
+        const response = await fetch('/.netlify/functions/update-technician', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: technician.user_id,
             full_name: data.full_name,
-            phone: data.phone,
-          })
-          .eq('id', technician.user_id);
+            phone: data.phone || null,
+          }),
+        });
 
-        if (updateError) throw updateError;
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error updating technician');
       } else {
         // Create new technician via Netlify function (requires service role key server-side)
         const response = await fetch('/.netlify/functions/create-technician', {
