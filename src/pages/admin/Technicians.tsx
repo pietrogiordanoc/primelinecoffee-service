@@ -257,25 +257,20 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
 
         if (updateError) throw updateError;
       } else {
-        // Create new technician
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: data.email,
-          password: data.password,
-          email_confirm: true,
-          user_metadata: {
+        // Create new technician via Netlify function (requires service role key server-side)
+        const response = await fetch('/.netlify/functions/create-technician', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             full_name: data.full_name,
-            role: 'technician',
-          },
+            email: data.email,
+            password: data.password,
+            phone: data.phone || null,
+          }),
         });
 
-        if (authError) throw authError;
-
-        // Create technician record
-        const { error: techError } = await supabase.from('technicians').insert({
-          user_id: authData.user.id,
-        });
-
-        if (techError) throw techError;
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Error al crear técnico');
       }
 
       reset();
