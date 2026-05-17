@@ -40,8 +40,15 @@ const handler: Handler = async (event: HandlerEvent) => {
 
     if (!createUserResponse.ok) {
       const errorText = await createUserResponse.text();
-      console.error('Auth API error:', errorText);
-      throw new Error('Failed to create authentication user');
+      console.error('Auth API error:', createUserResponse.status, errorText);
+      let errorDetail = 'Failed to create authentication user';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorDetail = errorJson.msg || errorJson.message || errorJson.error_description || errorText;
+      } catch (e) {
+        errorDetail = errorText || errorDetail;
+      }
+      throw new Error(errorDetail);
     }
 
     const authUser = await createUserResponse.json();
