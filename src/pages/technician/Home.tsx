@@ -77,8 +77,8 @@ export default function TechnicianHome() {
     <div className="space-y-4 pb-6">
       {/* Select Company */}
       <div>
-        <div className="flex items-center gap-2 mb-1">
-          <label className="text-sm font-semibold text-gray-900 flex-shrink-0">Companies</label>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-semibold text-gray-900">Companies</h2>
           <Button
             onClick={() => setIsAddCompanyModalOpen(true)}
             variant="secondary"
@@ -99,23 +99,41 @@ export default function TechnicianHome() {
             </div>
           </Card>
         ) : (
-          <select
-            value={selectedCompany?.id || ''}
-            onChange={(e) => {
-              const company = companies.find(c => c.id === e.target.value);
-              setSelectedCompany(company || null);
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white"
-          >
-            <option value="">Select a company...</option>
+          <div className="space-y-2">
             {companies.map((company) => (
-              <option key={company.id} value={company.id}>
-                {company.name}
-                {company.city && ` • ${company.city}`}
-                {company.address && ` • ${company.address}`}
-              </option>
+              <button
+                key={company.id}
+                onClick={() => setSelectedCompany(company)}
+                className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+                  selectedCompany?.id === company.id
+                    ? 'border-primary-500 bg-primary-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-primary-300 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {company.name}
+                    </p>
+                    {(company.city || company.address) && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {[company.address, company.city].filter(Boolean).join(' • ')}
+                      </p>
+                    )}
+                  </div>
+                  {selectedCompany?.id === company.id && (
+                    <div className="ml-2 flex-shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </button>
             ))}
-          </select>
+          </div>
         )}
       </div>
 
