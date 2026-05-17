@@ -253,15 +253,11 @@ CREATE POLICY "Super admins can delete companies"
   USING (get_user_role(auth.uid()) = 'super_admin');
 
 -- Technicians can view assigned companies
-CREATE POLICY "Technicians can view assigned companies"
+CREATE POLICY "Technicians can view all active companies"
   ON public.companies FOR SELECT
   USING (
     get_user_role(auth.uid()) = 'technician' AND
-    id IN (
-      SELECT company_id FROM public.technician_companies tc
-      JOIN public.technicians t ON t.id = tc.technician_id
-      WHERE t.user_id = auth.uid()
-    )
+    is_active = true
   );
 
 -- =====================================================
