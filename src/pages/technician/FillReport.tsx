@@ -297,19 +297,39 @@ export default function FillReport() {
         for (let i = 0; i < allPhotos.length; i++) {
           const photo = allPhotos[i];
           const timestamp = Date.now();
-          const fileName = `${reportId}_${timestamp}_${i}.jpg`;
+          const fileName = `${reportId}_${timestamp}_${i}.webp`;
+          const thumbFileName = `${reportId}_${timestamp}_${i}_thumb.webp`;
           
           try {
             // Upload main photo
             const { error: uploadError } = await supabase.storage
               .from('service-photos')
               .upload(fileName, photo.file, {
-                contentType: 'image/jpeg',
+                contentType: 'image/webp',
                 cacheControl: '3600',
                 upsert: false,
               });
 
             if (uploadError) throw uploadError;
+
+            // Upload thumbnail
+            let thumbnailUrl = '';
+            if (photo.thumbnailFile) {
+              const { error: thumbError } = await supabase.storage
+                .from('service-photos')
+                .upload(thumbFileName, photo.thumbnailFile, {
+                  contentType: 'image/webp',
+                  cacheControl: '3600',
+                  upsert: false,
+                });
+
+              if (!thumbError) {
+                const { data: thumbUrlData } = supabase.storage
+                  .from('service-photos')
+                  .getPublicUrl(thumbFileName);
+                thumbnailUrl = thumbUrlData.publicUrl;
+              }
+            }
 
             // Get public URL
             const { data: urlData } = supabase.storage
@@ -319,9 +339,10 @@ export default function FillReport() {
             photoRecords.push({
               report_id: reportId,
               file_url: urlData.publicUrl,
+              thumbnail_url: thumbnailUrl || urlData.publicUrl,
               file_name: fileName,
               file_size: photo.optimizedSize,
-              mime_type: 'image/jpeg',
+              mime_type: 'image/webp',
               order_index: i,
             });
           } catch (photoError) {

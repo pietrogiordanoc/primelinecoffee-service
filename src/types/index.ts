@@ -188,6 +188,7 @@ export interface OptimizedPhoto {
   file: File;
   url: string;
   thumbnail?: string;
+  thumbnailFile?: File;
   originalSize: number;
   optimizedSize: number;
 }

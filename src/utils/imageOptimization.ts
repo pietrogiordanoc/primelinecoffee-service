@@ -18,12 +18,13 @@ export async function optimizeImage(
   const config = { ...DEFAULT_SETTINGS, ...settings };
 
   try {
+    // Main image - WebP format for better compression
     const options = {
-      maxSizeMB: config.max_size_mb,
+      maxSizeMB: 0.1, // 100KB max for main image
       maxWidthOrHeight: Math.max(config.max_width, config.max_height),
       useWebWorker: true,
-      fileType: 'image/jpeg',
-      initialQuality: config.quality,
+      fileType: 'image/webp',
+      initialQuality: 0.7,
     };
 
     const compressedFile = await imageCompression(file, options);
@@ -31,13 +32,13 @@ export async function optimizeImage(
     // Create optimized image URL
     const url = URL.createObjectURL(compressedFile);
     
-    // Generate thumbnail
+    // Generate thumbnail - super small
     const thumbnailOptions = {
-      maxSizeMB: 0.1,
-      maxWidthOrHeight: 300,
+      maxSizeMB: 0.02, // 20KB max for thumbnail
+      maxWidthOrHeight: 200,
       useWebWorker: true,
-      fileType: 'image/jpeg',
-      initialQuality: 0.7,
+      fileType: 'image/webp',
+      initialQuality: 0.6,
     };
     
     const thumbnailFile = await imageCompression(file, thumbnailOptions);
@@ -47,6 +48,7 @@ export async function optimizeImage(
       file: compressedFile,
       url,
       thumbnail,
+      thumbnailFile,
       originalSize: file.size,
       optimizedSize: compressedFile.size,
     };

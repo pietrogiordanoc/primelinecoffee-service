@@ -200,13 +200,22 @@ export default function ViewReport() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               {report.photos.map((photo) => (
-                <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                <div 
+                  key={photo.id} 
+                  className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => window.open(photo.file_url, '_blank')}
+                >
                   <img
                     src={photo.thumbnail_url || photo.file_url}
                     alt={photo.file_name}
                     className="w-full h-full object-cover"
-                    onClick={() => window.open(photo.file_url, '_blank')}
                   />
+                  {/* Expand indicator */}
+                  <div className="absolute top-2 right-2 bg-black bg-opacity-60 rounded-full p-1.5">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                    </svg>
+                  </div>
                   {photo.caption && (
                     <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-2">
                       {photo.caption}
