@@ -38,6 +38,7 @@ export default function TechniciansPage() {
   const [editingTechnician, setEditingTechnician] = useState<Technician | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedTechnicianForAssign, setSelectedTechnicianForAssign] = useState<Technician | null>(null);
+  const [roleFilter, setRoleFilter] = useState<'all' | 'super_admin' | 'admin' | 'technician'>('all');
 
   useEffect(() => {
     loadTechnicians();
@@ -47,18 +48,46 @@ export default function TechniciansPage() {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
-        .from('technicians')
-        .select(`
-          *,
-          user:users(*)
-        `)
+      // Load all users
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setTechnicians(data || []);
+      if (usersError) throw usersError;
+
+      // For each user, check if they have technician data
+      const techniciansWithData = await Promise.all(
+        (usersData || []).map(async (user) => {
+          if (user.role === 'technician') {
+            const { data: techData } = await supabase
+              .from('technicians')
+              .select('*')
+              .eq('user_id', user.id)
+              .single();
+            
+            return {
+              ...techData,
+              id: techData?.id || user.id,
+              user_id: user.id,
+              is_active: techData?.is_active ?? user.is_active,
+              user: user,
+            };
+          } else {
+            // For non-technicians, create a virtual technician object
+            return {
+              id: user.id,
+              user_id: user.id,
+              is_active: user.is_active,
+              user: user,
+            };
+          }
+        })
+      );
+
+      setTechnicians(techniciansWithData || []);
     } catch (error) {
-      console.error('Error loading technicians:', error);
+      console.error('Error loading staff:', error);
     } finally {
       setLoading(false);
     }
@@ -123,23 +152,69 @@ export default function TechniciansPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Technicians</h1>
-          <p className="text-gray-600 mt-1">Manage system technicians</p>
+          <h1 className="text-2xl font-bold text-gray-900">STAFF</h1>
+          <p className="text-gray-600 mt-1">Manage all system users - Super Admins, Managers, and Technicians</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          Add Technician
+          Add Staff Member
         </Button>
       </div>
 
-      {/* Technicians Table */}
-      {technicians.length === 0 ? (
+      {/* Role Filters */}
+      <Card>
+        <div className="flex gap-2 p-4">
+          <button
+            onClick={() => setRoleFilter('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              roleFilter === 'all'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setRoleFilter('super_admin')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              roleFilter === 'super_admin'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Super Admins
+          </button>
+          <button
+            onClick={() => setRoleFilter('admin')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              roleFilter === 'admin'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Managers
+          </button>
+          <button
+            onClick={() => setRoleFilter('technician')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              roleFilter === 'technician'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Technicians
+          </button>
+        </div>
+      </Card>
+
+      {/* Staff Table */}
+      {technicians.filter(t => roleFilter === 'all' || t.user?.role === roleFilter).length === 0 ? (
         <Card>
           <div className="p-12 text-center">
-            <p className="text-gray-500">No technicians registered</p>
+            <p className="text-gray-500">No staff members found</p>
             <Button onClick={() => setIsModalOpen(true)} className="mt-4">
               <Plus className="w-4 h-4 mr-2" />
-              Add First Technician
+              Add Staff Member
             </Button>
           </div>
         </Card>
@@ -150,10 +225,13 @@ export default function TechniciansPage() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Technician
+                    Name
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Email
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Role
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Phone
@@ -167,7 +245,7 @@ export default function TechniciansPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {technicians.map((technician) => (
+                {technicians.filter(t => roleFilter === 'all' || t.user?.role === roleFilter).map((technician) => (
                   <tr key={technician.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
@@ -187,6 +265,17 @@ export default function TechniciansPage() {
                       <p className="text-sm text-gray-600">{technician.user?.email}</p>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        technician.user?.role === 'super_admin' ? 'bg-purple-100 text-purple-700' :
+                        technician.user?.role === 'admin' ? 'bg-blue-100 text-blue-700' :
+                        'bg-green-100 text-green-700'
+                      }`}>
+                        {technician.user?.role === 'super_admin' ? 'Super Admin' :
+                         technician.user?.role === 'admin' ? 'Manager' :
+                         'Technician'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <p className="text-sm text-gray-600">{technician.user?.phone || '-'}</p>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
@@ -202,16 +291,18 @@ export default function TechniciansPage() {
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedTechnicianForAssign(technician);
-                            setIsAssignModalOpen(true);
-                          }}
-                          className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
-                          title="Assign Companies"
-                        >
-                          <Building2 className="w-4 h-4" />
-                        </button>
+                        {technician.user?.role === 'technician' && (
+                          <button
+                            onClick={() => {
+                              setSelectedTechnicianForAssign(technician);
+                              setIsAssignModalOpen(true);
+                            }}
+                            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
+                            title="Assign Companies"
+                          >
+                            <Building2 className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleToggleActive(technician)}
                           className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition"

@@ -28,7 +28,7 @@ export default function AdminLayout() {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Technicians', href: '/admin/technicians', icon: Users },
+    { name: 'STAFF', href: '/admin/technicians', icon: Users },
     { name: 'Companies', href: '/admin/companies', icon: Building2 },
     { name: 'Forms', href: '/admin/forms', icon: FileText },
     { name: 'Reports', href: '/admin/reports', icon: ClipboardList },
