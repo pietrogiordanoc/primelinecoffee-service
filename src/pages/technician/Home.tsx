@@ -40,7 +40,28 @@ export default function TechnicianHome() {
         .eq('is_active', true)
         .order('name');
 
-      setCompanies(companiesData || []);
+      // Get last visit dates for each company
+      if (companiesData) {
+        const companiesWithVisits = await Promise.all(
+          companiesData.map(async (company) => {
+            const { data: lastReport } = await supabase
+              .from('service_reports')
+              .select('created_at')
+              .eq('company_id', company.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+
+            return {
+              ...company,
+              last_visit: lastReport?.created_at || null,
+            };
+          })
+        );
+        setCompanies(companiesWithVisits as any);
+      } else {
+        setCompanies([]);
+      }
 
       // Load active forms
       const { data: formsData } = await supabase
@@ -99,41 +120,107 @@ export default function TechnicianHome() {
             </div>
           </Card>
         ) : (
-          <div className="space-y-2">
-            {companies.map((company) => (
-              <button
-                key={company.id}
-                onClick={() => setSelectedCompany(company)}
-                className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
-                  selectedCompany?.id === company.id
-                    ? 'border-primary-500 bg-primary-50 shadow-sm'
-                    : 'border-gray-200 bg-white hover:border-primary-300 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-900">
-                      {company.name}
-                    </p>
-                    {(company.city || company.address) && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {[company.address, company.city].filter(Boolean).join(' • ')}
-                      </p>
-                    )}
-                  </div>
-                  {selectedCompany?.id === company.id && (
-                    <div className="ml-2 flex-shrink-0">
-                      <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Name
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Address
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      City / State
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Contact
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Phone
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Email
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Last Visit
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {companies.map((company: any) => (
+                    <tr
+                      key={company.id}
+                      onClick={() => setSelectedCompany(company)}
+                      className={`cursor-pointer transition-colors ${
+                        selectedCompany?.id === company.id
+                          ? 'bg-primary-50 border-l-4 border-l-primary-500'
+                          : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {selectedCompany?.id === company.id && (
+                            <div className="w-4 h-4 rounded-full bg-primary-500 flex items-center justify-center mr-2 flex-shrink-0">
+                              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                          <p className="text-sm font-medium text-gray-900">
+                            {company.name}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <p className="text-sm text-gray-600">{company.address || '-'}</p>
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <p className="text-sm text-gray-600">
+                          {company.city}
+                          {company.state && `, ${company.state}`}
+                        </p>
+                        {company.postal_code && (
+                          <p className="text-xs text-gray-400">{company.postal_code}</p>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <p className="text-sm text-gray-900">{company.contact_name || '-'}</p>
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <p className="text-sm text-gray-600">{company.contact_phone || '-'}</p>
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <p className="text-sm text-gray-600">{company.contact_email || '-'}</p>
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        {company.last_visit ? (
+                          <div>
+                            <p className="text-sm text-gray-900">
+                              {new Date(company.last_visit).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(company.last_visit).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400 italic">Never</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         )}
       </div>
 
