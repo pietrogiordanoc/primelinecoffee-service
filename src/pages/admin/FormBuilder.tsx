@@ -69,7 +69,7 @@ export default function FormBuilderPage() {
       await loadForms();
     } catch (error) {
       console.error('Error deleting form:', error);
-      alert('Error deleting form');
+      await alert('Error al eliminar el formulario. Por favor intenta de nuevo.', 'Error');
     } finally {
       setLoading(false);
     }
@@ -390,6 +390,7 @@ function FieldBuilderModal({ form, isOpen, onClose }: FieldBuilderModalProps) {
   const [loading, setLoading] = useState(true);
   const [isAddingField, setIsAddingField] = useState(false);
   const { formFields, setFormFields } = useFormStore();
+  const { confirm, alert } = useConfirm();
 
   useEffect(() => {
     if (isOpen) {
