@@ -270,10 +270,28 @@ function CompanyModal({ isOpen, onClose, company, onSuccess }: CompanyModalProps
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<CompanyInput>({
     resolver: zodResolver(companySchema),
     defaultValues: company || {},
   });
+
+  // Load company data when editing
+  useEffect(() => {
+    if (company && isOpen) {
+      setValue('name', company.name || '');
+      setValue('address', company.address || '');
+      setValue('city', company.city || '');
+      setValue('state', company.state || '');
+      setValue('postal_code', company.postal_code || '');
+      setValue('contact_name', company.contact_name || '');
+      setValue('contact_email', company.contact_email || '');
+      setValue('contact_phone', company.contact_phone || '');
+      setValue('notes', company.notes || '');
+    } else if (!company && isOpen) {
+      reset();
+    }
+  }, [company, isOpen, setValue, reset]);
 
   const onSubmit = async (data: CompanyInput) => {
     try {
