@@ -8,14 +8,6 @@ const supabase = createClient(
     auth: {
       autoRefreshToken: false,
       persistSession: false
-    },
-    realtime: {
-      params: {
-        eventsPerSecond: 0
-      }
-    },
-    global: {
-      headers: {}
     }
   }
 );
