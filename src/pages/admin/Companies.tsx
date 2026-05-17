@@ -7,7 +7,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
-import { Plus, Edit2, Building2, ArrowUpDown } from 'lucide-react';
+import { Plus, Edit2, Building2, ArrowUpDown, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { companySchema, type CompanyInput } from '@/utils/validationSchemas';
@@ -57,6 +57,28 @@ export default function CompaniesPage() {
       console.error('Error loading companies:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDelete(company: Company) {
+    if (!confirm(`Are you sure you want to delete ${company.name}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/.netlify/functions/delete-company', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company_id: company.id }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Error deleting company');
+
+      await loadCompanies();
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      alert('Failed to delete company. Please try again.');
     }
   }
 
@@ -179,15 +201,25 @@ export default function CompaniesPage() {
                       </span>
                     </td>
                     <td className="px-3 py-2">
-                      <button
-                        onClick={() => {
-                          setEditingCompany(company);
-                          setIsModalOpen(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-700"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingCompany(company);
+                            setIsModalOpen(true);
+                          }}
+                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(company)}
+                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
