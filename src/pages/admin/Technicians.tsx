@@ -297,33 +297,32 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<TechnicianFormInput>({
     resolver: zodResolver(technician ? editTechnicianSchema : createTechnicianSchema),
-    defaultValues: {
-      role: 'technician',
-    },
   });
 
   // Load technician data when modal opens in edit mode
   useEffect(() => {
-    if (isOpen && technician) {
-      reset({
-        full_name: technician.user?.full_name || '',
-        email: technician.user?.email || '',
-        phone: technician.user?.phone || '',
-        password: '', // No pre-fill password
-        role: 'technician',
-      });
-    } else if (isOpen && !technician) {
-      reset({
-        full_name: '',
-        email: '',
-        phone: '',
-        password: '',
-        role: 'technician',
-      });
+    if (isOpen) {
+      if (technician?.user) {
+        console.log('Loading technician data:', technician.user);
+        // Set values one by one for edit mode
+        setValue('full_name', technician.user.full_name || '');
+        setValue('phone', technician.user.phone || '');
+        setValue('role', 'technician');
+      } else {
+        // Reset form for create mode
+        reset({
+          full_name: '',
+          email: '',
+          phone: '',
+          password: '',
+          role: 'technician',
+        });
+      }
     }
-  }, [isOpen, technician, reset]);
+  }, [isOpen, technician, reset, setValue]);
 
   const onSubmit = async (data: TechnicianFormInput) => {
     try {
