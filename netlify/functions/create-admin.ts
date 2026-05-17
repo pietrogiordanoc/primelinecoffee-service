@@ -18,8 +18,8 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
-    // Call PostgreSQL function that creates auth user and triggers public.users creation
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/create_admin_user`, {
+    // Step 1: Create user with Admin API (handles password hashing correctly)
+    const createUserResponse = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -27,20 +27,60 @@ const handler: Handler = async (event: HandlerEvent) => {
         'apikey': SERVICE_ROLE_KEY,
       },
       body: JSON.stringify({
-        p_email: email,
-        p_password: password,
-        p_full_name: full_name,
-        p_phone: phone || null
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name,
+          role: 'admin',
+          phone: phone || null
+        },
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Database error:', errorText);
-      throw new Error('Database error creating new user');
+    if (!createUserResponse.ok) {
+      const errorText = await createUserResponse.text();
+      console.error('Auth API error:', errorText);
+      throw new Error('Failed to create authentication user');
     }
 
-    const result = await response.json();
+    const authUser = await createUserResponse.json();
+    const userId = authUser.id;
+
+    // Step 2: Manually insert into public.users (Admin API doesn't trigger PostgreSQL triggers)
+    const insertProfileResponse = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'apikey': SERVICE_ROLE_KEY,
+        'Prefer': 'return=representation',
+      },
+      body: JSON.stringify({
+        id: userId,
+        email,
+        full_name,
+        phone: phone || null,
+        role: 'admin',
+        is_active: true,
+      }),
+    });
+
+    if (!insertProfileResponse.ok) {
+      const errorText = await insertProfileResponse.text();
+      console.error('Profile creation error:', errorText);
+      
+      // If profile creation fails, try to clean up auth user
+      await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+          'apikey': SERVICE_ROLE_KEY,
+        },
+      });
+      
+      throw new Error('Failed to create user profile');
+    }
 
     return {
       statusCode: 200,
