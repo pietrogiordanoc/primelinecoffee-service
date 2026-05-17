@@ -10,7 +10,7 @@ const handler: Handler = async (event: HandlerEvent) => {
   }
 
   try {
-    const { full_name, email, password, phone, specialization, certifications } = JSON.parse(
+    const { full_name, email, password, phone, role, specialization, certifications } = JSON.parse(
       event.body || '{}'
     );
 
@@ -35,7 +35,7 @@ const handler: Handler = async (event: HandlerEvent) => {
         email_confirm: true, // Auto-confirm email
         user_metadata: {
           full_name,
-          role: 'technician',
+          role: role || 'technician',
           phone: phone || null
         },
       }),
@@ -63,7 +63,7 @@ const handler: Handler = async (event: HandlerEvent) => {
         'Prefer': 'return=minimal',
       },
       body: JSON.stringify({
-        role: 'technician',
+        role: role || 'technician',
         full_name,
         phone: phone || null
       }),
@@ -73,27 +73,29 @@ const handler: Handler = async (event: HandlerEvent) => {
       console.error('Failed to update user:', await updateUserResponse.text());
     }
 
-    // Insert into technicians table
-    const techResponse = await fetch(`${SUPABASE_URL}/rest/v1/technicians`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-        'apikey': SERVICE_ROLE_KEY,
-        'Prefer': 'return=minimal',
-      },
-      body: JSON.stringify({
-        user_id: userId,
-        specialization: specialization || null,
-        certifications: certifications || null,
-        is_active: true
-      }),
-    });
+    // Insert into technicians table ONLY if role is technician
+    if (role === 'technician' || !role) {
+      const techResponse = await fetch(`${SUPABASE_URL}/rest/v1/technicians`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+          'apikey': SERVICE_ROLE_KEY,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          specialization: specialization || null,
+          certifications: certifications || null,
+          is_active: true
+        }),
+      });
 
-    if (!techResponse.ok) {
-      const errorData = await techResponse.text();
-      console.error('Failed to create technician:', errorData);
-      throw new Error('Failed to create technician record');
+      if (!techResponse.ok) {
+        const errorData = await techResponse.text();
+        console.error('Failed to create technician:', errorData);
+        throw new Error('Failed to create technician record');
+      }
     }
 
     return {

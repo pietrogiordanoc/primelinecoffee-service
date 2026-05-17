@@ -7,6 +7,7 @@ interface UpdateTechnicianData {
   user_id: string;
   full_name: string;
   phone?: string;
+  role?: string;
   specialization?: string;
 }
 
@@ -37,6 +38,7 @@ const handler: Handler = async (event: HandlerEvent) => {
       body: JSON.stringify({
         full_name: data.full_name,
         phone: data.phone || null,
+        role: data.role || 'technician',
       }),
     });
 

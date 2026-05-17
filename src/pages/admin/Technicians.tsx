@@ -423,6 +423,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
             user_id: technician.user_id,
             full_name: data.full_name,
             phone: data.phone || null,
+            role: data.role,
           }),
         });
 
@@ -438,6 +439,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
             email: data.email,
             password: data.password,
             phone: data.phone || null,
+            role: data.role,
           }),
         });
 
@@ -459,7 +461,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={technician ? 'Edit Technician' : 'Add Technician'}
+      title={technician ? 'Edit Staff Member' : 'Add Staff Member'}
       size="md"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -524,7 +526,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
             Cancel
           </Button>
           <Button type="submit" loading={loading}>
-            {technician ? 'Update' : 'Create'} Technician
+            {technician ? 'Update' : 'Create'}
           </Button>
         </div>
       </form>
