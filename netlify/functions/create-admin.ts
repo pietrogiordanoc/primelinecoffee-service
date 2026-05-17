@@ -2,6 +2,7 @@ import { Handler, HandlerEvent } from '@netlify/functions';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY!;
 
 const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod !== 'POST') {
@@ -18,19 +19,17 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
-    // Step 1: Create auth user with Admin API
-    const authResponse = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    // Use normal signUp (this triggers the trigger correctly and hashes password properly)
+    const signUpResponse = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-        'apikey': SERVICE_ROLE_KEY,
+        'apikey': ANON_KEY,
       },
       body: JSON.stringify({
         email,
         password,
-        email_confirm: true,
-        user_metadata: {
+        data: {
           full_name,
           role: 'admin',
           phone: phone || null
@@ -38,19 +37,35 @@ const handler: Handler = async (event: HandlerEvent) => {
       }),
     });
 
-    const authData = await authResponse.json();
+    const signUpData = await signUpResponse.json();
 
-    if (!authResponse.ok) {
-      console.error('Auth error:', authResponse.status, authData);
-      const errorMsg = `Auth API error (${authResponse.status}): ${JSON.stringify(authData)}`;
-      throw new Error(errorMsg);
+    if (!signUpResponse.ok) {
+      console.error('SignUp error:', signUpResponse.status, signUpData);
+      throw new Error(signUpData.msg || signUpData.message || signUpData.error_description || 'Failed to create user');
     }
 
-    const userId = authData.id;
+    const userId = signUpData.user?.id;
 
-    // Step 2: Insert into public.users
-    const profileResponse = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
-      method: 'POST',
+    if (!userId) {
+      throw new Error('No user ID returned');
+    }
+
+    // Confirm email using service role
+    await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'apikey': SERVICE_ROLE_KEY,
+      },
+      body: JSON.stringify({
+        email_confirm: true
+      }),
+    });
+
+    // Update role to admin in public.users (trigger should have created it as technician)
+    await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
@@ -58,31 +73,9 @@ const handler: Handler = async (event: HandlerEvent) => {
         'Prefer': 'return=minimal',
       },
       body: JSON.stringify({
-        id: userId,
-        email,
-        full_name,
-        phone: phone || null,
-        role: 'admin',
-        is_active: true,
+        role: 'admin'
       }),
     });
-
-    if (!profileResponse.ok) {
-      const profileData = await profileResponse.json();
-      console.error('Profile error:', profileResponse.status, profileData);
-      
-      // Cleanup auth user
-      await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-          'apikey': SERVICE_ROLE_KEY,
-        },
-      });
-      
-      const errorMsg = `Profile error (${profileResponse.status}): ${JSON.stringify(profileData)}`;
-      throw new Error(errorMsg);
-    }
 
     return {
       statusCode: 200,
