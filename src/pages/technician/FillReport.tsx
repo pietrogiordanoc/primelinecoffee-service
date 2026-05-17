@@ -260,7 +260,7 @@ export default function FillReport() {
         },
       };
 
-      // Save to Supabase
+      // Get technician ID
       const { data: techData } = await supabase
         .from('technicians')
         .select('id')
@@ -269,7 +269,8 @@ export default function FillReport() {
 
       if (!techData) throw new Error('Technician not found');
 
-      const { error: reportError } = await supabase
+      // Create service report first
+      const { data: reportData2, error: reportError } = await supabase
         .from('service_reports')
         .insert({
           form_id: formId!,
@@ -278,9 +279,67 @@ export default function FillReport() {
           status: 'submitted',
           form_data: reportData,
           submitted_at: new Date().toISOString(),
-        });
+        })
+        .select('id')
+        .single();
 
       if (reportError) throw reportError;
+      if (!reportData2) throw new Error('Failed to create report');
+
+      const reportId = reportData2.id;
+
+      // Upload all photos to Supabase Storage
+      const allPhotos = equipmentRecords.flatMap(r => r.photos);
+      
+      if (allPhotos.length > 0) {
+        const photoRecords = [];
+        
+        for (let i = 0; i < allPhotos.length; i++) {
+          const photo = allPhotos[i];
+          const timestamp = Date.now();
+          const fileName = `${reportId}_${timestamp}_${i}.jpg`;
+          
+          try {
+            // Upload main photo
+            const { error: uploadError } = await supabase.storage
+              .from('service-photos')
+              .upload(fileName, photo.file, {
+                contentType: 'image/jpeg',
+                cacheControl: '3600',
+                upsert: false,
+              });
+
+            if (uploadError) throw uploadError;
+
+            // Get public URL
+            const { data: urlData } = supabase.storage
+              .from('service-photos')
+              .getPublicUrl(fileName);
+
+            photoRecords.push({
+              report_id: reportId,
+              file_url: urlData.publicUrl,
+              file_name: fileName,
+              file_size: photo.optimizedSize,
+              mime_type: 'image/jpeg',
+              order_index: i,
+            });
+          } catch (photoError) {
+            console.error(`Error uploading photo ${i}:`, photoError);
+          }
+        }
+
+        // Insert photo records into database
+        if (photoRecords.length > 0) {
+          const { error: photosError } = await supabase
+            .from('report_photos')
+            .insert(photoRecords);
+
+          if (photosError) {
+            console.error('Error saving photo records:', photosError);
+          }
+        }
+      }
 
       alert('Report submitted successfully');
       navigate('/technician');
