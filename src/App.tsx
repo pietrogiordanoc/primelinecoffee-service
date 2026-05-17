@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
 
@@ -23,6 +23,58 @@ import ReportHistory from '@/pages/technician/History';
 // Components
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+
+function RoleBasedRedirect() {
+  const { user, userProfile, setUserProfile } = useAuthStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function redirect() {
+      if (!user) {
+        navigate('/login', { replace: true });
+        return;
+      }
+
+      // Load profile if not loaded
+      if (!userProfile) {
+        try {
+          const { data } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (data) {
+            setUserProfile(data);
+            if (data.role === 'technician') {
+              navigate('/technician', { replace: true });
+            } else {
+              navigate('/admin', { replace: true });
+            }
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error);
+          navigate('/login', { replace: true });
+        }
+      } else {
+        // Profile already loaded
+        if (userProfile.role === 'technician') {
+          navigate('/technician', { replace: true });
+        } else {
+          navigate('/admin', { replace: true });
+        }
+      }
+    }
+
+    redirect();
+  }, [user, userProfile, navigate, setUserProfile]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <LoadingSpinner size="lg" />
+    </div>
+  );
+}
 
 function App() {
   const { user, loading, setUser, setLoading } = useAuthStore();
@@ -58,7 +110,7 @@ function App() {
       <Route path="/setup" element={<Setup />} />
       <Route
         path="/login"
-        element={!user ? <Login /> : <Navigate to="/" replace />}
+        element={!user ? <Login /> : <RoleBasedRedirect />}
       />
 
       {/* Protected Admin Routes */}
@@ -93,8 +145,8 @@ function App() {
       </Route>
 
       {/* Redirect based on role */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<RoleBasedRedirect />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
