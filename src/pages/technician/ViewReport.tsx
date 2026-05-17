@@ -87,7 +87,7 @@ export default function ViewReport() {
   }
 
   return (
-    <div className="p-4 space-y-4 pb-24">
+    <div className="p-4 space-y-4 pb-24 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <button
@@ -117,40 +117,42 @@ export default function ViewReport() {
 
       {/* Company & Technician Info */}
       <Card>
-        <div className="p-4 space-y-3">
-          <div className="flex items-start gap-3">
-            <Building2 className="w-5 h-5 text-gray-400 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-xs text-gray-500">Company</p>
-              <p className="font-medium text-gray-900">{report.company?.name}</p>
-              {report.company?.address && (
-                <p className="text-sm text-gray-600">
-                  {report.company.address}
-                  {report.company.city && `, ${report.company.city}`}
-                  {report.company.state && `, ${report.company.state}`}
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-start gap-3">
+              <Building2 className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500">Company</p>
+                <p className="font-medium text-gray-900 truncate">{report.company?.name}</p>
+                {report.company?.address && (
+                  <p className="text-sm text-gray-600">
+                    {report.company.address}
+                    {report.company.city && `, ${report.company.city}`}
+                    {report.company.state && `, ${report.company.state}`}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <User className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500">Technician</p>
+                <p className="font-medium text-gray-900 truncate">{report.technician?.user?.full_name}</p>
+                <p className="text-sm text-gray-600 truncate">{report.technician?.user?.email}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <Calendar className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500">Submitted</p>
+                <p className="font-medium text-gray-900">
+                  {report.submitted_at
+                    ? formatDate(report.submitted_at, 'PPp')
+                    : 'Not submitted yet'}
                 </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <User className="w-5 h-5 text-gray-400 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-xs text-gray-500">Technician</p>
-              <p className="font-medium text-gray-900">{report.technician?.user?.full_name}</p>
-              <p className="text-sm text-gray-600">{report.technician?.user?.email}</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <Calendar className="w-5 h-5 text-gray-400 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-xs text-gray-500">Submitted</p>
-              <p className="font-medium text-gray-900">
-                {report.submitted_at
-                  ? formatDate(report.submitted_at, 'PPp')
-                  : 'Not submitted yet'}
-              </p>
+              </div>
             </div>
           </div>
         </div>
@@ -159,36 +161,77 @@ export default function ViewReport() {
       {/* Form Data */}
       <Card>
         <div className="p-4">
-          <h2 className="text-sm font-semibold text-gray-900 mb-3">Form Data</h2>
-          <div className="space-y-3">
-            {Object.entries(report.form_data).map(([key, value]) => {
-              // Skip empty values and complex objects
-              if (
-                value === null ||
-                value === undefined ||
-                value === '' ||
-                (Array.isArray(value) && value.length === 0) ||
-                (typeof value === 'object' && !Array.isArray(value))
-              ) {
-                return null;
-              }
+          <h2 className="text-sm font-semibold text-gray-900 mb-4">Form Data</h2>
+          
+          {/* Two-column layout for desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* General Information Column */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">General Information</h3>
+              {['service_date', 'property', 'service_type', 'customer_name', 'customer_email', 'technician_name'].map((fieldKey) => {
+                const value = report.form_data[fieldKey];
+                if (!value || value === '') return null;
 
-              // Format the key to be more readable
-              const label = key
-                .split('_')
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
+                const label = fieldKey
+                  .split('_')
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ');
 
-              return (
-                <div key={key} className="border-b border-gray-100 pb-2 last:border-0">
-                  <p className="text-xs text-gray-500 mb-1">{label}</p>
-                  <p className="text-sm text-gray-900">
-                    {Array.isArray(value) ? value.join(', ') : String(value)}
-                  </p>
-                </div>
-              );
-            })}
+                return (
+                  <div key={fieldKey} className="border-b border-gray-100 pb-2">
+                    <p className="text-xs text-gray-500 mb-1">{label}</p>
+                    <p className="text-sm text-gray-900 font-medium">
+                      {fieldKey === 'service_date' 
+                        ? formatDate(value as string, 'PP')
+                        : String(value)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Equipment Information Column */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Equipment Details</h3>
+              {['equipment_brand', 'equipment_model', 'equipment_serial', 'equipment_hours', 'equipment_problem', 'equipment_work_performed', 'equipment_parts_used'].map((fieldKey) => {
+                const value = report.form_data[fieldKey];
+                if (!value || value === '') return null;
+
+                const label = fieldKey
+                  .replace('equipment_', '')
+                  .split('_')
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ');
+
+                return (
+                  <div key={fieldKey} className="border-b border-gray-100 pb-2">
+                    <p className="text-xs text-gray-500 mb-1">{label}</p>
+                    <p className={`text-sm text-gray-900 ${
+                      fieldKey.includes('problem') || fieldKey.includes('work_performed') || fieldKey.includes('parts_used')
+                        ? 'whitespace-pre-wrap'
+                        : 'font-medium'
+                    }`}>
+                      {fieldKey === 'equipment_hours' 
+                        ? `${value} ${Number(value) === 1 ? 'hour' : 'hours'}`
+                        : String(value)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
+
+          {/* Additional Notes - Full Width */}
+          {report.form_data.additional_notes && (
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Additional Notes</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                  {String(report.form_data.additional_notes)}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -202,7 +245,7 @@ export default function ViewReport() {
                 Photos ({report.photos.length})
               </h2>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {report.photos.map((photo) => (
                 <div 
                   key={photo.id} 
