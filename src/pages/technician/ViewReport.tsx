@@ -45,16 +45,7 @@ export default function ViewReport() {
         ...reportData,
         form: reportData.form,
         company: reportData.company,
-        technician: {
-          id: reportData.technician.id,
-          user_id: reportData.technician.user_id,
-          full_name: reportData.technician.user?.full_name || '',
-          email: reportData.technician.user?.email || '',
-          phone: reportData.technician.user?.phone || '',
-          specialization: reportData.technician.specialization || '',
-          is_active: reportData.technician.is_active,
-          created_at: reportData.technician.created_at,
-        },
+        technician: reportData.technician,
         photos: reportData.photos || [],
       };
 
@@ -142,8 +133,8 @@ export default function ViewReport() {
             <User className="w-5 h-5 text-gray-400 mt-0.5" />
             <div className="flex-1">
               <p className="text-xs text-gray-500">Technician</p>
-              <p className="font-medium text-gray-900">{report.technician?.full_name}</p>
-              <p className="text-sm text-gray-600">{report.technician?.email}</p>
+              <p className="font-medium text-gray-900">{report.technician?.user?.full_name}</p>
+              <p className="text-sm text-gray-600">{report.technician?.user?.email}</p>
             </div>
           </div>
 
