@@ -9,8 +9,28 @@ import Input from '@/components/ui/Input';
 import { Plus, Edit2, Trash2, UserCheck, UserX, Building2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { registerSchema, type RegisterInput } from '@/utils/validationSchemas';
+import { z } from 'zod';
 import type { Technician, Company } from '@/types';
+
+// Schema for edit mode (password optional)
+const editTechnicianSchema = z.object({
+  full_name: z.string().min(2, 'Name must be at least 2 characters'),
+  phone: z.string().optional(),
+  email: z.string().email('Invalid email').optional(),
+  password: z.string().optional(),
+  role: z.enum(['super_admin', 'admin', 'technician']),
+});
+
+// Schema for create mode (password required)
+const createTechnicianSchema = z.object({
+  full_name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  phone: z.string().optional(),
+  role: z.enum(['super_admin', 'admin', 'technician']),
+});
+
+type TechnicianFormInput = z.infer<typeof editTechnicianSchema> | z.infer<typeof createTechnicianSchema>;
 
 export default function TechniciansPage() {
   const { technicians, setTechnicians, loading, setLoading } = useTechnicianStore();
@@ -277,14 +297,35 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<TechnicianFormInput>({
+    resolver: zodResolver(technician ? editTechnicianSchema : createTechnicianSchema),
     defaultValues: {
       role: 'technician',
     },
   });
 
-  const onSubmit = async (data: RegisterInput) => {
+  // Load technician data when modal opens in edit mode
+  useEffect(() => {
+    if (isOpen && technician) {
+      reset({
+        full_name: technician.user?.full_name || '',
+        email: technician.user?.email || '',
+        phone: technician.user?.phone || '',
+        password: '', // No pre-fill password
+        role: 'technician',
+      });
+    } else if (isOpen && !technician) {
+      reset({
+        full_name: '',
+        email: '',
+        phone: '',
+        password: '',
+        role: 'technician',
+      });
+    }
+  }, [isOpen, technician, reset]);
+
+  const onSubmit = async (data: TechnicianFormInput) => {
     try {
       setLoading(true);
       setError(null);
