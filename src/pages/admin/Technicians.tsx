@@ -41,10 +41,43 @@ export default function TechniciansPage() {
   const [roleFilter, setRoleFilter] = useState<'all' | 'super_admin' | 'admin' | 'technician'>('all');
   const [sortField, setSortField] = useState<'name' | 'email' | 'role' | 'phone' | 'status'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [assignmentStatus, setAssignmentStatus] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadTechnicians();
   }, []);
+
+  useEffect(() => {
+    // Check assignment status for all technicians
+    checkAllAssignmentStatuses();
+  }, [technicians]);
+
+  async function checkAllAssignmentStatuses() {
+    const statuses: Record<string, boolean> = {};
+    
+    // Get total number of active companies
+    const { data: companies } = await supabase
+      .from('companies')
+      .select('id', { count: 'exact' })
+      .eq('is_active', true);
+    
+    const totalCompanies = companies?.length || 0;
+    if (totalCompanies === 0) return;
+
+    // Check each technician
+    for (const tech of technicians) {
+      if (tech.user?.role === 'technician') {
+        const { data: assignments } = await supabase
+          .from('technician_companies')
+          .select('company_id', { count: 'exact' })
+          .eq('technician_id', tech.id);
+        
+        statuses[tech.id] = (assignments?.length || 0) === totalCompanies;
+      }
+    }
+    
+    setAssignmentStatus(statuses);
+  }
 
   function handleSort(field: 'name' | 'email' | 'role' | 'phone' | 'status') {
     if (sortField === field) {
@@ -201,50 +234,51 @@ export default function TechniciansPage() {
     }
   }
 
-  async function handleAssignAllCompanies(technician: Technician) {
+  async function handleToggleAllCompanies(technician: Technician) {
     try {
-      // Load all active companies
-      const { data: companies, error: companiesError } = await supabase
-        .from('companies')
-        .select('id')
-        .eq('is_active', true);
+      const isCurrentlyAssignedAll = assignmentStatus[technician.id];
 
-      if (companiesError) throw companiesError;
-      if (!companies || companies.length === 0) {
-        alert('No active companies found');
-        return;
+      if (isCurrentlyAssignedAll) {
+        // Remove all assignments
+        await supabase
+          .from('technician_companies')
+          .delete()
+          .eq('technician_id', technician.id);
+      } else {
+        // Load all active companies
+        const { data: companies } = await supabase
+          .from('companies')
+          .select('id')
+          .eq('is_active', true);
+
+        if (!companies || companies.length === 0) return;
+
+        // Check existing assignments
+        const { data: existingAssignments } = await supabase
+          .from('technician_companies')
+          .select('company_id')
+          .eq('technician_id', technician.id);
+
+        const existingCompanyIds = new Set(existingAssignments?.map(a => a.company_id) || []);
+        const companiesToAssign = companies.filter(c => !existingCompanyIds.has(c.id));
+
+        if (companiesToAssign.length > 0) {
+          // Insert all assignments in bulk
+          await supabase
+            .from('technician_companies')
+            .insert(
+              companiesToAssign.map(company => ({
+                technician_id: technician.id,
+                company_id: company.id,
+              }))
+            );
+        }
       }
 
-      // Check existing assignments
-      const { data: existingAssignments } = await supabase
-        .from('technician_companies')
-        .select('company_id')
-        .eq('technician_id', technician.id);
-
-      const existingCompanyIds = new Set(existingAssignments?.map(a => a.company_id) || []);
-      const companiesToAssign = companies.filter(c => !existingCompanyIds.has(c.id));
-
-      if (companiesToAssign.length === 0) {
-        alert('All companies are already assigned');
-        return;
-      }
-
-      // Insert all assignments in bulk
-      const { error: insertError } = await supabase
-        .from('technician_companies')
-        .insert(
-          companiesToAssign.map(company => ({
-            technician_id: technician.id,
-            company_id: company.id,
-          }))
-        );
-
-      if (insertError) throw insertError;
-
-      alert(`Successfully assigned ${companiesToAssign.length} companies to ${technician.user?.full_name}`);
+      // Update status
+      await checkAllAssignmentStatuses();
     } catch (error: any) {
-      console.error('Error assigning all companies:', error);
-      alert('Failed to assign companies. Please try again.');
+      console.error('Error toggling company assignments:', error);
     }
   }
 
@@ -433,12 +467,16 @@ export default function TechniciansPage() {
                         {technician.user?.role === 'technician' && (
                           <>
                             <button
-                              onClick={() => handleAssignAllCompanies(technician)}
-                              className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition flex items-center gap-1"
-                              title="Assign All Companies"
+                              onClick={() => handleToggleAllCompanies(technician)}
+                              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition flex items-center gap-1 ${
+                                assignmentStatus[technician.id]
+                                  ? 'text-green-700 bg-green-100 hover:bg-green-200'
+                                  : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                              }`}
+                              title={assignmentStatus[technician.id] ? 'Unassign All Companies' : 'Assign All Companies'}
                             >
                               <CheckCheck className="w-3.5 h-3.5" />
-                              Assign All
+                              {assignmentStatus[technician.id] ? 'All Assigned' : 'Assign All'}
                             </button>
                             <button
                               onClick={() => {
@@ -509,7 +547,10 @@ export default function TechniciansPage() {
           setSelectedTechnicianForAssign(null);
         }}
         technician={selectedTechnicianForAssign}
-        onSuccess={loadTechnicians}
+        onSuccess={() => {
+          loadTechnicians();
+          checkAllAssignmentStatuses();
+        }}
       />
     </div>
   );
