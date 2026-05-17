@@ -395,19 +395,19 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
         // Set values one by one for edit mode
         setValue('full_name', technician.user.full_name || '');
         setValue('phone', technician.user.phone || '');
-        setValue('role', 'technician');
+        setValue('role', technician.user.role || 'technician');
       } else {
         // Reset form for create mode
         reset({
           full_name: '',
           email: '',
-          phone: '',
           password: '',
+          phone: '',
           role: 'technician',
         });
       }
     }
-  }, [isOpen, technician, reset, setValue]);
+  }, [isOpen, technician, setValue, reset]);
 
   const onSubmit = async (data: TechnicianFormInput) => {
     try {
@@ -501,6 +501,23 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
           label="Phone"
           error={errors.phone?.message}
         />
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Role <span className="text-red-500">*</span>
+          </label>
+          <select
+            {...register('role')}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="technician">Technician</option>
+            <option value="admin">Manager</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+          {errors.role && (
+            <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
+          )}
+        </div>
 
         <div className="flex justify-end gap-3 pt-4">
           <Button type="button" variant="secondary" onClick={onClose}>

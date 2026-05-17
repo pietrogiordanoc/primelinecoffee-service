@@ -15,6 +15,7 @@ import CompaniesPage from '@/pages/admin/Companies';
 import FormBuilderPage from '@/pages/admin/FormBuilder';
 import ReportsPage from '@/pages/admin/Reports';
 import SettingsPage from '@/pages/admin/Settings';
+import TechnicianViewPage from '@/pages/admin/TechnicianView';
 import TechnicianHome from '@/pages/technician/Home';
 import FillReport from '@/pages/technician/FillReport';
 import ReportHistory from '@/pages/technician/History';
@@ -126,6 +127,7 @@ function App() {
         <Route path="forms" element={<FormBuilderPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="technician-view" element={<TechnicianViewPage />} />
       </Route>
 
       {/* Protected Technician Routes */}

@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   X,
+  Smartphone,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
@@ -33,6 +34,10 @@ export default function AdminLayout() {
     { name: 'Forms', href: '/admin/forms', icon: FileText },
     { name: 'Reports', href: '/admin/reports', icon: ClipboardList },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
+  ];
+
+  const secondaryNavigation = [
+    { name: 'Technician View', href: '/admin/technician-view', icon: Smartphone },
   ];
 
   return (
@@ -90,6 +95,33 @@ export default function AdminLayout() {
                 {item.name}
               </NavLink>
             ))}
+            
+            {/* Separator */}
+            <div className="border-t border-gray-200 my-4"></div>
+            
+            {/* Secondary Navigation */}
+            <div className="space-y-1">
+              <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Preview
+              </p>
+              {secondaryNavigation.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.href}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+                      isActive
+                        ? 'bg-green-50 text-green-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    )
+                  }
+                >
+                  <item.icon className="w-5 h-5 mr-3" />
+                  {item.name}
+                </NavLink>
+              ))}
+            </div>
           </nav>
 
           {/* User section */}
