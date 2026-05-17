@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import { Plus, Edit2, Trash2, UserCheck, UserX, Building2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, UserCheck, UserX, Building2, ArrowUpDown, ArrowUp, ArrowDown, CheckCheck } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -201,6 +201,53 @@ export default function TechniciansPage() {
     }
   }
 
+  async function handleAssignAllCompanies(technician: Technician) {
+    try {
+      // Load all active companies
+      const { data: companies, error: companiesError } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('is_active', true);
+
+      if (companiesError) throw companiesError;
+      if (!companies || companies.length === 0) {
+        alert('No active companies found');
+        return;
+      }
+
+      // Check existing assignments
+      const { data: existingAssignments } = await supabase
+        .from('technician_companies')
+        .select('company_id')
+        .eq('technician_id', technician.id);
+
+      const existingCompanyIds = new Set(existingAssignments?.map(a => a.company_id) || []);
+      const companiesToAssign = companies.filter(c => !existingCompanyIds.has(c.id));
+
+      if (companiesToAssign.length === 0) {
+        alert('All companies are already assigned');
+        return;
+      }
+
+      // Insert all assignments in bulk
+      const { error: insertError } = await supabase
+        .from('technician_companies')
+        .insert(
+          companiesToAssign.map(company => ({
+            technician_id: technician.id,
+            company_id: company.id,
+          }))
+        );
+
+      if (insertError) throw insertError;
+
+      alert(`Successfully assigned ${companiesToAssign.length} companies to ${technician.user?.full_name}`);
+    } catch (error: any) {
+      console.error('Error assigning all companies:', error);
+      alert('Failed to assign companies. Please try again.');
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -384,16 +431,26 @@ export default function TechniciansPage() {
                     <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
                         {technician.user?.role === 'technician' && (
-                          <button
-                            onClick={() => {
-                              setSelectedTechnicianForAssign(technician);
-                              setIsAssignModalOpen(true);
-                            }}
-                            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
-                            title="Assign Companies"
-                          >
-                            <Building2 className="w-4 h-4" />
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleAssignAllCompanies(technician)}
+                              className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition flex items-center gap-1"
+                              title="Assign All Companies"
+                            >
+                              <CheckCheck className="w-3.5 h-3.5" />
+                              Assign All
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedTechnicianForAssign(technician);
+                                setIsAssignModalOpen(true);
+                              }}
+                              className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
+                              title="Manage Company Assignments"
+                            >
+                              <Building2 className="w-4 h-4" />
+                            </button>
+                          </>
                         )}
                         <button
                           onClick={() => handleToggleActive(technician)}
