@@ -42,7 +42,8 @@ const handler: Handler = async (event: HandlerEvent) => {
 
     if (!authResponse.ok) {
       console.error('Auth error:', authResponse.status, authData);
-      throw new Error(authData.msg || authData.message || authData.error_description || 'Failed to create user');
+      const errorMsg = `Auth API error (${authResponse.status}): ${JSON.stringify(authData)}`;
+      throw new Error(errorMsg);
     }
 
     const userId = authData.id;
@@ -79,7 +80,8 @@ const handler: Handler = async (event: HandlerEvent) => {
         },
       });
       
-      throw new Error(profileData.message || 'Failed to create profile');
+      const errorMsg = `Profile error (${profileResponse.status}): ${JSON.stringify(profileData)}`;
+      throw new Error(errorMsg);
     }
 
     return {
