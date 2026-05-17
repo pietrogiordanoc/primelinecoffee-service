@@ -153,13 +153,10 @@ export default function TechniciansPage() {
                     Technician
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Email
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Specialization
+                    Phone
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
@@ -187,13 +184,10 @@ export default function TechniciansPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <p className="text-sm text-gray-900">{technician.employee_id}</p>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
                       <p className="text-sm text-gray-600">{technician.user?.email}</p>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <p className="text-sm text-gray-600">{technician.specialization}</p>
+                      <p className="text-sm text-gray-600">{technician.user?.phone || '-'}</p>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span
@@ -520,6 +514,57 @@ function AssignCompaniesModal({ isOpen, onClose, technician, onSuccess }: Assign
     }
   }
 
+  async function handleAssignAll() {
+    try {
+      setError(null);
+      
+      // Get all company IDs that are not yet assigned
+      const unassignedCompanyIds = allCompanies
+        .filter(c => !assignedCompanyIds.has(c.id))
+        .map(c => c.id);
+
+      if (unassignedCompanyIds.length === 0) return;
+
+      // Insert all assignments in bulk
+      const { error } = await supabase
+        .from('technician_companies')
+        .insert(
+          unassignedCompanyIds.map(companyId => ({
+            technician_id: technician!.id,
+            company_id: companyId,
+          }))
+        );
+
+      if (error) throw error;
+
+      // Update state
+      setAssignedCompanyIds(new Set(allCompanies.map(c => c.id)));
+    } catch (err: any) {
+      console.error('Error assigning all companies:', err);
+      setError(err.message);
+    }
+  }
+
+  async function handleUnassignAll() {
+    try {
+      setError(null);
+      
+      // Delete all assignments for this technician
+      const { error } = await supabase
+        .from('technician_companies')
+        .delete()
+        .eq('technician_id', technician!.id);
+
+      if (error) throw error;
+
+      // Update state
+      setAssignedCompanyIds(new Set());
+    } catch (err: any) {
+      console.error('Error unassigning all companies:', err);
+      setError(err.message);
+    }
+  }
+
   function handleClose() {
     onSuccess();
     onClose();
@@ -541,9 +586,29 @@ function AssignCompaniesModal({ isOpen, onClose, technician, onSuccess }: Assign
           </div>
         )}
 
-        <p className="text-sm text-gray-600">
-          Select which companies this technician can access. The technician will only see these companies in their mobile app.
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-600">
+            Select which companies this technician can access.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleAssignAll}
+              variant="secondary"
+              size="sm"
+              disabled={assignedCompanyIds.size === allCompanies.length || loading}
+            >
+              Assign All
+            </Button>
+            <Button
+              onClick={handleUnassignAll}
+              variant="secondary"
+              size="sm"
+              disabled={assignedCompanyIds.size === 0 || loading}
+            >
+              Clear All
+            </Button>
+          </div>
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
