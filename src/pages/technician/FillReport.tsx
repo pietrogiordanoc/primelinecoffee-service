@@ -61,6 +61,35 @@ export default function FillReport() {
     loadForm();
   }, [formId]);
 
+  useEffect(() => {
+    loadCompanyAndTechnicianData();
+  }, [companyId, userProfile]);
+
+  async function loadCompanyAndTechnicianData() {
+    try {
+      // Auto-fill technician name from logged-in user
+      if (userProfile?.full_name) {
+        setTechnicianName(userProfile.full_name);
+      }
+
+      // Auto-fill company data
+      if (companyId) {
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('id', companyId)
+          .single();
+
+        if (companyData) {
+          setCustomerName(companyData.contact_name || companyData.name || '');
+          setCustomerEmail(companyData.contact_email || '');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading company data:', error);
+    }
+  }
+
   async function loadForm() {
     try {
       setLoading(true);
@@ -306,6 +335,7 @@ export default function FillReport() {
               onChange={(e) => setTechnicianName(e.target.value)}
               placeholder="Technician name"
               required
+              disabled
             />
             <Input
               label="Customer Name"
@@ -313,6 +343,7 @@ export default function FillReport() {
               onChange={(e) => setCustomerName(e.target.value)}
               placeholder="Customer name"
               required
+              disabled
             />
             <Input
               label="Customer Email"
@@ -320,6 +351,7 @@ export default function FillReport() {
               value={customerEmail}
               onChange={(e) => setCustomerEmail(e.target.value)}
               placeholder="customer@email.com"
+              disabled
             />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
