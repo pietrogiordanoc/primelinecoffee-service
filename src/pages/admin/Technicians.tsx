@@ -63,6 +63,31 @@ export default function TechniciansPage() {
     }
   }
 
+  async function handleDelete(technician: Technician) {
+    if (!confirm(`Are you sure you want to delete ${technician.user?.full_name}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/.netlify/functions/delete-technician', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: technician.user_id,
+          technician_id: technician.id,
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Error deleting technician');
+
+      await loadTechnicians();
+    } catch (error) {
+      console.error('Error deleting technician:', error);
+      alert('Failed to delete technician. Please try again.');
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -181,6 +206,13 @@ export default function TechniciansPage() {
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(technician)}
+                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
