@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate, formatRelativeTime } from '@/utils/dateUtils';
-import { Clock, CheckCircle, FileText } from 'lucide-react';
+import { Clock, CheckCircle, FileText, ChevronRight } from 'lucide-react';
 import type { ReportSummary } from '@/types';
 
 export default function ReportHistory() {
+  const navigate = useNavigate();
   const { userProfile } = useAuthStore();
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,32 +67,39 @@ export default function ReportHistory() {
       ) : (
         <div className="space-y-3">
           {reports.map((report) => (
-            <Card key={report.id}>
+            <Card
+              key={report.id}
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => navigate(`/technician/report/${report.id}/view`)}
+            >
               <div className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900">{report.company_name}</h3>
                     <p className="text-sm text-gray-600 mt-1">{report.form_name}</p>
                   </div>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      report.status === 'completed'
-                        ? 'bg-green-100 text-green-700'
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        report.status === 'completed'
+                          ? 'bg-green-100 text-green-700'
+                          : report.status === 'reviewed'
+                          ? 'bg-blue-100 text-blue-700'
+                          : report.status === 'submitted'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {report.status === 'completed'
+                        ? 'Completed'
                         : report.status === 'reviewed'
-                        ? 'bg-blue-100 text-blue-700'
+                        ? 'Reviewed'
                         : report.status === 'submitted'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {report.status === 'completed'
-                      ? 'Completed'
-                      : report.status === 'reviewed'
-                      ? 'Reviewed'
-                      : report.status === 'submitted'
-                      ? 'Submitted'
-                      : 'Draft'}
-                  </span>
+                        ? 'Submitted'
+                        : 'Draft'}
+                    </span>
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between text-sm text-gray-500">
