@@ -18,8 +18,8 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
-    // Create auth user with service role key using fetch
-    const createUserResponse = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    // Call PostgreSQL function that creates auth user and triggers public.users creation
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/create_admin_user`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -27,62 +27,25 @@ const handler: Handler = async (event: HandlerEvent) => {
         'apikey': SERVICE_ROLE_KEY,
       },
       body: JSON.stringify({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: {
-          full_name,
-          role: 'admin'
-        },
+        p_email: email,
+        p_password: password,
+        p_full_name: full_name,
+        p_phone: phone || null
       }),
     });
 
-    if (!createUserResponse.ok) {
-      const errorText = await createUserResponse.text();
-      console.error('Supabase auth error:', errorText);
-      let errorMsg = 'Failed to create user';
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMsg = errorJson.msg || errorJson.message || errorMsg;
-      } catch (e) {
-        errorMsg = errorText || errorMsg;
-      }
-      throw new Error(errorMsg);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Database error:', errorText);
+      throw new Error('Database error creating new user');
     }
 
-    const authData = await createUserResponse.json();
-    const userId = authData.id;
-
-    // Admin API doesn't trigger PostgreSQL triggers, so we insert manually
-    const insertUserResponse = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-        'apikey': SERVICE_ROLE_KEY,
-        'Prefer': 'return=minimal',
-      },
-      body: JSON.stringify({
-        id: userId,
-        email: email,
-        full_name: full_name,
-        phone: phone || null,
-        role: 'admin',
-        is_active: true,
-      }),
-    });
-
-    if (!insertUserResponse.ok) {
-      const errorText = await insertUserResponse.text();
-      console.error('Failed to create user profile:', errorText);
-      throw new Error('Failed to create user profile in database');
-    }
+    const result = await response.json();
 
     return {
       statusCode: 200,
       body: JSON.stringify({ 
-        success: true, 
-        userId,
+        success: true,
         message: 'Admin user created successfully'
       }),
     };
