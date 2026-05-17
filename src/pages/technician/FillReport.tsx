@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
+import { useConfirm } from '@/contexts/ConfirmContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -28,6 +29,7 @@ export default function FillReport() {
   const [searchParams] = useSearchParams();
   const companyId = searchParams.get('company');
   const { userProfile } = useAuthStore();
+  const { alert } = useConfirm();
 
   const [form, setForm] = useState<DynamicForm | null>(null);
   const [loading, setLoading] = useState(true);
@@ -132,7 +134,7 @@ export default function FillReport() {
 
   function removeEquipmentRecord(id: string) {
     if (equipmentRecords.length === 1) {
-      alert('Must have at least one equipment record');
+      alert('Debe haber al menos un registro de equipo.', 'Atención');
       return;
     }
     setEquipmentRecords(equipmentRecords.filter(r => r.id !== id));
@@ -202,7 +204,7 @@ export default function FillReport() {
       );
     } catch (error) {
       console.error('Error optimizing images:', error);
-      alert('Error optimizing images');
+      await alert('Error al optimizar imágenes. Por favor intenta de nuevo.', 'Error');
     }
   }
 
@@ -228,7 +230,7 @@ export default function FillReport() {
     e.preventDefault();
 
     if (!companyId) {
-      alert('No company selected');
+      await alert('No hay empresa seleccionada.', 'Error');
       return;
     }
 
@@ -362,11 +364,11 @@ export default function FillReport() {
         }
       }
 
-      alert('Report submitted successfully');
+      await alert('¡Reporte enviado exitosamente!', 'Éxito');
       navigate('/technician');
     } catch (error: any) {
       console.error('Error submitting report:', error);
-      alert('Error submitting report: ' + error.message);
+      await alert('Error al enviar el reporte: ' + error.message, 'Error');
     } finally {
       setSubmitting(false);
     }

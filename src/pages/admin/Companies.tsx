@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useCompanyStore } from '@/stores/companyStore';
+import { useConfirm } from '@/contexts/ConfirmContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -18,6 +19,7 @@ type SortDirection = 'asc' | 'desc';
 
 export default function CompaniesPage() {
   const { companies, setCompanies, loading, setLoading } = useCompanyStore();
+  const { confirm, alert } = useConfirm();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [sortField, setSortField] = useState<SortField>('name');
@@ -61,7 +63,15 @@ export default function CompaniesPage() {
   }
 
   async function handleDelete(company: Company) {
-    if (!confirm(`Are you sure you want to delete ${company.name}? This action cannot be undone.`)) {
+    const confirmed = await confirm({
+      title: 'Eliminar Empresa',
+      message: `¿Estás seguro de que quieres eliminar ${company.name}? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      danger: true,
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -78,7 +88,7 @@ export default function CompaniesPage() {
       await loadCompanies();
     } catch (error) {
       console.error('Error deleting company:', error);
-      alert('Failed to delete company. Please try again.');
+      await alert('Error al eliminar la empresa. Por favor intenta de nuevo.', 'Error');
     }
   }
 

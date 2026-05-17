@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTechnicianStore } from '@/stores/technicianStore';
+import { useConfirm } from '@/contexts/ConfirmContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -34,6 +35,7 @@ type TechnicianFormInput = z.infer<typeof editTechnicianSchema> | z.infer<typeof
 
 export default function TechniciansPage() {
   const { technicians, setTechnicians, loading, setLoading } = useTechnicianStore();
+  const { confirm, alert } = useConfirm();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTechnician, setEditingTechnician] = useState<Technician | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -210,7 +212,15 @@ export default function TechniciansPage() {
   }
 
   async function handleDelete(technician: Technician) {
-    if (!confirm(`Are you sure you want to delete ${technician.user?.full_name}? This action cannot be undone.`)) {
+    const confirmed = await confirm({
+      title: 'Eliminar Staff',
+      message: `¿Estás seguro de que quieres eliminar a ${technician.user?.full_name}? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      danger: true,
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -230,7 +240,7 @@ export default function TechniciansPage() {
       await loadTechnicians();
     } catch (error) {
       console.error('Error deleting technician:', error);
-      alert('Failed to delete technician. Please try again.');
+      await alert('Error al eliminar el staff. Por favor intenta de nuevo.', 'Error');
     }
   }
 

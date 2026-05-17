@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
+import { useConfirm } from '@/contexts/ConfirmContext';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
@@ -14,6 +15,7 @@ import type { DynamicForm, Company } from '@/types';
 export default function TechnicianHome() {
   const navigate = useNavigate();
   const { userProfile } = useAuthStore();
+  const { alert } = useConfirm();
   const [forms, setForms] = useState<DynamicForm[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +82,7 @@ export default function TechnicianHome() {
 
   function handleStartReport(formId: string) {
     if (!selectedCompany) {
-      alert('Please select a company first');
+      alert('Por favor selecciona una empresa primero.', 'Atención');
       return;
     }
     navigate(`/technician/report/${formId}?company=${selectedCompany.id}`);

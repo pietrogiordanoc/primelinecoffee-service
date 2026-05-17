@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useFormStore } from '@/stores/formStore';
+import { useConfirm } from '@/contexts/ConfirmContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -16,6 +17,7 @@ import type { DynamicForm, FormField, FieldType } from '@/types';
 
 export default function FormBuilderPage() {
   const { forms, setForms, loading, setLoading, formFields, setFormFields } = useFormStore();
+  const { confirm, alert } = useConfirm();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingForm, setEditingForm] = useState<DynamicForm | null>(null);
   const [selectedForm, setSelectedForm] = useState<DynamicForm | null>(null);
@@ -44,9 +46,15 @@ export default function FormBuilderPage() {
   }
 
   async function handleDeleteForm(form: DynamicForm) {
-    if (!confirm(`Delete form "${form.name}"? This action cannot be undone.`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Eliminar Formulario',
+      message: `¿Eliminar formulario "${form.name}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      danger: true,
+    });
+
+    if (!confirmed) return;
 
     try {
       setLoading(true);
@@ -410,7 +418,15 @@ function FieldBuilderModal({ form, isOpen, onClose }: FieldBuilderModalProps) {
   }
 
   async function handleDeleteField(fieldId: string) {
-    if (!confirm('Are you sure you want to delete this field?')) return;
+    const confirmed = await confirm({
+      title: 'Eliminar Campo',
+      message: '¿Estás seguro de que quieres eliminar este campo?',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      danger: true,
+    });
+
+    if (!confirmed) return;
 
     try {
       // Delete from Supabase

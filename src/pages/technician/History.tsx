@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
+import { useConfirm } from '@/contexts/ConfirmContext';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate, formatRelativeTime } from '@/utils/dateUtils';
@@ -11,6 +12,7 @@ import type { ReportSummary } from '@/types';
 export default function ReportHistory() {
   const navigate = useNavigate();
   const { userProfile } = useAuthStore();
+  const { confirm, alert } = useConfirm();
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -47,7 +49,15 @@ export default function ReportHistory() {
   }
 
   async function handleDelete(reportId: string, companyName: string) {
-    if (!confirm(`Are you sure you want to delete the report for ${companyName}? This action cannot be undone.`)) {
+    const confirmed = await confirm({
+      title: 'Eliminar Reporte',
+      message: `¿Estás seguro de que quieres eliminar el reporte de ${companyName}? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      danger: true,
+    });
+    
+    if (!confirmed) {
       return;
     }
 
@@ -92,7 +102,7 @@ export default function ReportHistory() {
       await loadReports();
     } catch (error) {
       console.error('Error deleting report:', error);
-      alert('Failed to delete report. Please try again.');
+      await alert('Error al eliminar el reporte. Por favor intenta de nuevo.', 'Error');
     } finally {
       setDeleting(null);
     }

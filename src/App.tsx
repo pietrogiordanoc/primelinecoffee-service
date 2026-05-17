@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
+import { ConfirmProvider } from '@/contexts/ConfirmContext';
 
 // Layouts
 import AdminLayout from '@/components/layouts/AdminLayout';
@@ -106,50 +107,52 @@ function App() {
   }
 
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route
-        path="/login"
-        element={!user ? <Login /> : <RoleBasedRedirect />}
-      />
+    <ConfirmProvider>
+      <Routes>
+        {/* Public Routes */}
+        <Route
+          path="/login"
+          element={!user ? <Login /> : <RoleBasedRedirect />}
+        />
 
-      {/* Protected Admin Routes */}
-      <Route
-        path="/admin/*"
-        element={
-          <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="technicians" element={<TechniciansPage />} />
-        <Route path="companies" element={<CompaniesPage />} />
-        <Route path="forms" element={<FormBuilderPage />} />
-        <Route path="reports" element={<ReportsPage />} />
-        <Route path="settings" element={<SettingsPage />} />
-        <Route path="technician-view" element={<TechnicianViewPage />} />
-      </Route>
+        {/* Protected Admin Routes */}
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="technicians" element={<TechniciansPage />} />
+          <Route path="companies" element={<CompaniesPage />} />
+          <Route path="forms" element={<FormBuilderPage />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="technician-view" element={<TechnicianViewPage />} />
+        </Route>
 
-      {/* Protected Technician Routes */}
-      <Route
-        path="/technician/*"
-        element={
-          <ProtectedRoute allowedRoles={['technician']}>
-            <TechnicianLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<TechnicianHome />} />
-        <Route path="report/:formId" element={<FillReport />} />
-        <Route path="report/:reportId/view" element={<ViewReport />} />
-        <Route path="history" element={<ReportHistory />} />
-      </Route>
+        {/* Protected Technician Routes */}
+        <Route
+          path="/technician/*"
+          element={
+            <ProtectedRoute allowedRoles={['technician']}>
+              <TechnicianLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<TechnicianHome />} />
+          <Route path="report/:formId" element={<FillReport />} />
+          <Route path="report/:reportId/view" element={<ViewReport />} />
+          <Route path="history" element={<ReportHistory />} />
+        </Route>
 
-      {/* Redirect based on role */}
-      <Route path="/" element={<RoleBasedRedirect />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Redirect based on role */}
+        <Route path="/" element={<RoleBasedRedirect />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </ConfirmProvider>
   );
 }
 
