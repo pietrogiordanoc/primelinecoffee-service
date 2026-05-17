@@ -1,16 +1,7 @@
 import { Handler, HandlerEvent } from '@netlify/functions';
-import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 interface CompanyData {
   id?: string;
@@ -45,12 +36,21 @@ const handler: Handler = async (event: HandlerEvent) => {
     if (data.id) {
       // Update existing company
       const { id, ...updateData } = data;
-      const { error: updateError } = await supabase
-        .from('companies')
-        .update(updateData)
-        .eq('id', id);
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/companies?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+          'apikey': SERVICE_ROLE_KEY,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify(updateData),
+      });
 
-      if (updateError) throw updateError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update company');
+      }
 
       return {
         statusCode: 200,
@@ -58,9 +58,15 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     } else {
       // Create new company
-      const { data: companyData, error: insertError } = await supabase
-        .from('companies')
-        .insert([{
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/companies`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+          'apikey': SERVICE_ROLE_KEY,
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({
           name: data.name,
           address: data.address || null,
           city: data.city || null,
@@ -71,11 +77,15 @@ const handler: Handler = async (event: HandlerEvent) => {
           contact_phone: data.contact_phone || null,
           notes: data.notes || null,
           is_active: data.is_active !== false,
-        }])
-        .select('id');
+        }),
+      });
 
-      if (insertError) throw insertError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create company');
+      }
 
+      const companyData = await response.json();
       const newId = companyData?.[0]?.id;
 
       return {

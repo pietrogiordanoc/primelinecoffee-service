@@ -1,16 +1,7 @@
 import { Handler, HandlerEvent } from '@netlify/functions';
-import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 interface ToggleData {
   technician_id: string;
@@ -33,12 +24,21 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     // Update technician status
-    const { error } = await supabase
-      .from('technicians')
-      .update({ is_active })
-      .eq('id', technician_id);
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/technicians?id=eq.${technician_id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'apikey': SERVICE_ROLE_KEY,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({ is_active }),
+    });
 
-    if (error) throw error;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update technician status');
+    }
 
     return {
       statusCode: 200,

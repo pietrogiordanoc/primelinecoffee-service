@@ -1,16 +1,7 @@
 import { Handler, HandlerEvent } from '@netlify/functions';
-import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 interface UpdateTechnicianData {
   user_id: string;
@@ -35,24 +26,42 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     // Update user record
-    const { error: userError } = await supabase
-      .from('users')
-      .update({
+    const userResponse = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${data.user_id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'apikey': SERVICE_ROLE_KEY,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
         full_name: data.full_name,
         phone: data.phone || null,
-      })
-      .eq('id', data.user_id);
+      }),
+    });
 
-    if (userError) throw userError;
+    if (!userResponse.ok) {
+      const errorData = await userResponse.json();
+      throw new Error(errorData.message || 'Failed to update user');
+    }
 
     // Update technician record if specialization is provided
     if (data.specialization) {
-      const { error: techError } = await supabase
-        .from('technicians')
-        .update({ specialization: data.specialization })
-        .eq('user_id', data.user_id);
+      const techResponse = await fetch(`${SUPABASE_URL}/rest/v1/technicians?user_id=eq.${data.user_id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+          'apikey': SERVICE_ROLE_KEY,
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({ specialization: data.specialization }),
+      });
 
-      if (techError) throw techError;
+      if (!techResponse.ok) {
+        const errorData = await techResponse.json();
+        throw new Error(errorData.message || 'Failed to update technician');
+      }
     }
 
     return {

@@ -1,16 +1,8 @@
 import { Handler, HandlerEvent } from '@netlify/functions';
-import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY!;
 
 const handler: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod !== 'POST') {
@@ -29,32 +21,80 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
-    // Create auth user with service role key
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name, role: 'technician' },
+    // Create auth user using signUp (triggers database trigger)
+    const signUpResponse = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': ANON_KEY,
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        data: {
+          full_name,
+          role: 'technician',
+          phone: phone || null
+        },
+      }),
     });
 
-    if (authError) throw authError;
+    const signUpData = await signUpResponse.json();
 
-    const userId = authData.user.id;
+    if (!signUpResponse.ok) {
+      throw new Error(signUpData.msg || signUpData.message || 'Failed to create user');
+    }
 
-    // Wait briefly for the DB trigger to create the users record
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const userId = signUpData.user?.id;
+    if (!userId) throw new Error('No user ID returned');
 
-    // Update the user record created by the trigger with the full_name and phone
-    await supabase.from('users').update({ full_name, phone: phone || null }).eq('id', userId);
+    // Confirm email using service role
+    await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'apikey': SERVICE_ROLE_KEY,
+      },
+      body: JSON.stringify({ email_confirm: true }),
+    });
+
+    // Update role to technician in public.users (trigger creates it)
+    await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'apikey': SERVICE_ROLE_KEY,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        role: 'technician',
+        full_name,
+        phone: phone || null
+      }),
+    });
 
     // Insert into technicians table
-    const { error: techError } = await supabase.from('technicians').insert({
-      user_id: userId,
-      specialization: specialization || null,
-      certifications: certifications || [],
+    const techResponse = await fetch(`${SUPABASE_URL}/rest/v1/technicians`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'apikey': SERVICE_ROLE_KEY,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        specialization: specialization || null,
+        certifications: certifications || [],
+      }),
     });
 
-    if (techError) throw techError;
+    if (!techResponse.ok) {
+      const errorData = await techResponse.json();
+      throw new Error(errorData.message || 'Failed to create technician record');
+    }
 
     return {
       statusCode: 200,
