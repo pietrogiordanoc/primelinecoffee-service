@@ -13,6 +13,10 @@ export default function ViewReport() {
   const navigate = useNavigate();
   const [report, setReport] = useState<ServiceReport | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Detect if we're in admin or technician view
+  const isAdminView = window.location.pathname.includes('/admin/');
+  const backPath = isAdminView ? '/admin/reports' : '/technician/history';
 
   useEffect(() => {
     if (reportId) {
@@ -72,9 +76,9 @@ export default function ViewReport() {
           <div className="p-12 text-center">
             <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-500 mb-4">Report not found</p>
-            <Button onClick={() => navigate('/technician/history')}>
+            <Button onClick={() => navigate(backPath)}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to History
+              Back to {isAdminView ? 'Reports' : 'History'}
             </Button>
           </div>
         </Card>
@@ -87,7 +91,7 @@ export default function ViewReport() {
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <button
-          onClick={() => navigate('/technician/history')}
+          onClick={() => navigate(backPath)}
           className="p-2 hover:bg-gray-100 rounded-lg transition"
         >
           <ArrowLeft className="w-5 h-5 text-gray-600" />

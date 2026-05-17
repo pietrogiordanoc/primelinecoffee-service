@@ -129,6 +129,7 @@ function App() {
           <Route path="companies" element={<CompaniesPage />} />
           <Route path="forms" element={<FormBuilderPage />} />
           <Route path="reports" element={<ReportsPage />} />
+          <Route path="reports/:reportId" element={<ViewReport />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="technician-view" element={<TechnicianViewPage />} />
         </Route>
