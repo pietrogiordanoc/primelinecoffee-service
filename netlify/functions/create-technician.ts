@@ -21,17 +21,19 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
-    // Create auth user using signUp (triggers database trigger)
-    const signUpResponse = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+    // Create auth user using admin endpoint (already confirmed, no email verification needed)
+    const createUserResponse = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': ANON_KEY,
+        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+        'apikey': SERVICE_ROLE_KEY,
       },
       body: JSON.stringify({
         email,
         password,
-        data: {
+        email_confirm: true, // Auto-confirm email
+        user_metadata: {
           full_name,
           role: 'technician',
           phone: phone || null
@@ -39,32 +41,14 @@ const handler: Handler = async (event: HandlerEvent) => {
       }),
     });
 
-    const signUpData = await signUpResponse.json();
+    const createUserData = await createUserResponse.json();
 
-    if (!signUpResponse.ok) {
-      throw new Error(signUpData.msg || signUpData.message || 'Failed to create user');
+    if (!createUserResponse.ok) {
+      throw new Error(createUserData.msg || createUserData.message || 'Failed to create user');
     }
 
-    const userId = signUpData.user?.id;
+    const userId = createUserData.id;
     if (!userId) throw new Error('No user ID returned');
-
-    // Confirm email using service role
-    const confirmResponse = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-        'apikey': SERVICE_ROLE_KEY,
-      },
-      body: JSON.stringify({ 
-        email_confirm: true,
-        email_confirmed_at: new Date().toISOString()
-      }),
-    });
-
-    if (!confirmResponse.ok) {
-      console.error('Failed to confirm email:', await confirmResponse.text());
-    }
 
     // Wait for trigger to create users record
     await new Promise(resolve => setTimeout(resolve, 500));
