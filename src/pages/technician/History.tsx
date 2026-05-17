@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/authStore';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate, formatRelativeTime } from '@/utils/dateUtils';
-import { Clock, CheckCircle, FileText, ChevronRight } from 'lucide-react';
+import { Clock, FileText, Eye, Trash2, Building2 } from 'lucide-react';
 import type { ReportSummary } from '@/types';
 
 export default function ReportHistory() {
@@ -13,6 +13,7 @@ export default function ReportHistory() {
   const { userProfile } = useAuthStore();
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     loadReports();
@@ -45,6 +46,58 @@ export default function ReportHistory() {
     }
   }
 
+  async function handleDelete(reportId: string, companyName: string) {
+    if (!confirm(`Are you sure you want to delete the report for ${companyName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setDeleting(reportId);
+
+      // Get report photos to delete from storage
+      const { data: photos } = await supabase
+        .from('report_photos')
+        .select('file_name')
+        .eq('report_id', reportId);
+
+      // Delete photos and thumbnails from storage
+      if (photos && photos.length > 0) {
+        const allFiles: string[] = [];
+        photos.forEach(photo => {
+          allFiles.push(photo.file_name); // Main photo
+          // Add thumbnail (replace .webp with _thumb.webp)
+          const thumbName = photo.file_name.replace('.webp', '_thumb.webp');
+          allFiles.push(thumbName);
+        });
+        
+        // Remove all files from storage
+        const { error: storageError } = await supabase.storage
+          .from('service-photos')
+          .remove(allFiles);
+        
+        if (storageError) {
+          console.error('Error deleting photos from storage:', storageError);
+        }
+      }
+
+      // Delete report (cascade will delete photos records)
+      const { error } = await supabase
+        .from('service_reports')
+        .delete()
+        .eq('id', reportId);
+
+      if (error) throw error;
+
+      // Reload reports
+      await loadReports();
+    } catch (error) {
+      console.error('Error deleting report:', error);
+      alert('Failed to delete report. Please try again.');
+    } finally {
+      setDeleting(null);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -65,62 +118,108 @@ export default function ReportHistory() {
           </div>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {reports.map((report) => (
-            <Card
-              key={report.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => navigate(`/technician/report/${report.id}/view`)}
-            >
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{report.company_name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{report.form_name}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        report.status === 'completed'
-                          ? 'bg-green-100 text-green-700'
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
+                    Company
+                  </th>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
+                    Form
+                  </th>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
+                    Date
+                  </th>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
+                    Status
+                  </th>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
+                    Photos
+                  </th>
+                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {reports.map((report) => (
+                  <tr key={report.id} className="hover:bg-gray-50">
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                          <Building2 className="w-3 h-3" />
+                        </div>
+                        <span className="text-sm font-medium text-gray-900">
+                          {report.company_name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-sm text-gray-600">
+                      {report.form_name}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-500">
+                          {formatRelativeTime(report.created_at)}
+                        </span>
+                        {report.submitted_at && (
+                          <span className="text-xs text-gray-400">
+                            {formatDate(report.submitted_at, 'MMM d, HH:mm')}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                          report.status === 'completed'
+                            ? 'bg-green-100 text-green-700'
+                            : report.status === 'reviewed'
+                            ? 'bg-blue-100 text-blue-700'
+                            : report.status === 'submitted'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {report.status === 'completed'
+                          ? 'Completed'
                           : report.status === 'reviewed'
-                          ? 'bg-blue-100 text-blue-700'
+                          ? 'Reviewed'
                           : report.status === 'submitted'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      {report.status === 'completed'
-                        ? 'Completed'
-                        : report.status === 'reviewed'
-                        ? 'Reviewed'
-                        : report.status === 'submitted'
-                        ? 'Submitted'
-                        : 'Draft'}
-                    </span>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <Clock className="w-4 h-4 mr-1" />
-                    <span>{formatRelativeTime(report.created_at)}</span>
-                  </div>
-                  {report.photo_count > 0 && (
-                    <span className="text-xs">{report.photo_count} photos</span>
-                  )}
-                </div>
-
-                {report.submitted_at && (
-                  <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
-                    Submitted: {formatDate(report.submitted_at, 'PPp')}
-                  </div>
-                )}
-              </div>
-            </Card>
-          ))}
-        </div>
+                          ? 'Submitted'
+                          : 'Draft'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-sm text-gray-600">
+                      {report.photo_count > 0 ? `${report.photo_count}` : '-'}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => navigate(`/technician/report/${report.id}/view`)}
+                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          title="View"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(report.id, report.company_name)}
+                          disabled={deleting === report.id}
+                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
     </div>
   );
