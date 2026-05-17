@@ -49,18 +49,28 @@ const handler: Handler = async (event: HandlerEvent) => {
     if (!userId) throw new Error('No user ID returned');
 
     // Confirm email using service role
-    await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+    const confirmResponse = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
         'apikey': SERVICE_ROLE_KEY,
       },
-      body: JSON.stringify({ email_confirm: true }),
+      body: JSON.stringify({ 
+        email_confirm: true,
+        email_confirmed_at: new Date().toISOString()
+      }),
     });
 
+    if (!confirmResponse.ok) {
+      console.error('Failed to confirm email:', await confirmResponse.text());
+    }
+
+    // Wait for trigger to create users record
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     // Update role to technician in public.users (trigger creates it)
-    await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
+    const updateUserResponse = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${userId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -75,6 +85,10 @@ const handler: Handler = async (event: HandlerEvent) => {
       }),
     });
 
+    if (!updateUserResponse.ok) {
+      console.error('Failed to update user:', await updateUserResponse.text());
+    }
+
     // Insert into technicians table
     const techResponse = await fetch(`${SUPABASE_URL}/rest/v1/technicians`, {
       method: 'POST',
@@ -87,13 +101,15 @@ const handler: Handler = async (event: HandlerEvent) => {
       body: JSON.stringify({
         user_id: userId,
         specialization: specialization || null,
-        certifications: certifications || [],
+        certifications: certifications || null,
+        is_active: true
       }),
     });
 
     if (!techResponse.ok) {
-      const errorData = await techResponse.json();
-      throw new Error(errorData.message || 'Failed to create technician record');
+      const errorData = await techResponse.text();
+      console.error('Failed to create technician:', errorData);
+      throw new Error('Failed to create technician record');
     }
 
     return {
