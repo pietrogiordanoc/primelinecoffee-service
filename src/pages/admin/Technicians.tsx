@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import { Plus, Edit2, Trash2, UserCheck, UserX, Building2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, UserCheck, UserX, Building2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -39,10 +39,72 @@ export default function TechniciansPage() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedTechnicianForAssign, setSelectedTechnicianForAssign] = useState<Technician | null>(null);
   const [roleFilter, setRoleFilter] = useState<'all' | 'super_admin' | 'admin' | 'technician'>('all');
+  const [sortField, setSortField] = useState<'name' | 'email' | 'role' | 'phone' | 'status'>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     loadTechnicians();
   }, []);
+
+  function handleSort(field: 'name' | 'email' | 'role' | 'phone' | 'status') {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New field, default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  }
+
+  function getSortedTechnicians() {
+    const filtered = technicians.filter(t => roleFilter === 'all' || t.user?.role === roleFilter);
+    
+    return [...filtered].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortField) {
+        case 'name':
+          aValue = a.user?.full_name?.toLowerCase() || '';
+          bValue = b.user?.full_name?.toLowerCase() || '';
+          break;
+        case 'email':
+          aValue = a.user?.email?.toLowerCase() || '';
+          bValue = b.user?.email?.toLowerCase() || '';
+          break;
+        case 'role':
+          aValue = a.user?.role || '';
+          bValue = b.user?.role || '';
+          break;
+        case 'phone':
+          aValue = a.user?.phone || '';
+          bValue = b.user?.phone || '';
+          break;
+        case 'status':
+          aValue = a.is_active ? 1 : 0;
+          bValue = b.is_active ? 1 : 0;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
+  function SortIcon({ field }: { field: typeof sortField }) {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 ml-1 text-gray-400" />;
+    }
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="w-4 h-4 ml-1 text-primary-600" />
+    ) : (
+      <ArrowDown className="w-4 h-4 ml-1 text-primary-600" />
+    );
+  }
 
   async function loadTechnicians() {
     try {
@@ -208,7 +270,7 @@ export default function TechniciansPage() {
       </Card>
 
       {/* Staff Table */}
-      {technicians.filter(t => roleFilter === 'all' || t.user?.role === roleFilter).length === 0 ? (
+      {getSortedTechnicians().length === 0 ? (
         <Card>
           <div className="p-12 text-center">
             <p className="text-gray-500">No staff members found</p>
@@ -224,20 +286,50 @@ export default function TechniciansPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
+                  <th 
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center">
+                      Name
+                      <SortIcon field="name" />
+                    </div>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
+                  <th 
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
+                    onClick={() => handleSort('email')}
+                  >
+                    <div className="flex items-center">
+                      Email
+                      <SortIcon field="email" />
+                    </div>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
+                  <th 
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
+                    onClick={() => handleSort('role')}
+                  >
+                    <div className="flex items-center">
+                      Role
+                      <SortIcon field="role" />
+                    </div>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Phone
+                  <th 
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
+                    onClick={() => handleSort('phone')}
+                  >
+                    <div className="flex items-center">
+                      Phone
+                      <SortIcon field="phone" />
+                    </div>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                  <th 
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
+                    onClick={() => handleSort('status')}
+                  >
+                    <div className="flex items-center">
+                      Status
+                      <SortIcon field="status" />
+                    </div>
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
@@ -245,7 +337,7 @@ export default function TechniciansPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {technicians.filter(t => roleFilter === 'all' || t.user?.role === roleFilter).map((technician) => (
+                {getSortedTechnicians().map((technician) => (
                   <tr key={technician.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
