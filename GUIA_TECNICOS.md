@@ -40,9 +40,11 @@
 - La app se abre **automáticamente** (sin login)
 
 ### Paso 2: Seleccionar Empresa
-- Verás la lista de **tus empresas asignadas**
+- Verás la lista de **todas las empresas activas**
 - Toca la empresa donde vas a trabajar hoy
 - Ejemplo: "Café Central", "Coffee Shop Downtown", etc.
+
+**💡 Todas las empresas están disponibles para todos los técnicos**
 
 ### Paso 3: Seleccionar Formulario
 - Verás la lista de **formularios disponibles**

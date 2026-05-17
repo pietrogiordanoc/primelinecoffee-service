@@ -1,7 +1,23 @@
-# 🔧 Guía Rápida: Asignar Empresas a Técnicos
+# 🔧 Guía: Acceso a Empresas por Técnicos
 
-## Problema que resuelve
-Los técnicos solo ven empresas que les han sido asignadas explícitamente. Si creaste una empresa pero el técnico no la ve en su app móvil, es porque falta asignarla.
+## 🚀 Comportamiento Actual (Por Defecto)
+
+**TODOS los técnicos ven TODAS las empresas activas automáticamente.**
+
+No necesitas asignar empresas manualmente. Cuando creas una empresa nueva:
+- ✅ Se marca como activa (`is_active = true`)
+- ✅ **Todos los técnicos la ven inmediatamente** en su app móvil
+- ✅ Sin configuración adicional
+
+---
+
+## 🔒 (Opcional) Asignación Específica
+
+Si en el futuro necesitas **restringir** qué técnicos ven qué empresas, esta funcionalidad está disponible pero **NO está activa actualmente**.
+
+### Activar sistema de asignación restringida:
+
+Necesitarías modificar `src/pages/technician/Home.tsx` para usar la tabla `technician_companies` en lugar de cargar todas las empresas.
 
 ---
 

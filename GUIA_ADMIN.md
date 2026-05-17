@@ -18,37 +18,26 @@
 
 ---
 
-### 🏢 Asignar Empresas a Técnico
+### 🏢 Gestión de Empresas
 
-**IMPORTANTE:** Los técnicos **SOLO ven empresas que les asignes explícitamente**. Si creaste una empresa pero no aparece en la app del técnico, falta asignarla.
+**IMPORTANTE:** Por defecto, **todos los técnicos ven TODAS las empresas activas** automáticamente. No necesitas asignar empresas manualmente.
 
-#### ✅ Método 1: Desde el Admin Panel (Recomendado)
+#### Acceso Automático
+
+Cuando creas una empresa nueva en el Admin Panel:
+- ✅ Se marca como activa (`is_active = true`)
+- ✅ **Todos los técnicos la ven inmediatamente** en su app móvil
+- ✅ Sin necesidad de asignación manual
+
+#### (Opcional) Asignación Específica
+
+La funcionalidad de asignación está disponible por si en el futuro necesitas **restringir** acceso:
 
 1. Ir a **Panel Admin** → **Técnicos**
-2. Buscar al técnico en la lista
-3. Click en el **botón de edificio 🏢** (columna "Actions")
-4. Se abre el modal **"Assign Companies"**
-5. Seleccionar las empresas:
-   - ✅ Marcar checkbox para asignar
-   - ❌ Desmarcar checkbox para quitar acceso
-   - Las empresas asignadas se marcan en azul con "Assigned"
-6. Click **"Done"**
-7. ✅ Los cambios se guardan automáticamente
+2. Click en el **botón de edificio 🏢** junto al técnico
+3. Marcar/desmarcar empresas específicas
 
-**El técnico verá estas empresas inmediatamente** (puede necesitar refrescar la app).
-
-#### 💡 Método 2: SQL Directo (Avanzado)
-
-Ver archivo `supabase/assign-companies-to-technician.sql` para scripts SQL completos.
-
-```sql
--- Asignar una empresa a un técnico
-INSERT INTO technician_companies (technician_id, company_id)
-VALUES (
-  'ID_DEL_TECNICO',
-  'ID_DE_LA_EMPRESA'
-);
-```
+*Nota: Actualmente NO se usa este sistema. Todos ven todas las empresas.*
 
 ---
 

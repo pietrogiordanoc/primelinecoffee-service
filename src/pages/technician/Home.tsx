@@ -33,32 +33,23 @@ export default function TechnicianHome() {
         return;
       }
 
-      // Get technician ID
-      const { data: techData } = await supabase
-        .from('technicians')
-        .select('id')
-        .eq('user_id', userProfile?.id)
-        .single();
+      // Load ALL active companies (available to all technicians)
+      const { data: companiesData } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
 
-        if (!techData) throw new Error('Technician not found');
+      setCompanies(companiesData || []);
 
-        // Load assigned companies
-        const { data: assignedCompanies } = await supabase
-          .from('technician_companies')
-          .select('company:companies(*)')
-          .eq('technician_id', techData.id);
+      // Load active forms
+      const { data: formsData } = await supabase
+        .from('dynamic_forms')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
 
-        const companyList = assignedCompanies?.map((ac: any) => ac.company) || [];
-        setCompanies(companyList);
-
-        // Load active forms
-        const { data: formsData } = await supabase
-          .from('dynamic_forms')
-          .select('*')
-          .eq('is_active', true)
-          .order('name');
-
-        setForms(formsData || []);
+      setForms(formsData || []);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
