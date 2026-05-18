@@ -168,56 +168,162 @@ export default function ViewReport() {
             {/* General Information Column */}
             <div className="space-y-3">
               <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">General Information</h3>
-              {['service_date', 'property', 'service_type', 'customer_name', 'customer_email', 'technician_name'].map((fieldKey) => {
-                const value = report.form_data[fieldKey];
-                if (!value || value === '') return null;
+              
+              {report.form_data.serviceDate && (
+                <div className="border-b border-gray-100 pb-2">
+                  <p className="text-xs text-gray-500 mb-1">Service Date</p>
+                  <p className="text-sm text-gray-900 font-medium">
+                    {formatDate(report.form_data.serviceDate as string, 'PP')}
+                  </p>
+                </div>
+              )}
 
-                const label = fieldKey
-                  .split('_')
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(' ');
+              {report.form_data.property && (
+                <div className="border-b border-gray-100 pb-2">
+                  <p className="text-xs text-gray-500 mb-1">Property</p>
+                  <p className="text-sm text-gray-900 font-medium">{String(report.form_data.property)}</p>
+                </div>
+              )}
 
-                return (
-                  <div key={fieldKey} className="border-b border-gray-100 pb-2">
-                    <p className="text-xs text-gray-500 mb-1">{label}</p>
-                    <p className="text-sm text-gray-900 font-medium">
-                      {fieldKey === 'service_date' 
-                        ? formatDate(value as string, 'PP')
-                        : String(value)}
-                    </p>
+              {report.form_data.serviceType && (
+                <div className="border-b border-gray-100 pb-2">
+                  <p className="text-xs text-gray-500 mb-1">Service Type</p>
+                  <p className="text-sm text-gray-900 font-medium">{String(report.form_data.serviceType)}</p>
+                </div>
+              )}
+
+              {report.form_data.customerName && (
+                <div className="border-b border-gray-100 pb-2">
+                  <p className="text-xs text-gray-500 mb-1">Customer Name</p>
+                  <p className="text-sm text-gray-900 font-medium">{String(report.form_data.customerName)}</p>
+                </div>
+              )}
+
+              {report.form_data.customerEmail && (
+                <div className="border-b border-gray-100 pb-2">
+                  <p className="text-xs text-gray-500 mb-1">Customer Email</p>
+                  <p className="text-sm text-gray-900 font-medium">{String(report.form_data.customerEmail)}</p>
+                </div>
+              )}
+
+              {report.form_data.technicianName && (
+                <div className="border-b border-gray-100 pb-2">
+                  <p className="text-xs text-gray-500 mb-1">Technician Name</p>
+                  <p className="text-sm text-gray-900 font-medium">{String(report.form_data.technicianName)}</p>
+                </div>
+              )}
+
+              {/* Summary Statistics */}
+              {report.form_data.summary && typeof report.form_data.summary === 'object' && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Summary</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(report.form_data.summary as any).equipmentCount !== undefined && (
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <p className="text-xs text-blue-600 mb-1">Equipment</p>
+                        <p className="text-lg font-bold text-blue-900">{(report.form_data.summary as any).equipmentCount}</p>
+                      </div>
+                    )}
+                    {(report.form_data.summary as any).totalHours !== undefined && (
+                      <div className="bg-green-50 rounded-lg p-3">
+                        <p className="text-xs text-green-600 mb-1">Total Hours</p>
+                        <p className="text-lg font-bold text-green-900">{(report.form_data.summary as any).totalHours}</p>
+                      </div>
+                    )}
+                    {(report.form_data.summary as any).totalPartsCost !== undefined && (
+                      <div className="bg-purple-50 rounded-lg p-3">
+                        <p className="text-xs text-purple-600 mb-1">Parts Cost</p>
+                        <p className="text-lg font-bold text-purple-900">${(report.form_data.summary as any).totalPartsCost}</p>
+                      </div>
+                    )}
+                    {(report.form_data.summary as any).totalParts !== undefined && (
+                      <div className="bg-amber-50 rounded-lg p-3">
+                        <p className="text-xs text-amber-600 mb-1">Parts Used</p>
+                        <p className="text-lg font-bold text-amber-900">{(report.form_data.summary as any).totalParts}</p>
+                      </div>
+                    )}
                   </div>
-                );
-              })}
+                </div>
+              )}
             </div>
 
-            {/* Equipment Information Column */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Equipment Details</h3>
-              {['equipment_brand', 'equipment_model', 'equipment_serial', 'equipment_hours', 'equipment_problem', 'equipment_work_performed', 'equipment_parts_used'].map((fieldKey) => {
-                const value = report.form_data[fieldKey];
-                if (!value || value === '') return null;
+            {/* Equipment Records Column */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Equipment Records</h3>
+              
+              {report.form_data.equipmentRecords && Array.isArray(report.form_data.equipmentRecords) && 
+                (report.form_data.equipmentRecords as any[]).map((equipment, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-gray-900">Equipment #{index + 1}</h4>
+                      {equipment.photoCount > 0 && (
+                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                          <ImageIcon className="w-3 h-3" />
+                          {equipment.photoCount} {equipment.photoCount === 1 ? 'photo' : 'photos'}
+                        </span>
+                      )}
+                    </div>
 
-                const label = fieldKey
-                  .replace('equipment_', '')
-                  .split('_')
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(' ');
+                    {equipment.brand && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Brand</p>
+                        <p className="text-sm text-gray-900 font-medium">{equipment.brand}</p>
+                      </div>
+                    )}
 
-                return (
-                  <div key={fieldKey} className="border-b border-gray-100 pb-2">
-                    <p className="text-xs text-gray-500 mb-1">{label}</p>
-                    <p className={`text-sm text-gray-900 ${
-                      fieldKey.includes('problem') || fieldKey.includes('work_performed') || fieldKey.includes('parts_used')
-                        ? 'whitespace-pre-wrap'
-                        : 'font-medium'
-                    }`}>
-                      {fieldKey === 'equipment_hours' 
-                        ? `${value} ${Number(value) === 1 ? 'hour' : 'hours'}`
-                        : String(value)}
-                    </p>
+                    {equipment.model && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Model</p>
+                        <p className="text-sm text-gray-900 font-medium">{equipment.model}</p>
+                      </div>
+                    )}
+
+                    {equipment.serial && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Serial Number</p>
+                        <p className="text-sm text-gray-900 font-medium font-mono">{equipment.serial}</p>
+                      </div>
+                    )}
+
+                    {equipment.hours !== undefined && equipment.hours !== null && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Labor Hours</p>
+                        <p className="text-sm text-gray-900 font-medium">
+                          {equipment.hours} {equipment.hours === 1 ? 'hour' : 'hours'}
+                        </p>
+                      </div>
+                    )}
+
+                    {equipment.problem && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Problem / Issue</p>
+                        <p className="text-sm text-gray-900 whitespace-pre-wrap">{equipment.problem}</p>
+                      </div>
+                    )}
+
+                    {equipment.work_performed && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Work Performed</p>
+                        <p className="text-sm text-gray-900 whitespace-pre-wrap">{equipment.work_performed}</p>
+                      </div>
+                    )}
+
+                    {equipment.parts_used && Array.isArray(equipment.parts_used) && equipment.parts_used.length > 0 && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Parts Used</p>
+                        <div className="space-y-1">
+                          {equipment.parts_used.map((part: any, partIndex: number) => (
+                            <div key={partIndex} className="text-sm text-gray-900 flex justify-between items-center bg-white rounded px-2 py-1">
+                              <span>{part.name} <span className="text-gray-500">x{part.quantity}</span></span>
+                              <span className="font-medium">${part.cost}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                );
-              })}
+                ))
+              }
             </div>
           </div>
 
