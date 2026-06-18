@@ -8,7 +8,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { FileText, ChevronRight, Plus } from 'lucide-react';
+import { FileText, ChevronRight, Plus, Camera } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import type { DynamicForm, Company } from '@/types';
 
@@ -21,10 +21,71 @@ export default function TechnicianHome() {
   const [loading, setLoading] = useState(true);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
+  
+  // Estados para prueba de cámara
+  const [testPhoto, setTestPhoto] = useState<string | null>(null);
+  const [cameraLog, setCameraLog] = useState<string[]>([]);
+
+  const addLog = (message: string) => {
+    console.log(message);
+    setCameraLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
+  };
+
+  const handleCameraTest = (e: React.ChangeEvent<HTMLInputElement>) => {
+    addLog('📸 onChange disparado');
+    const files = e.target.files;
+    addLog(`📸 Archivos recibidos: ${files?.length || 0}`);
+    
+    if (files && files.length > 0) {
+      const file = files[0];
+      addLog(`✅ Archivo: ${file.name}, Tamaño: ${file.size} bytes, Tipo: ${file.type}`);
+      
+      // Crear preview
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        setTestPhoto(result);
+        addLog('✅ Foto cargada y mostrada');
+      };
+      reader.onerror = () => {
+        addLog('❌ Error al leer el archivo');
+      };
+      reader.readAsDataURL(file);
+    } else {
+      addLog('❌ No se seleccionó ningún archivo');
+    }
+    
+    // Reset input
+    e.target.value = '';
+  };
 
   useEffect(() => {
     loadData();
   }, [userProfile]);
+
+  // Verificación de HTTPS al cargar
+  useEffect(() => {
+    const isHTTPS = window.location.protocol === 'https:';
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    addLog(`🔒 Protocolo: ${window.location.protocol}`);
+    addLog(`🌐 URL: ${window.location.href}`);
+    addLog(`✅ HTTPS: ${isHTTPS ? 'Sí' : 'No'}`);
+    addLog(`🏠 Localhost: ${isLocalhost ? 'Sí' : 'No'}`);
+    
+    if (!isHTTPS && !isLocalhost) {
+      addLog('❌ ADVERTENCIA: Sin HTTPS, la cámara puede no funcionar');
+    } else {
+      addLog('✅ Conexión segura OK');
+    }
+
+    // Verificar permisos
+    if (navigator.mediaDevices) {
+      addLog('✅ API navigator.mediaDevices disponible');
+    } else {
+      addLog('❌ API navigator.mediaDevices NO disponible');
+    }
+  }, []);
 
   async function loadData() {
     try {
@@ -98,6 +159,97 @@ export default function TechnicianHome() {
 
   return (
     <div className="space-y-4 pb-6">
+      {/* BOTÓN DE PRUEBA DE CÁMARA */}
+      <Card>
+        <div className="p-4 bg-yellow-50 border-2 border-yellow-300">
+          <h3 className="text-lg font-bold text-yellow-900 mb-2">🔬 Prueba de Cámara Aislada</h3>
+          <p className="text-sm text-yellow-800 mb-3">
+            Prueba simple para verificar si la cámara funciona. Toca el botón y mira los logs abajo.
+          </p>
+          
+          {/* Botones de prueba */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {/* Botón Cámara */}
+            <div>
+              <label 
+                htmlFor="test-camera"
+                className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-blue-400 bg-blue-100 rounded-lg cursor-pointer hover:bg-blue-200 active:bg-blue-300 transition"
+              >
+                <Camera className="w-8 h-8 text-blue-600 mb-1" />
+                <span className="text-sm font-bold text-blue-800">CÁMARA</span>
+                <span className="text-xs text-blue-600">Abrir cámara</span>
+              </label>
+              <input
+                id="test-camera"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleCameraTest}
+                style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
+              />
+            </div>
+
+            {/* Botón Galería */}
+            <div>
+              <label 
+                htmlFor="test-gallery"
+                className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-green-400 bg-green-100 rounded-lg cursor-pointer hover:bg-green-200 active:bg-green-300 transition"
+              >
+                <FileText className="w-8 h-8 text-green-600 mb-1" />
+                <span className="text-sm font-bold text-green-800">GALERÍA</span>
+                <span className="text-xs text-green-600">Seleccionar foto</span>
+              </label>
+              <input
+                id="test-gallery"
+                type="file"
+                accept="image/*"
+                onChange={handleCameraTest}
+                style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
+              />
+            </div>
+          </div>
+
+          {/* Preview de la foto */}
+          {testPhoto && (
+            <div className="mb-4">
+              <p className="text-sm font-semibold text-green-700 mb-2">✅ Foto capturada:</p>
+              <img src={testPhoto} alt="Test" className="w-full max-h-48 object-contain rounded border-2 border-green-400" />
+              <button
+                onClick={() => {
+                  setTestPhoto(null);
+                  addLog('🗑️ Foto eliminada');
+                }}
+                className="mt-2 px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+              >
+                Limpiar
+              </button>
+            </div>
+          )}
+
+          {/* Logs */}
+          <div className="bg-gray-900 text-green-400 p-3 rounded text-xs font-mono max-h-48 overflow-y-auto">
+            <div className="font-bold text-green-300 mb-1">📋 LOGS:</div>
+            {cameraLog.length === 0 ? (
+              <div className="text-gray-500">Esperando acción...</div>
+            ) : (
+              cameraLog.map((log, idx) => (
+                <div key={idx} className="mb-1">{log}</div>
+              ))
+            )}
+          </div>
+          
+          <button
+            onClick={() => {
+              setCameraLog([]);
+              addLog('🔄 Logs limpiados');
+            }}
+            className="mt-2 px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700"
+          >
+            Limpiar Logs
+          </button>
+        </div>
+      </Card>
+
       {/* Select Company */}
       <div>
         <div className="flex items-center justify-between mb-2">
