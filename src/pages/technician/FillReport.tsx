@@ -822,7 +822,7 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [currentFacingMode, setCurrentFacingMode] = useState<'environment' | 'user'>('environment');
+  const [currentFacingMode, setCurrentFacingMode] = useState<'environment' | 'user'>('user');
   const [error, setError] = useState<string | null>(null);
 
   // Iniciar cámara - Código exacto del usuario
@@ -852,7 +852,9 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
       }
     } catch (err) {
       console.error('Error al acceder a la cámara:', err);
-      setError('No se pudo acceder a la cámara');
+      const errorMsg = 'No se pudo acceder a la cámara';
+      setError(errorMsg);
+      throw err; // Re-lanzar para que toggleCamera pueda manejarlo
     }
   }
 
@@ -879,10 +881,19 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
   }
 
   // Alternar entre cámara trasera y frontal
-  function toggleCamera() {
+  async function toggleCamera() {
     const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
     setCurrentFacingMode(newFacingMode);
-    startCamera(newFacingMode);
+    
+    try {
+      await startCamera(newFacingMode);
+    } catch (err) {
+      // Si falla (ej: cámara trasera no disponible), volver a la anterior
+      console.error('Error cambiando cámara, volviendo a la anterior:', err);
+      setCurrentFacingMode(currentFacingMode);
+      setError('Cámara no disponible, usando la anterior');
+      setTimeout(() => setError(null), 3000);
+    }
   }
 
   // Limpiar al cerrar
