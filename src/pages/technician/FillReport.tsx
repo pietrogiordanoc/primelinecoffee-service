@@ -654,64 +654,49 @@ export default function FillReport() {
                           ))}
                         </div>
                       )}
+                      {/* Botones para fotos - Solución simple según MDN */}
                       <div className="grid grid-cols-2 gap-2">
                         {/* Botón Cámara */}
-                        <div 
-                          className="relative h-20 border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg overflow-hidden"
-                          onClick={(e) => {
-                            console.log('🔵 Camera button clicked');
-                            e.stopPropagation();
-                          }}
-                        >
+                        <div>
+                          <label 
+                            htmlFor={`file-camera-${equipment.id}`}
+                            className="flex flex-col items-center justify-center h-20 w-full border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 active:bg-blue-200 transition"
+                          >
+                            <Camera className="w-6 h-6 text-blue-600 mb-1" />
+                            <span className="text-sm font-medium text-blue-700">Cámara</span>
+                          </label>
                           <input
+                            id={`file-camera-${equipment.id}`}
                             type="file"
                             accept="image/*"
                             onChange={(e) => {
-                              console.log('🔵 Camera input onChange');
+                              console.log('📸 Camera onChange', e.target.files?.length);
                               handlePhotoUpload(equipment.id, e);
                             }}
-                            onClick={(e) => {
-                              console.log('🔵 Camera input clicked');
-                              e.stopPropagation();
-                            }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                            style={{ fontSize: '16px' }}
-                            title="Tomar foto con cámara"
+                            style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
                           />
-                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <Camera className="w-6 h-6 text-blue-600 mb-1" />
-                            <span className="text-xs font-medium text-blue-700">Cámara</span>
-                          </div>
                         </div>
 
                         {/* Botón Galería */}
-                        <div 
-                          className="relative h-20 border-2 border-dashed border-green-300 bg-green-50 rounded-lg overflow-hidden"
-                          onClick={(e) => {
-                            console.log('🟢 Gallery button clicked');
-                            e.stopPropagation();
-                          }}
-                        >
+                        <div>
+                          <label 
+                            htmlFor={`file-gallery-${equipment.id}`}
+                            className="flex flex-col items-center justify-center h-20 w-full border-2 border-dashed border-green-300 bg-green-50 rounded-lg cursor-pointer hover:bg-green-100 active:bg-green-200 transition"
+                          >
+                            <Image className="w-6 h-6 text-green-600 mb-1" />
+                            <span className="text-sm font-medium text-green-700">Galería</span>
+                          </label>
                           <input
+                            id={`file-gallery-${equipment.id}`}
                             type="file"
                             accept="image/*"
                             multiple
                             onChange={(e) => {
-                              console.log('🟢 Gallery input onChange');
+                              console.log('🖼️ Gallery onChange', e.target.files?.length);
                               handlePhotoUpload(equipment.id, e);
                             }}
-                            onClick={(e) => {
-                              console.log('🟢 Gallery input clicked');
-                              e.stopPropagation();
-                            }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                            style={{ fontSize: '16px' }}
-                            title="Seleccionar de galería"
+                            style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
                           />
-                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <Image className="w-6 h-6 text-green-600 mb-1" />
-                            <span className="text-xs font-medium text-green-700">Galería</span>
-                          </div>
                         </div>
                       </div>
                     </div>
