@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
@@ -58,6 +58,10 @@ export default function FillReport() {
       collapsed: false,
     },
   ]);
+  
+  // Camera modal state
+  const [cameraModalOpen, setCameraModalOpen] = useState(false);
+  const [currentEquipmentId, setCurrentEquipmentId] = useState<string | null>(null);
 
   useEffect(() => {
     loadForm();
@@ -259,6 +263,30 @@ export default function FillReport() {
           : r
       )
     );
+  }
+
+  // Handle photo captured from camera modal
+  async function handleCapturedPhoto(blob: Blob) {
+    if (!currentEquipmentId) return;
+    
+    try {
+      // Convert blob to File
+      const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      const optimized = await optimizeImages([file]);
+      
+      setEquipmentRecords(
+        equipmentRecords.map(r =>
+          r.id === currentEquipmentId ? { ...r, photos: [...r.photos, ...optimized] } : r
+        )
+      );
+      
+      // Close modal
+      setCameraModalOpen(false);
+      setCurrentEquipmentId(null);
+    } catch (error) {
+      console.error('Error processing captured photo:', error);
+      await alert('Error al procesar la foto. Por favor intenta de nuevo.', 'Error');
+    }
   }
 
   // Calculate totals
@@ -691,27 +719,18 @@ export default function FillReport() {
                       )}
                       {/* Botones para fotos - Con capture según estándar */}
                       <div className="grid grid-cols-2 gap-2">
-                        {/* Botón Cámara Trasera */}
-                        <div>
-                          <label 
-                            htmlFor={`file-camera-${equipment.id}`}
-                            className="flex flex-col items-center justify-center h-20 w-full border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 active:bg-blue-200 transition"
-                          >
-                            <Camera className="w-6 h-6 text-blue-600 mb-1" />
-                            <span className="text-sm font-medium text-blue-700">Cámara</span>
-                          </label>
-                          <input
-                            id={`file-camera-${equipment.id}`}
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            onChange={(e) => {
-                              console.log('📸 Camera onChange', e.target.files?.length);
-                              handlePhotoUpload(equipment.id, e);
-                            }}
-                            style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
-                          />
-                        </div>
+                        {/* Botón Cámara - Abre modal con getUserMedia */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCurrentEquipmentId(equipment.id);
+                            setCameraModalOpen(true);
+                          }}
+                          className="flex flex-col items-center justify-center h-20 w-full border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 active:bg-blue-200 transition"
+                        >
+                          <Camera className="w-6 h-6 text-blue-600 mb-1" />
+                          <span className="text-sm font-medium text-blue-700">Cámara</span>
+                        </button>
 
                         {/* Botón Galería */}
                         <div>
@@ -778,6 +797,223 @@ export default function FillReport() {
           Submit Report
         </Button>
       </form>
+
+      {/* Camera Modal - Tu código simple que funciona */}
+      {cameraModalOpen && (
+        <CameraModal
+          onCapture={handleCapturedPhoto}
+          onClose={() => {
+            setCameraModalOpen(false);
+            setCurrentEquipmentId(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Camera Modal Component - Código simple del usuario que funciona perfectamente
+interface CameraModalProps {
+  onCapture: (blob: Blob) => void;
+  onClose: () => void;
+}
+
+function CameraModal({ onCapture, onClose }: CameraModalProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [currentFacingMode, setCurrentFacingMode] = useState<'environment' | 'user'>('environment');
+  const [error, setError] = useState<string | null>(null);
+
+  // Iniciar cámara - Código exacto del usuario
+  async function startCamera(facingMode: 'environment' | 'user') {
+    try {
+      setError(null);
+      
+      // Detener stream anterior si existe
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
+      const constraints = {
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+        audio: false
+      };
+
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      setStream(newStream);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = newStream;
+      }
+    } catch (err) {
+      console.error('Error al acceder a la cámara:', err);
+      setError('No se pudo acceder a la cámara');
+    }
+  }
+
+  // Capturar foto
+  function capturePhoto() {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+
+    if (!context) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0);
+
+    canvas.toBlob((blob) => {
+      if (blob) {
+        onCapture(blob);
+        cleanup();
+      }
+    }, 'image/jpeg', 0.9);
+  }
+
+  // Alternar entre cámara trasera y frontal
+  function toggleCamera() {
+    const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+    setCurrentFacingMode(newFacingMode);
+    startCamera(newFacingMode);
+  }
+
+  // Limpiar al cerrar
+  function cleanup() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    onClose();
+  }
+
+  // Iniciar cámara cuando el modal se abre
+  useEffect(() => {
+    startCamera(currentFacingMode);
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  return (
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'black',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Video Preview */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+        }}
+      />
+
+      {/* Canvas oculto para captura */}
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
+
+      {/* Error Message */}
+      {error && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          color: 'white',
+          backgroundColor: 'rgba(220, 38, 38, 0.9)',
+          padding: '1rem',
+          borderRadius: '0.5rem',
+          textAlign: 'center',
+        }}>
+          {error}
+        </div>
+      )}
+
+      {/* Controles */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: '2rem',
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      }}>
+        {/* Botón Cerrar */}
+        <button
+          onClick={cleanup}
+          style={{
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            border: '3px solid white',
+            backgroundColor: 'rgba(220, 38, 38, 0.8)',
+            color: 'white',
+            fontSize: '24px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          ×
+        </button>
+
+        {/* Botón Capturar */}
+        <button
+          onClick={capturePhoto}
+          style={{
+            width: '70px',
+            height: '70px',
+            borderRadius: '50%',
+            border: '5px solid white',
+            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+            cursor: 'pointer',
+          }}
+        />
+
+        {/* Botón Alternar Cámara */}
+        <button
+          onClick={toggleCamera}
+          style={{
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            border: '3px solid white',
+            backgroundColor: 'rgba(75, 85, 99, 0.8)',
+            color: 'white',
+            fontSize: '24px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          🔄
+        </button>
+      </div>
     </div>
   );
 }
