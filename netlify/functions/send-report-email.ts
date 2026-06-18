@@ -59,15 +59,14 @@ const handler: Handler = async (event: HandlerEvent) => {
       throw new Error('Report not found');
     }
 
-    // Get system settings for recipient emails
-    const { data: settings } = await supabase
-      .from('system_settings')
-      .select('setting_value')
-      .eq('setting_key', 'email_notifications')
-      .single();
+    // Get Super Admin emails from users table
+    const { data: admins } = await supabase
+      .from('users')
+      .select('email')
+      .eq('role', 'super_admin');
 
-    // Prepare recipient list: admin + technician
-    const adminEmails = settings?.setting_value?.recipients || ['admin@primelinecoffee.com'];
+    // Prepare recipient list: admins + technician
+    const adminEmails = admins?.map(admin => admin.email) || [];
     const technicianEmail = report.technician.user.email;
     
     const recipientEmails = [...adminEmails];
