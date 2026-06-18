@@ -67,6 +67,41 @@ export default function FillReport() {
     loadCompanyAndTechnicianData();
   }, [companyId, userProfile]);
 
+  // Verificar HTTPS y permisos de cámara
+  useEffect(() => {
+    const isHTTPS = window.location.protocol === 'https:';
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    console.log('🔒 Protocolo:', window.location.protocol);
+    console.log('🌐 URL completa:', window.location.href);
+    console.log('✅ HTTPS activo:', isHTTPS);
+    console.log('🏠 Es localhost:', isLocalhost);
+    
+    if (!isHTTPS && !isLocalhost) {
+      console.error('❌ ADVERTENCIA: El sitio NO está en HTTPS. La cámara puede no funcionar en móviles.');
+      console.error('❌ Solución: Asegúrate de acceder vía https:// o espera el despliegue en Netlify');
+    } else {
+      console.log('✅ Sitio seguro para usar cámara (HTTPS o localhost)');
+    }
+
+    // Verificar disponibilidad de API de medios
+    if (navigator.mediaDevices) {
+      console.log('✅ API navigator.mediaDevices disponible');
+      
+      // Intentar verificar permisos (puede no funcionar en todos los navegadores)
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(() => {
+          console.log('✅ Permisos de cámara concedidos o disponibles');
+        })
+        .catch((err) => {
+          console.warn('⚠️ Permisos de cámara no disponibles:', err.message);
+          console.log('ℹ️ Esto es normal si aún no has usado la cámara. Los permisos se solicitarán al tomar foto.');
+        });
+    } else {
+      console.error('❌ API navigator.mediaDevices NO disponible en este navegador');
+    }
+  }, []);
+
   async function loadCompanyAndTechnicianData() {
     try {
       // Auto-fill technician name from logged-in user
@@ -654,9 +689,9 @@ export default function FillReport() {
                           ))}
                         </div>
                       )}
-                      {/* Botones para fotos - Solución simple según MDN */}
+                      {/* Botones para fotos - Con capture según estándar */}
                       <div className="grid grid-cols-2 gap-2">
-                        {/* Botón Cámara */}
+                        {/* Botón Cámara Trasera */}
                         <div>
                           <label 
                             htmlFor={`file-camera-${equipment.id}`}
@@ -669,6 +704,7 @@ export default function FillReport() {
                             id={`file-camera-${equipment.id}`}
                             type="file"
                             accept="image/*"
+                            capture="environment"
                             onChange={(e) => {
                               console.log('📸 Camera onChange', e.target.files?.length);
                               handlePhotoUpload(equipment.id, e);
