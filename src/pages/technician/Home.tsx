@@ -50,11 +50,20 @@ export default function TechnicianHome() {
       
       addLog('✅ ¡Cámara trasera obtenida!');
       setStream(mediaStream);
-      setCameraActive(true);
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         addLog('✅ Stream asignado al video element');
+        
+        // Esperar a que el video esté listo y reproducirlo
+        try {
+          await videoRef.current.play();
+          addLog('✅ Video reproduciendo!');
+          setCameraActive(true);
+        } catch (playError: any) {
+          addLog(`⚠️ Error al reproducir: ${playError.message}`);
+          setCameraActive(true); // Activar de todos modos
+        }
       }
       
     } catch (error: any) {
@@ -66,11 +75,19 @@ export default function TechnicianHome() {
         
         addLog('✅ ¡Cámara genérica obtenida!');
         setStream(streamFlexible);
-        setCameraActive(true);
         
         if (videoRef.current) {
           videoRef.current.srcObject = streamFlexible;
           addLog('✅ Stream asignado al video element');
+          
+          try {
+            await videoRef.current.play();
+            addLog('✅ Video reproduciendo!');
+            setCameraActive(true);
+          } catch (playError: any) {
+            addLog(`⚠️ Error al reproducir: ${playError.message}`);
+            setCameraActive(true);
+          }
         }
         
       } catch (errFinal: any) {
@@ -287,7 +304,9 @@ export default function TechnicianHome() {
                     ref={videoRef}
                     autoPlay
                     playsInline
+                    muted
                     className="w-full rounded-lg bg-black mb-3"
+                    style={{ minHeight: '200px' }}
                   />
                   <button
                     onClick={handleStopCamera}
