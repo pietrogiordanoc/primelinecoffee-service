@@ -362,7 +362,7 @@ export default function TechnicianHome() {
               
               {!cameraActive ? (
                 <button
-                  onClick={handleOpenCamera}
+                  onClick={() => handleOpenCamera()}
                   className="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 active:bg-green-800 transition"
                 >
                   1. Encender Cámara
