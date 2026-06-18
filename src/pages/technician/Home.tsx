@@ -30,31 +30,74 @@ export default function TechnicianHome() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  
+  // NUEVO: Estados para enumeración de dispositivos (patrón issuebadge)
+  const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
+  const [selectedCameraId, setSelectedCameraId] = useState<string>('');
 
   const addLog = (message: string) => {
     console.log(message);
     setCameraLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
-  // Función con el patrón del gist (onloadedmetadata + play)
-  const handleOpenCamera = async () => {
-    addLog('🔵 Botón clickeado - Abriendo cámara...');
-    
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "environment" },
-        audio: false 
+  // 1. Detener stream limpiamente (CLAVE para evitar parpadeos)
+  const stopCurrentStream = () => {
+    if (stream) {
+      addLog('🛑 Deteniendo stream actual...');
+      stream.getTracks().forEach(track => {
+        track.stop();
+        addLog(`  ↳ Track detenido: ${track.kind}`);
       });
+      setStream(null);
+    }
+  };
+
+  // 2. Enumerar cámaras disponibles
+  const enumerateCameras = async () => {
+    try {
+      addLog('📹 Enumerando dispositivos...');
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      setCameras(videoDevices);
+      videoDevices.forEach((device, i) => {
+        addLog(`  ↳ Cámara ${i + 1}: ${device.label || 'Sin nombre'}`);
+      });
+      addLog(`✅ ${videoDevices.length} cámaras encontradas`);
+      
+      return videoDevices;
+    } catch (error: any) {
+      addLog(`❌ Error enumerando: ${error.message}`);
+      return [];
+    }
+  };
+
+  // 3. Iniciar cámara (GENÉRICA primero, específica después)
+  const handleOpenCamera = async (deviceId?: string) => {
+    addLog('🔵 Iniciando cámara...');
+    stopCurrentStream(); // Detener stream anterior
+    
+    const useDeviceId = deviceId || selectedCameraId;
+    addLog(`📍 DeviceId: ${useDeviceId || 'GENÉRICO (sin restricciones)'}`);
+    
+    // CLAVE: Sin restricciones estrictas al inicio
+    const constraints = {
+      video: useDeviceId ? { deviceId: { exact: useDeviceId } } : true,
+      audio: false
+    };
+
+    try {
+      addLog('📹 Solicitando getUserMedia...');
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       
       addLog('✅ Stream obtenido!');
-      setStream(stream);
+      setStream(mediaStream);
       
       if (videoRef.current) {
         const video = videoRef.current;
-        video.srcObject = stream;
+        video.srcObject = mediaStream;
         addLog('✅ srcObject asignado');
         
-        // PATRÓN DEL GIST: Esperar onloadedmetadata
         await new Promise<void>((resolve) => {
           video.onloadedmetadata = () => {
             addLog('✅ onloadedmetadata disparado!');
@@ -62,10 +105,30 @@ export default function TechnicianHome() {
           };
         });
         
-        // Ahora sí reproducir
         await video.play();
         addLog('✅ video.play() ejecutado!');
         setCameraActive(true);
+        
+        // Primera vez: enumerar cámaras ahora que tenemos permiso
+        if (!useDeviceId && cameras.length === 0) {
+          addLog('🔄 Primera vez - actualizando lista de cámaras...');
+          const cams = await enumerateCameras();
+          
+          // Auto-seleccionar cámara trasera si existe
+          const backCamera = cams.find(c => 
+            c.label.toLowerCase().includes('back') || 
+            c.label.toLowerCase().includes('trasera') ||
+            c.label.toLowerCase().includes('rear')
+          );
+          
+          if (backCamera) {
+            addLog(`🎯 Cámara trasera detectada: ${backCamera.label}`);
+            addLog('🔄 Cambiando a cámara trasera...');
+            setSelectedCameraId(backCamera.deviceId);
+            // Reiniciar con cámara trasera
+            setTimeout(() => handleOpenCamera(backCamera.deviceId), 500);
+          }
+        }
       }
     } catch (err: any) {
       addLog(`❌ Error: ${err.message}`);
@@ -108,15 +171,12 @@ export default function TechnicianHome() {
 
   // Función para detener la cámara
   const handleStopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-      setCameraActive(false);
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
-      addLog('🛑 Cámara detenida');
+    stopCurrentStream();
+    setCameraActive(false);
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
+    addLog('🛑 Cámara detenida');
   };
 
   const handleCameraTest = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -317,6 +377,29 @@ export default function TechnicianHome() {
                     className="w-full rounded-lg bg-black mb-3"
                     style={{ maxWidth: '400px', margin: '0 auto' }}
                   />
+                  
+                  {/* Selector de cámaras (si hay múltiples) */}
+                  {cameras.length > 1 && (
+                    <div className="mb-3">
+                      <label className="block text-sm font-semibold text-purple-900 mb-2">
+                        📹 Seleccionar Cámara:
+                      </label>
+                      <select
+                        value={selectedCameraId}
+                        onChange={(e) => {
+                          setSelectedCameraId(e.target.value);
+                          handleOpenCamera(e.target.value);
+                        }}
+                        className="w-full p-2 border border-purple-300 rounded-lg text-sm"
+                      >
+                        {cameras.map((camera, i) => (
+                          <option key={camera.deviceId} value={camera.deviceId}>
+                            {camera.label || `Cámara ${i + 1}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   
                   <button
                     onClick={handleTakePhoto}
