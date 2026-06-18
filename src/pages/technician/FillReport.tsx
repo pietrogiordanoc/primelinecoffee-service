@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
@@ -30,7 +30,6 @@ export default function FillReport() {
   const companyId = searchParams.get('company');
   const { userProfile } = useAuthStore();
   const { alert } = useConfirm();
-  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const [form, setForm] = useState<DynamicForm | null>(null);
   const [loading, setLoading] = useState(true);
@@ -203,6 +202,8 @@ export default function FillReport() {
           r.id === equipmentId ? { ...r, photos: [...r.photos, ...optimized] } : r
         )
       );
+      // Reset input para permitir seleccionar la misma imagen nuevamente
+      e.target.value = '';
     } catch (error) {
       console.error('Error optimizing images:', error);
       await alert('Error al optimizar imágenes. Por favor intenta de nuevo.', 'Error');
@@ -647,24 +648,24 @@ export default function FillReport() {
                           ))}
                         </div>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => fileInputRefs.current[equipment.id]?.click()}
-                        className="flex items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 transition active:bg-gray-50"
+                      <label 
+                        htmlFor={`photo-input-${equipment.id}`}
+                        className="flex items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 transition active:bg-gray-50 touch-manipulation"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                       >
-                        <div className="text-center">
+                        <div className="text-center pointer-events-none">
                           <Camera className="w-5 h-5 mx-auto text-gray-400 mb-1" />
-                          <span className="text-xs text-gray-600">Add Photo</span>
+                          <span className="text-xs text-gray-600">Tomar Foto</span>
                         </div>
-                      </button>
+                      </label>
                       <input
-                        ref={(el) => (fileInputRefs.current[equipment.id] = el)}
+                        id={`photo-input-${equipment.id}`}
                         type="file"
                         accept="image/*"
                         multiple
                         onChange={(e) => handlePhotoUpload(equipment.id, e)}
-                        className="hidden"
-                        style={{ display: 'none' }}
+                        className="sr-only"
+                        tabIndex={-1}
                       />
                     </div>
                   </div>
