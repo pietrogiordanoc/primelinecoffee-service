@@ -825,7 +825,7 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
   const [currentFacingMode, setCurrentFacingMode] = useState<'environment' | 'user'>('user');
   const [error, setError] = useState<string | null>(null);
 
-  // Iniciar cámara - Código exacto del usuario
+  // Iniciar cámara - Siguiendo instrucciones completas para móviles
   async function startCamera(facingMode: 'environment' | 'user') {
     try {
       setError(null);
@@ -844,17 +844,43 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
         audio: false
       };
 
+      console.log('📹 getUserMedia con facingMode:', facingMode);
       const newStream = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(newStream);
+      console.log('✅ Stream obtenido');
       
       if (videoRef.current) {
-        videoRef.current.srcObject = newStream;
+        const video = videoRef.current;
+        video.srcObject = newStream;
+        
+        // ⚠️ CRÍTICO: Esperar a que el video cargue su metadata
+        await new Promise<void>((resolve) => {
+          video.onloadedmetadata = () => {
+            console.log('✅ Video metadata cargado:', video.videoWidth, 'x', video.videoHeight);
+            resolve();
+          };
+        });
+        
+        // ⚠️ CRÍTICO: Iniciar reproducción explícitamente
+        await video.play();
+        console.log('✅ Video reproduciendo');
+        
+        // ⚠️ CRÍTICO: Espera adicional para estabilizar
+        await new Promise(r => setTimeout(r, 300));
+        
+        // Verificar dimensiones
+        console.log('📐 Dimensiones finales:', video.videoWidth, 'x', video.videoHeight);
+        console.log('📊 Paused:', video.paused, '| Muted:', video.muted);
+        
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          console.warn('⚠️ Dimensiones 0x0 detectadas');
+        }
       }
     } catch (err) {
-      console.error('Error al acceder a la cámara:', err);
+      console.error('❌ Error al acceder a la cámara:', err);
       const errorMsg = 'No se pudo acceder a la cámara';
       setError(errorMsg);
-      throw err; // Re-lanzar para que toggleCamera pueda manejarlo
+      throw err;
     }
   }
 
@@ -908,10 +934,31 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
   // Iniciar cámara cuando el modal se abre
   useEffect(() => {
     startCamera(currentFacingMode);
+    
+    // Event listeners para reactivar video cuando vuelve a la app
+    const handleVisibilityChange = () => {
+      if (!document.hidden && videoRef.current?.srcObject && videoRef.current.paused) {
+        console.log('🔄 Reactivando video (visibilitychange)');
+        videoRef.current.play().catch(e => console.warn('Error reactivando:', e));
+      }
+    };
+    
+    const handleFocus = () => {
+      if (videoRef.current?.srcObject && videoRef.current.paused) {
+        console.log('🔄 Reactivando video (focus)');
+        videoRef.current.play().catch(e => console.warn('Error reactivando:', e));
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
     return () => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 
@@ -935,10 +982,13 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
         autoPlay
         playsInline
         muted
+        webkit-playsinline="true"
         style={{
           width: '100%',
           height: '100%',
           objectFit: 'cover',
+          display: 'block',
+          backgroundColor: '#000',
         }}
       />
 
