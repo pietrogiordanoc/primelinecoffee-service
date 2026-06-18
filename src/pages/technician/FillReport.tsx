@@ -192,11 +192,17 @@ export default function FillReport() {
   }
 
   async function handlePhotoUpload(equipmentId: string, e: React.ChangeEvent<HTMLInputElement>) {
+    console.log('📸 handlePhotoUpload called', { equipmentId, filesCount: e.target.files?.length });
     const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+    if (files.length === 0) {
+      console.log('❌ No files selected');
+      return;
+    }
 
+    console.log('✅ Files selected:', files.length);
     try {
       const optimized = await optimizeImages(files);
+      console.log('✅ Images optimized:', optimized.length);
       setEquipmentRecords(
         equipmentRecords.map(r =>
           r.id === equipmentId ? { ...r, photos: [...r.photos, ...optimized] } : r
@@ -205,7 +211,7 @@ export default function FillReport() {
       // Reset input para permitir seleccionar la misma imagen nuevamente
       e.target.value = '';
     } catch (error) {
-      console.error('Error optimizing images:', error);
+      console.error('❌ Error optimizing images:', error);
       await alert('Error al optimizar imágenes. Por favor intenta de nuevo.', 'Error');
     }
   }
@@ -650,13 +656,26 @@ export default function FillReport() {
                       )}
                       <div className="grid grid-cols-2 gap-2">
                         {/* Botón Cámara */}
-                        <div className="relative h-20 border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg overflow-hidden">
+                        <div 
+                          className="relative h-20 border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg overflow-hidden"
+                          onClick={(e) => {
+                            console.log('🔵 Camera button clicked');
+                            e.stopPropagation();
+                          }}
+                        >
                           <input
                             type="file"
                             accept="image/*"
-                            capture="environment"
-                            onChange={(e) => handlePhotoUpload(equipment.id, e)}
+                            onChange={(e) => {
+                              console.log('🔵 Camera input onChange');
+                              handlePhotoUpload(equipment.id, e);
+                            }}
+                            onClick={(e) => {
+                              console.log('🔵 Camera input clicked');
+                              e.stopPropagation();
+                            }}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            style={{ fontSize: '16px' }}
                             title="Tomar foto con cámara"
                           />
                           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -666,13 +685,27 @@ export default function FillReport() {
                         </div>
 
                         {/* Botón Galería */}
-                        <div className="relative h-20 border-2 border-dashed border-green-300 bg-green-50 rounded-lg overflow-hidden">
+                        <div 
+                          className="relative h-20 border-2 border-dashed border-green-300 bg-green-50 rounded-lg overflow-hidden"
+                          onClick={(e) => {
+                            console.log('🟢 Gallery button clicked');
+                            e.stopPropagation();
+                          }}
+                        >
                           <input
                             type="file"
                             accept="image/*"
                             multiple
-                            onChange={(e) => handlePhotoUpload(equipment.id, e)}
+                            onChange={(e) => {
+                              console.log('🟢 Gallery input onChange');
+                              handlePhotoUpload(equipment.id, e);
+                            }}
+                            onClick={(e) => {
+                              console.log('🟢 Gallery input clicked');
+                              e.stopPropagation();
+                            }}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            style={{ fontSize: '16px' }}
                             title="Seleccionar de galería"
                           />
                           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
