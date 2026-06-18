@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
@@ -25,10 +25,72 @@ export default function TechnicianHome() {
   // Estados para prueba de cámara
   const [testPhoto, setTestPhoto] = useState<string | null>(null);
   const [cameraLog, setCameraLog] = useState<string[]>([]);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const addLog = (message: string) => {
     console.log(message);
     setCameraLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
+  };
+
+  // Función para abrir cámara con getUserMedia
+  const handleOpenCamera = async () => {
+    addLog('🔵 Botón getUserMedia clickeado');
+    
+    // Configuración para forzar cámara trasera
+    const opciones: MediaStreamConstraints = {
+      video: { facingMode: { exact: "environment" } },
+      audio: false
+    };
+
+    try {
+      addLog('📹 Solicitando acceso a cámara trasera...');
+      const mediaStream = await navigator.mediaDevices.getUserMedia(opciones);
+      
+      addLog('✅ ¡Cámara trasera obtenida!');
+      setStream(mediaStream);
+      setCameraActive(true);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        addLog('✅ Stream asignado al video element');
+      }
+      
+    } catch (error: any) {
+      addLog(`⚠️ Error con cámara trasera: ${error.message}`);
+      addLog('🔄 Intentando modo genérico...');
+      
+      try {
+        const streamFlexible = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        
+        addLog('✅ ¡Cámara genérica obtenida!');
+        setStream(streamFlexible);
+        setCameraActive(true);
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = streamFlexible;
+          addLog('✅ Stream asignado al video element');
+        }
+        
+      } catch (errFinal: any) {
+        addLog(`❌ Error final: ${errFinal.message}`);
+        alert('Para continuar, debes permitir el acceso a la cámara en la ventana emergente de tu navegador.');
+      }
+    }
+  };
+
+  // Función para detener la cámara
+  const handleStopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+      setCameraActive(false);
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+      addLog('🛑 Cámara detenida');
+    }
   };
 
   const handleCameraTest = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -206,30 +268,35 @@ export default function TechnicianHome() {
               />
             </div>
 
-            {/* BOTON2 - Código HTML puro del usuario */}
-            <div className="p-4 border-2 border-purple-400 bg-purple-50 rounded-lg">
-              <label 
-                htmlFor="foto-camara" 
-                className="block mb-2 font-bold text-purple-800"
-              >
-                🟣 BOTON2 - Tomar Foto con la Cámara:
-              </label>
-              <input 
-                type="file" 
-                id="foto-camara" 
-                accept="image/*" 
-                capture="environment"
-                onChange={(e) => {
-                  addLog('🟣 BOTON2 - onChange disparado!');
-                  handleCameraTest(e);
-                }}
-                onClick={() => addLog('🟣 BOTON2 - input clicked')}
-                style={{ 
-                  padding: '10px', 
-                  border: '1px dashed #ccc', 
-                  borderRadius: '4px' 
-                }}
-              />
+            {/* BOTON2 - getUserMedia API Directa */}
+            <div className="p-4 border-2 border-purple-400 bg-white rounded-xl shadow-md">
+              <h3 className="text-lg font-bold text-purple-900 mb-3">
+                🟣 Captura con getUserMedia
+              </h3>
+              
+              {!cameraActive ? (
+                <button
+                  onClick={handleOpenCamera}
+                  className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition"
+                >
+                  Abrir Cámara
+                </button>
+              ) : (
+                <div>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="w-full rounded-lg bg-black mb-3"
+                  />
+                  <button
+                    onClick={handleStopCamera}
+                    className="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 active:bg-red-800 transition"
+                  >
+                    Detener Cámara
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
