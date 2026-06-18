@@ -28,73 +28,69 @@ export default function TechnicianHome() {
   const [cameraActive, setCameraActive] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
 
   const addLog = (message: string) => {
     console.log(message);
     setCameraLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
-  // Función para abrir cámara con getUserMedia
+  // Función SIMPLE para abrir cámara (como el HTML que funciona)
   const handleOpenCamera = async () => {
-    addLog('🔵 Botón getUserMedia clickeado');
+    addLog('🔵 Botón clickeado - Abriendo cámara...');
     
-    // Configuración para forzar cámara trasera
-    const opciones: MediaStreamConstraints = {
-      video: { facingMode: { exact: "environment" } },
-      audio: false
-    };
-
     try {
-      addLog('📹 Solicitando acceso a cámara trasera...');
-      const mediaStream = await navigator.mediaDevices.getUserMedia(opciones);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "environment" },
+        audio: false 
+      });
       
-      addLog('✅ ¡Cámara trasera obtenida!');
-      setStream(mediaStream);
+      addLog('✅ Stream obtenido!');
+      setStream(stream);
       
       if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        addLog('✅ Stream asignado al video element');
-        
-        // Esperar a que el video esté listo y reproducirlo
-        try {
-          await videoRef.current.play();
-          addLog('✅ Video reproduciendo!');
-          setCameraActive(true);
-        } catch (playError: any) {
-          addLog(`⚠️ Error al reproducir: ${playError.message}`);
-          setCameraActive(true); // Activar de todos modos
-        }
+        videoRef.current.srcObject = stream;
+        addLog('✅ srcObject asignado');
+        setCameraActive(true);
       }
-      
-    } catch (error: any) {
-      addLog(`⚠️ Error con cámara trasera: ${error.message}`);
-      addLog('🔄 Intentando modo genérico...');
-      
-      try {
-        const streamFlexible = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        
-        addLog('✅ ¡Cámara genérica obtenida!');
-        setStream(streamFlexible);
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = streamFlexible;
-          addLog('✅ Stream asignado al video element');
-          
-          try {
-            await videoRef.current.play();
-            addLog('✅ Video reproduciendo!');
-            setCameraActive(true);
-          } catch (playError: any) {
-            addLog(`⚠️ Error al reproducir: ${playError.message}`);
-            setCameraActive(true);
-          }
-        }
-        
-      } catch (errFinal: any) {
-        addLog(`❌ Error final: ${errFinal.message}`);
-        alert('Para continuar, debes permitir el acceso a la cámara en la ventana emergente de tu navegador.');
-      }
+    } catch (err: any) {
+      addLog(`❌ Error: ${err.message}`);
+      alert("Error al acceder a la cámara: " + err.message);
     }
+  };
+
+  // Función para capturar foto del video (como el HTML)
+  const handleTakePhoto = () => {
+    addLog('📸 Capturando foto...');
+    
+    if (!videoRef.current || !canvasRef.current) {
+      addLog('❌ Referencias no disponibles');
+      return;
+    }
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    
+    if (!context) {
+      addLog('❌ No se pudo obtener contexto del canvas');
+      return;
+    }
+
+    // Ajustar canvas al tamaño del video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    addLog(`📐 Video: ${video.videoWidth}x${video.videoHeight}`);
+    
+    // Dibujar frame actual
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Convertir a imagen
+    const dataUrl = canvas.toDataURL('image/jpeg');
+    setCapturedPhoto(dataUrl);
+    addLog('✅ ¡Foto capturada!');
   };
 
   // Función para detener la cámara
@@ -294,9 +290,9 @@ export default function TechnicianHome() {
               {!cameraActive ? (
                 <button
                   onClick={handleOpenCamera}
-                  className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition"
+                  className="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 active:bg-green-800 transition"
                 >
-                  Abrir Cámara
+                  1. Encender Cámara
                 </button>
               ) : (
                 <div>
@@ -304,16 +300,39 @@ export default function TechnicianHome() {
                     ref={videoRef}
                     autoPlay
                     playsInline
-                    muted
                     className="w-full rounded-lg bg-black mb-3"
-                    style={{ minHeight: '200px' }}
+                    style={{ maxWidth: '400px', margin: '0 auto' }}
                   />
+                  
+                  <button
+                    onClick={handleTakePhoto}
+                    className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 mb-2"
+                  >
+                    2. Tomar Foto 📸
+                  </button>
+                  
                   <button
                     onClick={handleStopCamera}
-                    className="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 active:bg-red-800 transition"
+                    className="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700"
                   >
                     Detener Cámara
                   </button>
+
+                  {/* Canvas oculto para captura */}
+                  <canvas ref={canvasRef} style={{ display: 'none' }} />
+                  
+                  {/* Mostrar foto capturada */}
+                  {capturedPhoto && (
+                    <div className="mt-4">
+                      <p className="text-sm font-bold text-purple-900 mb-2">✅ Foto capturada:</p>
+                      <img 
+                        src={capturedPhoto} 
+                        alt="Captura" 
+                        className="w-full rounded-lg border-2 border-green-500"
+                        style={{ maxWidth: '400px', margin: '0 auto', display: 'block' }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
