@@ -36,7 +36,7 @@ export default function TechnicianHome() {
     setCameraLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
-  // Función SIMPLE para abrir cámara (como el HTML que funciona)
+  // Función con el patrón del gist (onloadedmetadata + play)
   const handleOpenCamera = async () => {
     addLog('🔵 Botón clickeado - Abriendo cámara...');
     
@@ -50,8 +50,21 @@ export default function TechnicianHome() {
       setStream(stream);
       
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+        const video = videoRef.current;
+        video.srcObject = stream;
         addLog('✅ srcObject asignado');
+        
+        // PATRÓN DEL GIST: Esperar onloadedmetadata
+        await new Promise<void>((resolve) => {
+          video.onloadedmetadata = () => {
+            addLog('✅ onloadedmetadata disparado!');
+            resolve();
+          };
+        });
+        
+        // Ahora sí reproducir
+        await video.play();
+        addLog('✅ video.play() ejecutado!');
         setCameraActive(true);
       }
     } catch (err: any) {
@@ -299,6 +312,7 @@ export default function TechnicianHome() {
                   <video
                     ref={videoRef}
                     autoPlay
+                    muted
                     playsInline
                     className="w-full rounded-lg bg-black mb-3"
                     style={{ maxWidth: '400px', margin: '0 auto' }}
