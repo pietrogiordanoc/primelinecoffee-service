@@ -21,6 +21,7 @@ import TechnicianHome from '@/pages/technician/Home';
 import FillReport from '@/pages/technician/FillReport';
 import ReportHistory from '@/pages/technician/History';
 import ViewReport from '@/pages/technician/ViewReport';
+import TestCamera from '@/pages/TestCamera';
 
 // Components
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -114,6 +115,9 @@ function App() {
           path="/login"
           element={!user ? <Login /> : <RoleBasedRedirect />}
         />
+        
+        {/* Test Camera - Public Route */}
+        <Route path="/test-camera" element={<TestCamera />} />
 
         {/* Protected Admin Routes */}
         <Route
