@@ -435,6 +435,25 @@ export default function FillReport() {
         }
       }
 
+      // Send email notification
+      try {
+        console.log('📧 Enviando email de notificación...');
+        const emailResponse = await fetch('/.netlify/functions/send-report-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reportId }),
+        });
+
+        if (emailResponse.ok) {
+          console.log('✅ Email enviado correctamente');
+        } else {
+          console.warn('⚠️ Error enviando email, pero el reporte se guardó correctamente');
+        }
+      } catch (emailError) {
+        console.error('Error al enviar email:', emailError);
+        // No fallar todo el proceso si el email falla
+      }
+
       await alert('¡Reporte enviado exitosamente!', 'Éxito');
       navigate('/technician');
     } catch (error: any) {

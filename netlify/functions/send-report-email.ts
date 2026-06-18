@@ -66,8 +66,14 @@ const handler: Handler = async (event: HandlerEvent) => {
       .eq('setting_key', 'email_notifications')
       .single();
 
-    const recipientEmails =
-      settings?.setting_value?.recipients || ['admin@primelinecoffee.com'];
+    // Prepare recipient list: admin + technician
+    const adminEmails = settings?.setting_value?.recipients || ['admin@primelinecoffee.com'];
+    const technicianEmail = report.technician.user.email;
+    
+    const recipientEmails = [...adminEmails];
+    if (technicianEmail && !recipientEmails.includes(technicianEmail)) {
+      recipientEmails.push(technicianEmail);
+    }
 
     // Prepare attachments
     const attachments: EmailAttachment[] = [];
@@ -86,8 +92,8 @@ const handler: Handler = async (event: HandlerEvent) => {
         for (const photo of report.photos) {
           try {
             const { data: fileData } = await supabase.storage
-              .from('service-reports')
-              .download(photo.file_url);
+              .from('service-photos')
+              .download(photo.file_name);
 
             if (fileData) {
               const buffer = await fileData.arrayBuffer();
@@ -106,8 +112,8 @@ const handler: Handler = async (event: HandlerEvent) => {
         // Generate signed URLs (over 12MB)
         for (const photo of report.photos) {
           const { data: signedUrl } = await supabase.storage
-            .from('service-reports')
-            .createSignedUrl(photo.file_url, 604800); // 7 days
+            .from('service-photos')
+            .createSignedUrl(photo.file_name, 604800); // 7 days
 
           if (signedUrl) {
             photoLinks.push(signedUrl.signedUrl);
@@ -120,8 +126,10 @@ const handler: Handler = async (event: HandlerEvent) => {
     const emailHtml = generateEmailHtml(report, photoLinks);
 
     // Send email
+    const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+    
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: 'Prime Line Coffee Service <no-reply@primelinecoffee.com>',
+      from: fromEmail,
       to: recipientEmails,
       subject: `New Service Report - ${report.company.name}`,
       html: emailHtml,
