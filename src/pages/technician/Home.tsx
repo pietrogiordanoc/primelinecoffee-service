@@ -168,14 +168,13 @@ export default function TechnicianHome() {
           </p>
           
           {/* Botones de prueba */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            {/* Botón Cámara - INPUT DIRECTO */}
-            <label 
-              className="relative flex flex-col items-center justify-center h-24 border-2 border-dashed border-blue-400 bg-blue-100 rounded-lg cursor-pointer hover:bg-blue-200 active:bg-blue-300 transition overflow-hidden"
-            >
-              <Camera className="w-8 h-8 text-blue-600 mb-1 pointer-events-none" />
-              <span className="text-sm font-bold text-blue-800 pointer-events-none">CÁMARA</span>
-              <span className="text-xs text-blue-600 pointer-events-none">Abrir cámara</span>
+          <div className="space-y-3 mb-4">
+            {/* Botón Cámara - NATIVO Y VISIBLE */}
+            <div className="p-4 border-2 border-blue-400 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Camera className="w-6 h-6 text-blue-600" />
+                <span className="text-sm font-bold text-blue-800">TEST CÁMARA</span>
+              </div>
               <input
                 type="file"
                 accept="image/*"
@@ -185,17 +184,16 @@ export default function TechnicianHome() {
                   handleCameraTest(e);
                 }}
                 onClick={() => addLog('🔵 Cámara - input clicked')}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="w-full text-sm"
               />
-            </label>
+            </div>
 
-            {/* Botón Galería - INPUT DIRECTO */}
-            <label 
-              className="relative flex flex-col items-center justify-center h-24 border-2 border-dashed border-green-400 bg-green-100 rounded-lg cursor-pointer hover:bg-green-200 active:bg-green-300 transition overflow-hidden"
-            >
-              <FileText className="w-8 h-8 text-green-600 mb-1 pointer-events-none" />
-              <span className="text-sm font-bold text-green-800 pointer-events-none">GALERÍA</span>
-              <span className="text-xs text-green-600 pointer-events-none">Seleccionar foto</span>
+            {/* Botón Galería - NATIVO Y VISIBLE */}
+            <div className="p-4 border-2 border-green-400 bg-green-50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="w-6 h-6 text-green-600" />
+                <span className="text-sm font-bold text-green-800">TEST GALERÍA</span>
+              </div>
               <input
                 type="file"
                 accept="image/*"
@@ -204,9 +202,9 @@ export default function TechnicianHome() {
                   handleCameraTest(e);
                 }}
                 onClick={() => addLog('🟢 Galería - input clicked')}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="w-full text-sm"
               />
-            </label>
+            </div>
           </div>
 
           {/* Preview de la foto */}
