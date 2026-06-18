@@ -174,8 +174,6 @@ export default function TechnicianHome() {
       }
     }
   };
-    }
-  };
 
   // Función para capturar foto del video (como el HTML)
   const handleTakePhoto = () => {
