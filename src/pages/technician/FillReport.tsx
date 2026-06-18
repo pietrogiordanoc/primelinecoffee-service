@@ -6,7 +6,7 @@ import { useConfirm } from '@/contexts/ConfirmContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Camera, X, Check, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Camera, X, Check, Plus, Trash2, ChevronDown, ChevronUp, Image } from 'lucide-react';
 import { optimizeImages } from '@/utils/imageOptimization';
 import type { DynamicForm, OptimizedPhoto } from '@/types';
 
@@ -648,25 +648,45 @@ export default function FillReport() {
                           ))}
                         </div>
                       )}
-                      <label 
-                        htmlFor={`photo-input-${equipment.id}`}
-                        className="flex items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 transition active:bg-gray-50 touch-manipulation"
-                        style={{ WebkitTapHighlightColor: 'transparent' }}
-                      >
-                        <div className="text-center pointer-events-none">
-                          <Camera className="w-5 h-5 mx-auto text-gray-400 mb-1" />
-                          <span className="text-xs text-gray-600">Tomar Foto</span>
-                        </div>
-                      </label>
-                      <input
-                        id={`photo-input-${equipment.id}`}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={(e) => handlePhotoUpload(equipment.id, e)}
-                        className="sr-only"
-                        tabIndex={-1}
-                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* Botón Cámara */}
+                        <label 
+                          htmlFor={`photo-camera-${equipment.id}`}
+                          className="flex flex-col items-center justify-center h-20 border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-100 transition active:bg-blue-200 touch-manipulation"
+                          style={{ WebkitTapHighlightColor: 'transparent' }}
+                        >
+                          <Camera className="w-6 h-6 text-blue-600 mb-1" />
+                          <span className="text-xs font-medium text-blue-700">Cámara</span>
+                        </label>
+                        <input
+                          id={`photo-camera-${equipment.id}`}
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          onChange={(e) => handlePhotoUpload(equipment.id, e)}
+                          className="sr-only"
+                          tabIndex={-1}
+                        />
+
+                        {/* Botón Galería */}
+                        <label 
+                          htmlFor={`photo-gallery-${equipment.id}`}
+                          className="flex flex-col items-center justify-center h-20 border-2 border-dashed border-green-300 bg-green-50 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-100 transition active:bg-green-200 touch-manipulation"
+                          style={{ WebkitTapHighlightColor: 'transparent' }}
+                        >
+                          <Image className="w-6 h-6 text-green-600 mb-1" />
+                          <span className="text-xs font-medium text-green-700">Galería</span>
+                        </label>
+                        <input
+                          id={`photo-gallery-${equipment.id}`}
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => handlePhotoUpload(equipment.id, e)}
+                          className="sr-only"
+                          tabIndex={-1}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
