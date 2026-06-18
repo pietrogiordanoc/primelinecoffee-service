@@ -205,6 +205,32 @@ export default function TechnicianHome() {
                 className="w-full text-sm"
               />
             </div>
+
+            {/* BOTON2 - Código HTML puro del usuario */}
+            <div className="p-4 border-2 border-purple-400 bg-purple-50 rounded-lg">
+              <label 
+                htmlFor="foto-camara" 
+                className="block mb-2 font-bold text-purple-800"
+              >
+                🟣 BOTON2 - Tomar Foto con la Cámara:
+              </label>
+              <input 
+                type="file" 
+                id="foto-camara" 
+                accept="image/*" 
+                capture="environment"
+                onChange={(e) => {
+                  addLog('🟣 BOTON2 - onChange disparado!');
+                  handleCameraTest(e);
+                }}
+                onClick={() => addLog('🟣 BOTON2 - input clicked')}
+                style={{ 
+                  padding: '10px', 
+                  border: '1px dashed #ccc', 
+                  borderRadius: '4px' 
+                }}
+              />
+            </div>
           </div>
 
           {/* Preview de la foto */}
