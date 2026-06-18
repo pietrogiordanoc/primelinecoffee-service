@@ -882,16 +882,17 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
 
   // Alternar entre cámara trasera y frontal
   async function toggleCamera() {
+    const previousFacingMode = currentFacingMode;
     const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-    setCurrentFacingMode(newFacingMode);
     
     try {
       await startCamera(newFacingMode);
+      setCurrentFacingMode(newFacingMode);
     } catch (err) {
-      // Si falla (ej: cámara trasera no disponible), volver a la anterior
-      console.error('Error cambiando cámara, volviendo a la anterior:', err);
-      setCurrentFacingMode(currentFacingMode);
-      setError('Cámara no disponible, usando la anterior');
+      // Si falla, mantener la anterior
+      console.error('Error cambiando cámara:', err);
+      setCurrentFacingMode(previousFacingMode);
+      setError('Cámara no disponible');
       setTimeout(() => setError(null), 3000);
     }
   }
@@ -933,6 +934,7 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
         ref={videoRef}
         autoPlay
         playsInline
+        muted
         style={{
           width: '100%',
           height: '100%',
