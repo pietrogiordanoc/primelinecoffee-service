@@ -124,8 +124,8 @@ const handler: Handler = async (event: HandlerEvent) => {
     // Generate email HTML
     const emailHtml = generateEmailHtml(report, photoLinks);
 
-    // Send email
-    const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+    // Use first Super Admin email as sender
+    const fromEmail = adminEmails[0] || 'onboarding@resend.dev';
     
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: fromEmail,
