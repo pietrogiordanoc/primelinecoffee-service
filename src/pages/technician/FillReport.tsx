@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
@@ -30,6 +30,7 @@ export default function FillReport() {
   const companyId = searchParams.get('company');
   const { userProfile } = useAuthStore();
   const { alert } = useConfirm();
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const [form, setForm] = useState<DynamicForm | null>(null);
   const [loading, setLoading] = useState(true);
@@ -646,20 +647,25 @@ export default function FillReport() {
                           ))}
                         </div>
                       )}
-                      <label className="flex items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 transition">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRefs.current[equipment.id]?.click()}
+                        className="flex items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 transition active:bg-gray-50"
+                      >
                         <div className="text-center">
                           <Camera className="w-5 h-5 mx-auto text-gray-400 mb-1" />
                           <span className="text-xs text-gray-600">Add Photo</span>
                         </div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          multiple
-                          onChange={(e) => handlePhotoUpload(equipment.id, e)}
-                          className="hidden"
-                        />
-                      </label>
+                      </button>
+                      <input
+                        ref={(el) => (fileInputRefs.current[equipment.id] = el)}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => handlePhotoUpload(equipment.id, e)}
+                        className="hidden"
+                        style={{ display: 'none' }}
+                      />
                     </div>
                   </div>
                 )}
