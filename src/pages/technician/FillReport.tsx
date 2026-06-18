@@ -650,42 +650,36 @@ export default function FillReport() {
                       )}
                       <div className="grid grid-cols-2 gap-2">
                         {/* Botón Cámara */}
-                        <label 
-                          htmlFor={`photo-camera-${equipment.id}`}
-                          className="flex flex-col items-center justify-center h-20 border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-100 transition active:bg-blue-200 touch-manipulation"
-                          style={{ WebkitTapHighlightColor: 'transparent' }}
-                        >
-                          <Camera className="w-6 h-6 text-blue-600 mb-1" />
-                          <span className="text-xs font-medium text-blue-700">Cámara</span>
-                        </label>
-                        <input
-                          id={`photo-camera-${equipment.id}`}
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          onChange={(e) => handlePhotoUpload(equipment.id, e)}
-                          className="sr-only"
-                          tabIndex={-1}
-                        />
+                        <div className="relative h-20 border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg overflow-hidden">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={(e) => handlePhotoUpload(equipment.id, e)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            title="Tomar foto con cámara"
+                          />
+                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <Camera className="w-6 h-6 text-blue-600 mb-1" />
+                            <span className="text-xs font-medium text-blue-700">Cámara</span>
+                          </div>
+                        </div>
 
                         {/* Botón Galería */}
-                        <label 
-                          htmlFor={`photo-gallery-${equipment.id}`}
-                          className="flex flex-col items-center justify-center h-20 border-2 border-dashed border-green-300 bg-green-50 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-100 transition active:bg-green-200 touch-manipulation"
-                          style={{ WebkitTapHighlightColor: 'transparent' }}
-                        >
-                          <Image className="w-6 h-6 text-green-600 mb-1" />
-                          <span className="text-xs font-medium text-green-700">Galería</span>
-                        </label>
-                        <input
-                          id={`photo-gallery-${equipment.id}`}
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={(e) => handlePhotoUpload(equipment.id, e)}
-                          className="sr-only"
-                          tabIndex={-1}
-                        />
+                        <div className="relative h-20 border-2 border-dashed border-green-300 bg-green-50 rounded-lg overflow-hidden">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(e) => handlePhotoUpload(equipment.id, e)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            title="Seleccionar de galería"
+                          />
+                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <Image className="w-6 h-6 text-green-600 mb-1" />
+                            <span className="text-xs font-medium text-green-700">Galería</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
