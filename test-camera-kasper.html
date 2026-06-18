@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cámara - Método Kasper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        video {
+            width: 100%;
+            background: #000;
+            border-radius: 8px;
+            display: block;
+            margin: 10px 0;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .btn-start { background: #28a745; color: white; }
+        .btn-switch { background: #ffc107; color: black; }
+        .btn-snap { background: #007bff; color: white; }
+        canvas { display: none; }
+        img {
+            width: 100%;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 3px solid #28a745;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 15px;
+            font-family: monospace;
+        }
+        .log-item {
+            padding: 3px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ff9800; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎥 Test Método Kasper</h2>
+    <p style="font-size: 14px; color: #666;">Patrón probado en producción</p>
+    
+    <video id="video" autoplay playsinline></video>
+    
+    <button id="startBtn" class="btn-start">1️⃣ Iniciar Cámara</button>
+    <button id="switchBtn" class="btn-switch" style="display:none;">🔄 Cambiar Cámara</button>
+    <button id="snapBtn" class="btn-snap" style="display:none;">📸 Tomar Foto</button>
+    
+    <canvas id="canvas"></canvas>
+    <img id="photo" style="display:none;" alt="Foto capturada">
+    
+    <div class="log" id="log">
+        <div class="log-item">📋 Logs del proceso...</div>
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const photo = document.getElementById('photo');
+    const startBtn = document.getElementById('startBtn');
+    const switchBtn = document.getElementById('switchBtn');
+    const snapBtn = document.getElementById('snapBtn');
+    const logDiv = document.getElementById('log');
+    
+    let stream = null;
+    let amountOfCameras = 0;
+    let currentFacingMode = 'environment';
+
+    function addLog(message, type = 'info') {
+        const time = new Date().toLocaleTimeString();
+        const div = document.createElement('div');
+        div.className = 'log-item ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '');
+        div.textContent = `${time}: ${message}`;
+        logDiv.appendChild(div);
+        logDiv.scrollTop = logDiv.scrollHeight;
+        console.log(message);
+    }
+
+    // PASO 1: Contar dispositivos (como el código de Kasper)
+    function deviceCount() {
+        return new Promise(function (resolve) {
+            let videoInCount = 0;
+            
+            navigator.mediaDevices
+                .enumerateDevices()
+                .then(function (devices) {
+                    devices.forEach(function (device) {
+                        if (device.kind === 'videoinput') {
+                            videoInCount++;
+                            addLog(`📹 Cámara encontrada: ${device.label || 'Sin nombre'}`);
+                        }
+                    });
+                    
+                    addLog(`✅ Total de cámaras: ${videoInCount}`, 'success');
+                    resolve(videoInCount);
+                })
+                .catch(function (err) {
+                    addLog(`❌ Error enumerando: ${err.message}`, 'error');
+                    resolve(0);
+                });
+        });
+    }
+
+    // PASO 2: Iniciar stream de cámara con facingMode
+    function initCameraStream() {
+        addLog(`🎬 Iniciando cámara con facingMode: ${currentFacingMode}`, 'warning');
+        
+        // Detener stream anterior si existe
+        if (window.stream) {
+            addLog('🛑 Deteniendo stream anterior...');
+            window.stream.getTracks().forEach(function (track) {
+                track.stop();
+            });
+        }
+
+        const size = 1280;
+        const constraints = {
+            audio: false,
+            video: {
+                width: { ideal: size },
+                height: { ideal: size },
+                facingMode: currentFacingMode,
+            },
+        };
+
+        addLog('📹 Llamando getUserMedia con constraints...');
+        
+        navigator.mediaDevices
+            .getUserMedia(constraints)
+            .then(handleSuccess)
+            .catch(handleError);
+
+        function handleSuccess(stream) {
+            addLog('✅ Stream obtenido!', 'success');
+            window.stream = stream;
+            video.srcObject = stream;
+
+            const track = window.stream.getVideoTracks()[0];
+            const settings = track.getSettings();
+            addLog(`📐 Resolución: ${settings.width}x${settings.height}`);
+            addLog(`📷 FacingMode: ${settings.facingMode || 'no especificado'}`);
+            
+            // Mostrar botones
+            switchBtn.style.display = amountOfCameras > 1 ? 'block' : 'none';
+            snapBtn.style.display = 'block';
+        }
+
+        function handleError(error) {
+            addLog(`❌ Error getUserMedia: ${error.message}`, 'error');
+            console.error('getUserMedia() error: ', error);
+        }
+    }
+
+    // PASO 3: Capturar foto
+    function takeSnapshot() {
+        addLog('📸 Capturando foto...');
+        
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        photo.src = dataUrl;
+        photo.style.display = 'block';
+        
+        addLog(`✅ Foto capturada: ${width}x${height}`, 'success');
+        addLog(`📦 Tamaño: ${Math.round(dataUrl.length / 1024)} KB`);
+    }
+
+    // EVENTO INICIAL: Método exacto de Kasper
+    startBtn.addEventListener('click', function () {
+        addLog('🚀 INICIANDO MÉTODO KASPER...', 'warning');
+        addLog('📍 PASO 1: Solicitar permiso genérico SIN facingMode');
+        
+        // CLAVE: Primero pedir permiso genérico
+        navigator.mediaDevices
+            .getUserMedia({
+                audio: false,
+                video: true,  // ← SIN RESTRICCIONES!
+            })
+            .then(function (stream) {
+                addLog('✅ Permiso concedido con video genérico', 'success');
+                addLog('📍 PASO 2: Detener stream inmediatamente');
+                
+                // CLAVE: Detener inmediatamente
+                stream.getTracks().forEach(function (track) {
+                    track.stop();
+                    addLog(`  ↳ Track ${track.kind} detenido`);
+                });
+
+                addLog('📍 PASO 3: Enumerar dispositivos (ahora que tenemos permisos)');
+                
+                // CLAVE: Ahora sí enumerar dispositivos
+                deviceCount().then(function (count) {
+                    amountOfCameras = count;
+                    
+                    addLog('📍 PASO 4: Iniciar cámara CON facingMode', 'warning');
+                    
+                    // CLAVE: Recién ahora iniciar con facingMode
+                    initCameraStream();
+                    
+                    startBtn.style.display = 'none';
+                });
+            })
+            .catch(function (error) {
+                addLog(`❌ ERROR: ${error.message}`, 'error');
+                if (error.name === 'NotAllowedError') {
+                    alert('Permiso denegado. Por favor recarga y acepta el permiso.');
+                }
+            });
+    });
+
+    // Botón cambiar cámara
+    switchBtn.addEventListener('click', function () {
+        currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+        addLog(`🔄 Cambiando a: ${currentFacingMode}`, 'warning');
+        initCameraStream();
+    });
+
+    // Botón tomar foto
+    snapBtn.addEventListener('click', takeSnapshot);
+
+    addLog('✅ Script cargado - Listo!', 'success');
+</script>
+
+</body>
+</html>

@@ -40,14 +40,11 @@ export default function TechnicianHome() {
     setCameraLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
-  // 1. Detener stream limpiamente (CLAVE para evitar parpadeos)
+  // 1. Detener stream limpiamente
   const stopCurrentStream = () => {
     if (stream) {
-      addLog('🛑 Deteniendo stream actual...');
-      stream.getTracks().forEach(track => {
-        track.stop();
-        addLog(`  ↳ Track detenido: ${track.kind}`);
-      });
+      addLog('🛑 Deteniendo stream...');
+      stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
   };
@@ -72,22 +69,20 @@ export default function TechnicianHome() {
     }
   };
 
-  // 3. Iniciar cámara (GENÉRICA primero, específica después)
-  const handleOpenCamera = async (deviceId?: string) => {
-    addLog('🔵 Iniciando cámara...');
-    stopCurrentStream(); // Detener stream anterior
+  // 3. Iniciar stream con facingMode o deviceId
+  const initCameraStream = async (facingMode: string = 'environment', deviceId?: string) => {
+    stopCurrentStream();
     
-    const useDeviceId = deviceId || selectedCameraId;
-    addLog(`📍 DeviceId: ${useDeviceId || 'GENÉRICO (sin restricciones)'}`);
-    
-    // CLAVE: Sin restricciones estrictas al inicio
-    const constraints = {
-      video: useDeviceId ? { deviceId: { exact: useDeviceId } } : true,
-      audio: false
+    const size = 1280;
+    const constraints: MediaStreamConstraints = {
+      audio: false,
+      video: deviceId 
+        ? { deviceId: { exact: deviceId }, width: { ideal: size }, height: { ideal: size } }
+        : { width: { ideal: size }, height: { ideal: size }, facingMode: facingMode }
     };
 
     try {
-      addLog('📹 Solicitando getUserMedia...');
+      addLog(`📹 getUserMedia con ${deviceId ? 'deviceId' : 'facingMode: ' + facingMode}...`);
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       
       addLog('✅ Stream obtenido!');
@@ -96,43 +91,89 @@ export default function TechnicianHome() {
       if (videoRef.current) {
         const video = videoRef.current;
         video.srcObject = mediaStream;
-        addLog('✅ srcObject asignado');
         
         await new Promise<void>((resolve) => {
           video.onloadedmetadata = () => {
-            addLog('✅ onloadedmetadata disparado!');
+            addLog('✅ Video metadata cargado');
             resolve();
           };
         });
         
         await video.play();
-        addLog('✅ video.play() ejecutado!');
-        setCameraActive(true);
+        addLog('✅ Video reproduciendo!');
         
-        // Primera vez: enumerar cámaras ahora que tenemos permiso
-        if (!useDeviceId && cameras.length === 0) {
-          addLog('🔄 Primera vez - actualizando lista de cámaras...');
-          const cams = await enumerateCameras();
-          
-          // Auto-seleccionar cámara trasera si existe
-          const backCamera = cams.find(c => 
-            c.label.toLowerCase().includes('back') || 
-            c.label.toLowerCase().includes('trasera') ||
-            c.label.toLowerCase().includes('rear')
-          );
-          
-          if (backCamera) {
-            addLog(`🎯 Cámara trasera detectada: ${backCamera.label}`);
-            addLog('🔄 Cambiando a cámara trasera...');
-            setSelectedCameraId(backCamera.deviceId);
-            // Reiniciar con cámara trasera
-            setTimeout(() => handleOpenCamera(backCamera.deviceId), 500);
-          }
-        }
+        const track = mediaStream.getVideoTracks()[0];
+        const settings = track.getSettings();
+        addLog(`📐 Resolución: ${settings.width}x${settings.height}`);
+        
+        setCameraActive(true);
       }
     } catch (err: any) {
       addLog(`❌ Error: ${err.message}`);
       alert("Error al acceder a la cámara: " + err.message);
+    }
+  };
+
+  // 4. MÉTODO KASPER: Primera inicialización
+  const handleOpenCamera = async (specificDeviceId?: string) => {
+    addLog('🚀 Iniciando método Kasper...');
+    
+    // Si ya tenemos cámaras enumeradas, ir directo al stream
+    if (cameras.length > 0 || specificDeviceId) {
+      await initCameraStream('environment', specificDeviceId || selectedCameraId);
+      return;
+    }
+    
+    // PASO 1: Solicitar permiso genérico (SIN facingMode)
+    addLog('📍 PASO 1: Permiso genérico SIN facingMode');
+    
+    try {
+      const permissionStream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: true,  // ← GENÉRICO, sin restricciones
+      });
+      
+      addLog('✅ Permiso concedido');
+      
+      // PASO 2: Detener inmediatamente (solo era para permisos)
+      addLog('📍 PASO 2: Deteniendo stream de permisos');
+      permissionStream.getTracks().forEach(track => {
+        track.stop();
+        addLog(`  ↳ Track ${track.kind} detenido`);
+      });
+      
+      // PASO 3: Enumerar dispositivos (ahora tenemos permisos)
+      addLog('📍 PASO 3: Enumerando dispositivos');
+      const cams = await enumerateCameras();
+      
+      // PASO 4: Buscar cámara trasera
+      const backCamera = cams.find(c => 
+        c.label.toLowerCase().includes('back') || 
+        c.label.toLowerCase().includes('trasera') ||
+        c.label.toLowerCase().includes('rear') ||
+        c.label.toLowerCase().includes('environment')
+      );
+      
+      // PASO 5: Iniciar con facingMode environment o deviceId específico
+      addLog('📍 PASO 4: Iniciando cámara final');
+      if (backCamera) {
+        addLog(`🎯 Usando cámara trasera: ${backCamera.label}`);
+        setSelectedCameraId(backCamera.deviceId);
+        await initCameraStream('environment', backCamera.deviceId);
+      } else {
+        addLog('⚠️ Cámara trasera no encontrada, usando facingMode');
+        await initCameraStream('environment');
+      }
+      
+    } catch (err: any) {
+      addLog(`❌ Error: ${err.message}`);
+      if (err.name === 'NotAllowedError') {
+        alert('Permiso denegado. Por favor recarga y acepta el permiso.');
+      } else {
+        alert("Error al acceder a la cámara: " + err.message);
+      }
+    }
+  };
     }
   };
 
@@ -388,7 +429,7 @@ export default function TechnicianHome() {
                         value={selectedCameraId}
                         onChange={(e) => {
                           setSelectedCameraId(e.target.value);
-                          handleOpenCamera(e.target.value);
+                          initCameraStream('environment', e.target.value);
                         }}
                         className="w-full p-2 border border-purple-300 rounded-lg text-sm"
                       >
