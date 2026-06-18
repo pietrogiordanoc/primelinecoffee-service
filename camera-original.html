@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1" />
+    <title>Camera Test - Kasper Original</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        #container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+        }
+        #vid_container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background: black;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #gui_controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+        }
+        button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #takePhotoButton {
+            background: #007bff;
+            color: white;
+            width: 70px;
+            height: 70px;
+        }
+        #log {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            font-size: 12px;
+            font-family: monospace;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="vid_container">
+            <video id="video" autoplay playsinline></video>
+            <div id="log"></div>
+        </div>
+        <div id="gui_controls">
+            <button id="switchCameraButton">🔄</button>
+            <button id="takePhotoButton">📷</button>
+        </div>
+    </div>
+
+    <script>
+        var video;
+        var takePhotoButton;
+        var switchCameraButton;
+        var amountOfCameras = 0;
+        var currentFacingMode = 'environment';
+        var logDiv = document.getElementById('log');
+
+        function addLog(msg) {
+            var time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += time + ': ' + msg + '<br>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(msg);
+        }
+
+        function deviceCount() {
+            return new Promise(function (resolve) {
+                var videoInCount = 0;
+
+                navigator.mediaDevices
+                    .enumerateDevices()
+                    .then(function (devices) {
+                        devices.forEach(function (device) {
+                            if (device.kind === 'video') {
+                                device.kind = 'videoinput';
+                            }
+
+                            if (device.kind === 'videoinput') {
+                                videoInCount++;
+                                addLog('videocam: ' + device.label);
+                            }
+                        });
+
+                        resolve(videoInCount);
+                    })
+                    .catch(function (err) {
+                        addLog(err.name + ': ' + err.message);
+                        resolve(0);
+                    });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function (event) {
+            addLog('DOMContentLoaded');
+            
+            if (
+                navigator.mediaDevices &&
+                navigator.mediaDevices.getUserMedia &&
+                navigator.mediaDevices.enumerateDevices
+            ) {
+                addLog('mediaDevices available');
+                
+                navigator.mediaDevices
+                    .getUserMedia({
+                        audio: false,
+                        video: true,
+                    })
+                    .then(function (stream) {
+                        addLog('Permission granted');
+                        
+                        stream.getTracks().forEach(function (track) {
+                            track.stop();
+                        });
+
+                        deviceCount().then(function (deviceCount) {
+                            amountOfCameras = deviceCount;
+                            addLog('Found ' + amountOfCameras + ' cameras');
+                            
+                            initCameraUI();
+                            initCameraStream();
+                        });
+                    })
+                    .catch(function (error) {
+                        if (error === 'PermissionDeniedError') {
+                            alert('Permission denied. Please refresh and give permission.');
+                        }
+                        addLog('getUserMedia() error: ' + error);
+                    });
+            } else {
+                alert('Mobile camera is not supported by browser, or there is no camera detected/connected');
+            }
+        });
+
+        function initCameraUI() {
+            video = document.getElementById('video');
+            takePhotoButton = document.getElementById('takePhotoButton');
+            switchCameraButton = document.getElementById('switchCameraButton');
+
+            takePhotoButton.addEventListener('click', function () {
+                addLog('Taking photo...');
+                takeSnapshot();
+            });
+
+            if (amountOfCameras > 1) {
+                switchCameraButton.style.display = 'flex';
+
+                switchCameraButton.addEventListener('click', function () {
+                    if (currentFacingMode === 'environment') currentFacingMode = 'user';
+                    else currentFacingMode = 'environment';
+
+                    addLog('Switching to: ' + currentFacingMode);
+                    initCameraStream();
+                });
+            }
+        }
+
+        function initCameraStream() {
+            if (window.stream) {
+                window.stream.getTracks().forEach(function (track) {
+                    addLog('Stopping track: ' + track.kind);
+                    track.stop();
+                });
+            }
+
+            var size = 1280;
+
+            var constraints = {
+                audio: false,
+                video: {
+                    width: { ideal: size },
+                    height: { ideal: size },
+                    facingMode: currentFacingMode,
+                },
+            };
+
+            addLog('getUserMedia with facingMode: ' + currentFacingMode);
+
+            navigator.mediaDevices
+                .getUserMedia(constraints)
+                .then(handleSuccess)
+                .catch(handleError);
+
+            function handleSuccess(stream) {
+                addLog('Stream obtained!');
+                window.stream = stream;
+                video.srcObject = stream;
+
+                if (constraints.video.facingMode) {
+                    if (constraints.video.facingMode === 'environment') {
+                        switchCameraButton.setAttribute('aria-pressed', true);
+                    } else {
+                        switchCameraButton.setAttribute('aria-pressed', false);
+                    }
+                }
+
+                const track = window.stream.getVideoTracks()[0];
+                const settings = track.getSettings();
+                addLog('Camera settings: ' + JSON.stringify(settings, null, 2));
+            }
+
+            function handleError(error) {
+                addLog('getUserMedia() error: ' + error);
+            }
+        }
+
+        function takeSnapshot() {
+            var canvas = document.createElement('canvas');
+
+            var width = video.videoWidth;
+            var height = video.videoHeight;
+
+            canvas.width = width;
+            canvas.height = height;
+
+            var context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, width, height);
+
+            addLog('Photo captured: ' + width + 'x' + height);
+
+            // Convert to blob
+            canvas.toBlob(function (blob) {
+                addLog('Blob size: ' + blob.size + ' bytes');
+                // Here you can upload the blob to your server
+            }, 'image/jpeg');
+        }
+    </script>
+</body>
+</html>
