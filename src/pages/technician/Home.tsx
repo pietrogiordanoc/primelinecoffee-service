@@ -169,44 +169,44 @@ export default function TechnicianHome() {
           
           {/* Botones de prueba */}
           <div className="grid grid-cols-2 gap-3 mb-4">
-            {/* Botón Cámara */}
-            <div>
-              <label 
-                htmlFor="test-camera"
-                className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-blue-400 bg-blue-100 rounded-lg cursor-pointer hover:bg-blue-200 active:bg-blue-300 transition"
-              >
-                <Camera className="w-8 h-8 text-blue-600 mb-1" />
-                <span className="text-sm font-bold text-blue-800">CÁMARA</span>
-                <span className="text-xs text-blue-600">Abrir cámara</span>
-              </label>
+            {/* Botón Cámara - INPUT DIRECTO */}
+            <label 
+              className="relative flex flex-col items-center justify-center h-24 border-2 border-dashed border-blue-400 bg-blue-100 rounded-lg cursor-pointer hover:bg-blue-200 active:bg-blue-300 transition overflow-hidden"
+            >
+              <Camera className="w-8 h-8 text-blue-600 mb-1 pointer-events-none" />
+              <span className="text-sm font-bold text-blue-800 pointer-events-none">CÁMARA</span>
+              <span className="text-xs text-blue-600 pointer-events-none">Abrir cámara</span>
               <input
-                id="test-camera"
                 type="file"
                 accept="image/*"
                 capture="environment"
-                onChange={handleCameraTest}
-                style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
+                onChange={(e) => {
+                  addLog('📸 Cámara - onChange disparado!');
+                  handleCameraTest(e);
+                }}
+                onClick={() => addLog('🔵 Cámara - input clicked')}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-            </div>
+            </label>
 
-            {/* Botón Galería */}
-            <div>
-              <label 
-                htmlFor="test-gallery"
-                className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-green-400 bg-green-100 rounded-lg cursor-pointer hover:bg-green-200 active:bg-green-300 transition"
-              >
-                <FileText className="w-8 h-8 text-green-600 mb-1" />
-                <span className="text-sm font-bold text-green-800">GALERÍA</span>
-                <span className="text-xs text-green-600">Seleccionar foto</span>
-              </label>
+            {/* Botón Galería - INPUT DIRECTO */}
+            <label 
+              className="relative flex flex-col items-center justify-center h-24 border-2 border-dashed border-green-400 bg-green-100 rounded-lg cursor-pointer hover:bg-green-200 active:bg-green-300 transition overflow-hidden"
+            >
+              <FileText className="w-8 h-8 text-green-600 mb-1 pointer-events-none" />
+              <span className="text-sm font-bold text-green-800 pointer-events-none">GALERÍA</span>
+              <span className="text-xs text-green-600 pointer-events-none">Seleccionar foto</span>
               <input
-                id="test-gallery"
                 type="file"
                 accept="image/*"
-                onChange={handleCameraTest}
-                style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
+                onChange={(e) => {
+                  addLog('🖼️ Galería - onChange disparado!');
+                  handleCameraTest(e);
+                }}
+                onClick={() => addLog('🟢 Galería - input clicked')}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-            </div>
+            </label>
           </div>
 
           {/* Preview de la foto */}
