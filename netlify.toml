@@ -5,6 +5,9 @@
 [[plugins]]
   package = "@netlify/plugin-functions-install-core"
 
+[build.environment]
+  NODE_VERSION = "20"
+
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
@@ -14,12 +17,6 @@
   from = "/*"
   to = "/index.html"
   status = 200
-
-[build.environment]
-  NODE_VERSION = "20"
-
-[functions]
-  node_bundler = "esbuild"
 
 [[headers]]
   for = "/*"
