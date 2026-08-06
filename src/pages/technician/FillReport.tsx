@@ -662,7 +662,12 @@ export default function FillReport() {
   return (
     <div className="pb-20">
       <div className="mb-3">
-        <h1 className="text-lg font-bold text-gray-900">{form.name}</h1>
+        <h1 className="text-lg font-bold text-gray-900">
+          {form.name}
+          <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+            v2.0 🎥
+          </span>
+        </h1>
         {form.description && (
           <p className="text-gray-600 text-sm mt-0.5">{form.description}</p>
         )}
@@ -895,7 +900,7 @@ export default function FillReport() {
                     {/* Photos & Videos */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {settings?.enable_videos ? 'Photos & Videos' : 'Photos'}
+                        {settings?.enable_videos ? '📸 Photos & Videos (v2.0 - VIDEO ENABLED ✅)' : 'Photos'}
                       </label>
                       {equipment.files.length > 0 && (
                         <div className="grid grid-cols-3 gap-2 mb-2">
