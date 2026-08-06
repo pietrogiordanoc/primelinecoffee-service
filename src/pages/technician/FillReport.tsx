@@ -83,28 +83,12 @@ export default function FillReport() {
 
   // Load settings immediately on mount
   useEffect(() => {
-    console.log('🔄 FillReport mounted - loading settings...');
     fetchSettings();
   }, []);
 
   useEffect(() => {
     loadForm();
   }, [formId]);
-
-  // Debug: Log settings to verify they're loading
-  useEffect(() => {
-    if (settings) {
-      console.log('🎥 VIDEO SETTINGS:', {
-        enable_videos: settings.enable_videos,
-        enable_videos_type: typeof settings.enable_videos,
-        max_video_size_mb: settings.max_video_size_mb,
-        max_video_duration_seconds: settings.max_video_duration_seconds,
-        full_settings: settings,
-      });
-    } else {
-      console.warn('⚠️ Settings are NULL or not loaded yet');
-    }
-  }, [settings]);
 
   // Compute video enabled status with fallback to true if settings not loaded
   const videosEnabled = settings?.enable_videos !== false; // Default to true if undefined or null
@@ -674,12 +658,7 @@ export default function FillReport() {
   return (
     <div className="pb-20">
       <div className="mb-3">
-        <h1 className="text-lg font-bold text-gray-900">
-          {form.name}
-          <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
-            v2.0 🎥
-          </span>
-        </h1>
+        <h1 className="text-lg font-bold text-gray-900">{form.name}</h1>
         {form.description && (
           <p className="text-gray-600 text-sm mt-0.5">{form.description}</p>
         )}
@@ -912,16 +891,8 @@ export default function FillReport() {
                     {/* Photos & Videos */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {videosEnabled ? '📸 Photos & Videos (v2.0 - VIDEO ENABLED ✅)' : '📸 Photos Only (Videos: OFF ❌)'}
+                        {videosEnabled ? 'Photos & Videos' : 'Photos'}
                       </label>
-                      
-                      {/* DEBUG INFO - Remove after testing */}
-                      <div className="text-xs text-gray-500 mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                        <strong>DEBUG:</strong> enable_videos = {String(settings?.enable_videos)} | 
-                        Type: {typeof settings?.enable_videos} | 
-                        Settings loaded: {settings ? 'YES' : 'NO'} | 
-                        videosEnabled = {String(videosEnabled)}
-                      </div>
                       
                       {equipment.files.length > 0 && (
                         <div className="grid grid-cols-3 gap-2 mb-2">
