@@ -230,7 +230,7 @@ function generateEmailHtml(report: any, photoLinks: string[]): string {
           .map(
             (link, index) => `
           <div style="margin: 12px 0;">
-            <a href="${link}" style="color: #003f7f; text-decoration: none; display: inline-flex; align-items: center; font-weight: 500;">
+            <a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #003f7f; text-decoration: none; display: inline-flex; align-items: center; font-weight: 500;">
               <span class="material-symbols-outlined" style="font-size: 20px; margin-right: 8px;">download</span>
               Photo ${index + 1}
             </a>
