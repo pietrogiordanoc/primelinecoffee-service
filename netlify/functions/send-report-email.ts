@@ -12,12 +12,12 @@ const supabase = createClient(
       autoRefreshToken: false,
       persistSession: false
     },
-    global: {
-      fetch: fetch
+    db: {
+      schema: 'public'
     },
-    realtime: {
-      params: {
-        eventsPerSecond: 0
+    global: {
+      headers: {
+        'X-Client-Info': 'netlify-function'
       }
     }
   }
