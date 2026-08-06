@@ -977,11 +977,8 @@ export default function FillReport() {
                             type="file"
                             accept="image/*"
                             multiple
-                            onChange={(e) => {
-                              console.log('🖼️ Gallery onChange', e.target.files?.length);
-                              handlePhotoUpload(equipment.id, e);
-                            }}
-                            style={{ opacity: 0, position: 'absolute', pointerEvents: 'none' }}
+                            className="hidden"
+                            onChange={(e) => handlePhotoUpload(equipment.id, e)}
                           />
                         </div>
                       </div>
