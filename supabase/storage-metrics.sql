@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS storage_metrics (
 -- Table to track usage per technician
 CREATE TABLE IF NOT EXISTS technician_storage_stats (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  technician_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  technician_id UUID NOT NULL REFERENCES technicians(id) ON DELETE CASCADE,
   total_size_bytes BIGINT NOT NULL DEFAULT 0,
   photo_count INTEGER NOT NULL DEFAULT 0,
   video_count INTEGER NOT NULL DEFAULT 0,
@@ -105,7 +105,7 @@ BEGIN
     updated_at
   )
   SELECT 
-    sr.created_by as technician_id,
+    sr.technician_id as technician_id,
     COALESCE(SUM(srp.file_size), 0) as total_size_bytes,
     COUNT(*) FILTER (WHERE srp.file_name NOT LIKE '%.mp4' AND srp.file_name NOT LIKE '%.mov' AND srp.file_name NOT LIKE '%.webm') as photo_count,
     COUNT(*) FILTER (WHERE srp.file_name LIKE '%.mp4' OR srp.file_name LIKE '%.mov' OR srp.file_name LIKE '%.webm') as video_count,
@@ -125,8 +125,8 @@ BEGIN
     NOW() as updated_at
   FROM service_reports sr
   LEFT JOIN report_photos srp ON sr.id = srp.report_id
-  WHERE sr.created_by IS NOT NULL
-  GROUP BY sr.created_by
+  WHERE sr.technician_id IS NOT NULL
+  GROUP BY sr.technician_id
   ON CONFLICT (technician_id) 
   DO UPDATE SET
     total_size_bytes = EXCLUDED.total_size_bytes,
