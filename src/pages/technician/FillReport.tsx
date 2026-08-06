@@ -3,12 +3,28 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import { useConfirm } from '@/contexts/ConfirmContext';
+import { useSettingsStore } from '@/stores/settingsStore';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Camera, X, Check, Plus, Trash2, ChevronDown, ChevronUp, Image } from 'lucide-react';
+import { Camera, X, Check, Plus, Trash2, ChevronDown, ChevronUp, Image, Video, Upload } from 'lucide-react';
+import { compressVideo, validateVideo, getVideoDuration } from '@/utils/videoCompression';
 import { optimizeImages } from '@/utils/imageOptimization';
 import type { DynamicForm, OptimizedPhoto } from '@/types';
+
+// Uploaded file record (already in Supabase Storage)
+interface UploadedFile {
+  id: string;
+  file_url: string;
+  thumbnail_url?: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+  type: 'photo' | 'video';
+  duration?: number; // for videos
+  uploading?: boolean;
+  uploadProgress?: number;
+}
 
 interface EquipmentRecord {
   id: string;
@@ -19,7 +35,7 @@ interface EquipmentRecord {
   work_performed: string;
   hours: number;
   parts_used: Array<{ name: string; quantity: number; cost: number }>;
-  photos: OptimizedPhoto[];
+  files: UploadedFile[]; // Changed from photos to files (includes photos and videos)
   collapsed: boolean;
 }
 
@@ -29,6 +45,7 @@ export default function FillReport() {
   const [searchParams] = useSearchParams();
   const companyId = searchParams.get('company');
   const { userProfile } = useAuthStore();
+  const { settings, fetchSettings } = useSettingsStore();
   const { alert } = useConfirm();
 
   const [form, setForm] = useState<DynamicForm | null>(null);
@@ -54,16 +71,18 @@ export default function FillReport() {
       work_performed: '',
       hours: 0,
       parts_used: [],
-      photos: [],
+      files: [], // Changed from photos to files
       collapsed: false,
     },
   ]);
   
   // Camera modal state
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [currentEquipmentId, setCurrentEquipmentId] = useState<string | null>(null);
 
   useEffect(() => {
+    fetchSettings();
     loadForm();
   }, [formId]);
 
@@ -165,7 +184,7 @@ export default function FillReport() {
       work_performed: '',
       hours: 0,
       parts_used: [],
-      photos: [],
+      files: [],
       collapsed: false,
     };
     setEquipmentRecords([...equipmentRecords, newRecord]);
@@ -230,6 +249,81 @@ export default function FillReport() {
     );
   }
 
+  // Upload file immediately to Supabase Storage
+  async function uploadFileImmediately(
+    file: Blob,
+    fileName: string,
+    mimeType: string,
+    type: 'photo' | 'video',
+    equipmentId: string,
+    duration?: number
+  ): Promise<void> {
+    const fileId = `${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    const uploadedFile: UploadedFile = {
+      id: fileId,
+      file_url: '',
+      file_name: fileName,
+      file_size: file.size,
+      mime_type: mimeType,
+      type,
+      duration,
+      uploading: true,
+      uploadProgress: 0,
+    };
+
+    // Add file to state with uploading status
+    setEquipmentRecords(prev =>
+      prev.map(r =>
+        r.id === equipmentId ? { ...r, files: [...r.files, uploadedFile] } : r
+      )
+    );
+
+    try {
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('service-photos')
+        .upload(fileName, file, {
+          contentType: mimeType,
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('service-photos')
+        .getPublicUrl(fileName);
+
+      // Update file with URL and remove uploading status
+      setEquipmentRecords(prev =>
+        prev.map(r =>
+          r.id === equipmentId
+            ? {
+                ...r,
+                files: r.files.map(f =>
+                  f.id === fileId
+                    ? { ...f, file_url: urlData.publicUrl, uploading: false }
+                    : f
+                ),
+              }
+            : r
+        )
+      );
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      // Remove failed upload from state
+      setEquipmentRecords(prev =>
+        prev.map(r =>
+          r.id === equipmentId
+            ? { ...r, files: r.files.filter(f => f.id !== fileId) }
+            : r
+        )
+      );
+      throw error;
+    }
+  }
+
   async function handlePhotoUpload(equipmentId: string, e: React.ChangeEvent<HTMLInputElement>) {
     console.log('📸 handlePhotoUpload called', { equipmentId, filesCount: e.target.files?.length });
     const files = Array.from(e.target.files || []);
@@ -239,27 +333,66 @@ export default function FillReport() {
     }
 
     console.log('✅ Files selected:', files.length);
+    
     try {
+      // Validate photo size
+      const maxPhotoSize = (settings?.max_photo_size_mb || 10) * 1024 * 1024;
+      for (const file of files) {
+        if (file.size > maxPhotoSize) {
+          await alert(
+            `Photo too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed: ${settings?.max_photo_size_mb || 10} MB`,
+            'Error'
+          );
+          return;
+        }
+      }
+
+      // Optimize images
       const optimized = await optimizeImages(files);
       console.log('✅ Images optimized:', optimized.length);
-      setEquipmentRecords(
-        equipmentRecords.map(r =>
-          r.id === equipmentId ? { ...r, photos: [...r.photos, ...optimized] } : r
-        )
-      );
-      // Reset input para permitir seleccionar la misma imagen nuevamente
+      
+      // Upload each photo immediately
+      for (let i = 0; i < optimized.length; i++) {
+        const photo = optimized[i];
+        const timestamp = Date.now() + i;
+        const fileName = `photo_${timestamp}_${equipmentId}.webp`;
+        
+        await uploadFileImmediately(
+          photo.file,
+          fileName,
+          'image/webp',
+          'photo',
+          equipmentId
+        );
+      }
+      
+      // Reset input to allow selecting the same image again
       e.target.value = '';
     } catch (error) {
-      console.error('❌ Error optimizing images:', error);
-      await alert('Error optimizing images. Please try again.', 'Error');
+      console.error('❌ Error uploading photos:', error);
+      await alert('Error uploading photos. Please try again.', 'Error');
     }
   }
 
   function removePhoto(equipmentId: string, photoIndex: number) {
+    const equipment = equipmentRecords.find(r => r.id === equipmentId);
+    if (!equipment) return;
+
+    const fileToRemove = equipment.files[photoIndex];
+    
+    // Remove from Supabase Storage
+    if (fileToRemove?.file_name) {
+      supabase.storage
+        .from('service-photos')
+        .remove([fileToRemove.file_name])
+        .catch(err => console.error('Error deleting file from storage:', err));
+    }
+
+    // Remove from state
     setEquipmentRecords(
       equipmentRecords.map(r =>
         r.id === equipmentId
-          ? { ...r, photos: r.photos.filter((_, idx) => idx !== photoIndex) }
+          ? { ...r, files: r.files.filter((_, idx) => idx !== photoIndex) }
           : r
       )
     );
@@ -270,22 +403,105 @@ export default function FillReport() {
     if (!currentEquipmentId) return;
     
     try {
+      // Validate photo size
+      const maxPhotoSize = (settings?.max_photo_size_mb || 10) * 1024 * 1024;
+      if (blob.size > maxPhotoSize) {
+        await alert(
+          `Photo too large (${(blob.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed: ${settings?.max_photo_size_mb || 10} MB`,
+          'Error'
+        );
+        return;
+      }
+
       // Convert blob to File
       const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
       const optimized = await optimizeImages([file]);
       
-      setEquipmentRecords(
-        equipmentRecords.map(r =>
-          r.id === currentEquipmentId ? { ...r, photos: [...r.photos, ...optimized] } : r
-        )
-      );
+      if (optimized.length > 0) {
+        const timestamp = Date.now();
+        const fileName = `photo_${timestamp}_${currentEquipmentId}.webp`;
+        
+        await uploadFileImmediately(
+          optimized[0].file,
+          fileName,
+          'image/webp',
+          'photo',
+          currentEquipmentId
+        );
+      }
       
       // Close modal
       setCameraModalOpen(false);
       setCurrentEquipmentId(null);
     } catch (error) {
       console.error('Error processing captured photo:', error);
-      await alert('Error al procesar la foto. Por favor intenta de nuevo.', 'Error');
+      await alert('Error processing photo. Please try again.', 'Error');
+    }
+  }
+
+  // Handle video captured from video recorder modal
+  async function handleCapturedVideo(blob: Blob) {
+    if (!currentEquipmentId) return;
+    
+    try {
+      // Check if videos are enabled
+      if (!settings?.enable_videos) {
+        await alert('Video uploads are currently disabled.', 'Information');
+        return;
+      }
+
+      // Convert blob to File for validation
+      const videoFile = new File([blob], `video_${Date.now()}.webm`, { type: 'video/webm' });
+
+      // Validate video duration
+      const duration = await getVideoDuration(videoFile);
+      const maxDuration = settings?.max_video_duration_seconds || 120;
+      if (duration > maxDuration) {
+        await alert(
+          `Video too long (${duration.toFixed(0)}s). Maximum allowed: ${maxDuration}s`,
+          'Error'
+        );
+        return;
+      }
+
+      // Compress video if enabled
+      let finalBlob: Blob = blob;
+      if (settings?.video_compression_enabled) {
+        finalBlob = await compressVideo(videoFile, {
+          maxHeight: settings.video_max_resolution_height || 720,
+          maxWidth: 1280,
+          targetBitrate: settings.video_target_bitrate_mbps || 1.5,
+        });
+      }
+
+      // Validate video size after compression
+      const maxVideoSize = (settings?.max_video_size_mb || 50) * 1024 * 1024;
+      if (finalBlob.size > maxVideoSize) {
+        await alert(
+          `Video too large (${(finalBlob.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed: ${settings?.max_video_size_mb || 50} MB`,
+          'Error'
+        );
+        return;
+      }
+
+      const timestamp = Date.now();
+      const fileName = `video_${timestamp}_${currentEquipmentId}.mp4`;
+      
+      await uploadFileImmediately(
+        finalBlob,
+        fileName,
+        'video/mp4',
+        'video',
+        currentEquipmentId,
+        duration
+      );
+      
+      // Close modal
+      setVideoModalOpen(false);
+      setCurrentEquipmentId(null);
+    } catch (error) {
+      console.error('Error processing captured video:', error);
+      await alert('Error processing video. Please try again.', 'Error');
     }
   }
 
@@ -323,7 +539,9 @@ export default function FillReport() {
           work_performed: r.work_performed,
           hours: r.hours,
           parts_used: r.parts_used,
-          photoCount: r.photos.length,
+          fileCount: r.files.length,
+          photoCount: r.files.filter(f => f.type === 'photo').length,
+          videoCount: r.files.filter(f => f.type === 'video').length,
         })),
         summary: {
           totalHours,
@@ -361,77 +579,27 @@ export default function FillReport() {
 
       const reportId = reportData2.id;
 
-      // Upload all photos to Supabase Storage
-      const allPhotos = equipmentRecords.flatMap(r => r.photos);
+      // Insert photo/video records into database (files are already uploaded)
+      const allFiles = equipmentRecords.flatMap(r => r.files);
       
-      if (allPhotos.length > 0) {
-        const photoRecords = [];
-        
-        for (let i = 0; i < allPhotos.length; i++) {
-          const photo = allPhotos[i];
-          const timestamp = Date.now();
-          const fileName = `${reportId}_${timestamp}_${i}.webp`;
-          const thumbFileName = `${reportId}_${timestamp}_${i}_thumb.webp`;
-          
-          try {
-            // Upload main photo
-            const { error: uploadError } = await supabase.storage
-              .from('service-photos')
-              .upload(fileName, photo.file, {
-                contentType: 'image/webp',
-                cacheControl: '3600',
-                upsert: false,
-              });
+      if (allFiles.length > 0) {
+        const fileRecords = allFiles.map((file, index) => ({
+          report_id: reportId,
+          file_url: file.file_url,
+          thumbnail_url: file.thumbnail_url || file.file_url,
+          file_name: file.file_name,
+          file_size: file.file_size,
+          mime_type: file.mime_type,
+          order_index: index,
+        }));
 
-            if (uploadError) throw uploadError;
+        const { error: filesError } = await supabase
+          .from('report_photos')
+          .insert(fileRecords);
 
-            // Upload thumbnail
-            let thumbnailUrl = '';
-            if (photo.thumbnailFile) {
-              const { error: thumbError } = await supabase.storage
-                .from('service-photos')
-                .upload(thumbFileName, photo.thumbnailFile, {
-                  contentType: 'image/webp',
-                  cacheControl: '3600',
-                  upsert: false,
-                });
-
-              if (!thumbError) {
-                const { data: thumbUrlData } = supabase.storage
-                  .from('service-photos')
-                  .getPublicUrl(thumbFileName);
-                thumbnailUrl = thumbUrlData.publicUrl;
-              }
-            }
-
-            // Get public URL
-            const { data: urlData } = supabase.storage
-              .from('service-photos')
-              .getPublicUrl(fileName);
-
-            photoRecords.push({
-              report_id: reportId,
-              file_url: urlData.publicUrl,
-              thumbnail_url: thumbnailUrl || urlData.publicUrl,
-              file_name: fileName,
-              file_size: photo.optimizedSize,
-              mime_type: 'image/webp',
-              order_index: i,
-            });
-          } catch (photoError) {
-            console.error(`Error uploading photo ${i}:`, photoError);
-          }
-        }
-
-        // Insert photo records into database
-        if (photoRecords.length > 0) {
-          const { error: photosError } = await supabase
-            .from('report_photos')
-            .insert(photoRecords);
-
-          if (photosError) {
-            console.error('Error saving photo records:', photosError);
-          }
+        if (filesError) {
+          console.error('Error saving file records:', filesError);
+          throw new Error('Failed to save file records');
         }
       }
 
@@ -713,31 +881,52 @@ export default function FillReport() {
                       )}
                     </div>
 
-                    {/* Photos */}
+                    {/* Photos & Videos */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Photos</label>
-                      {equipment.photos.length > 0 && (
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {settings?.enable_videos ? 'Photos & Videos' : 'Photos'}
+                      </label>
+                      {equipment.files.length > 0 && (
                         <div className="grid grid-cols-3 gap-2 mb-2">
-                          {equipment.photos.map((photo, photoIdx) => (
-                            <div key={photoIdx} className="relative">
-                              <img
-                                src={photo.url}
-                                alt={`Photo ${photoIdx + 1}`}
-                                className="w-full h-20 object-cover rounded"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removePhoto(equipment.id, photoIdx)}
-                                className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
+                          {equipment.files.map((file, fileIdx) => (
+                            <div key={file.id} className="relative">
+                              {file.uploading ? (
+                                <div className="w-full h-20 bg-gray-100 rounded flex items-center justify-center">
+                                  <Upload className="w-6 h-6 text-gray-400 animate-pulse" />
+                                </div>
+                              ) : file.type === 'video' ? (
+                                <div className="relative w-full h-20 bg-black rounded overflow-hidden">
+                                  <video
+                                    src={file.file_url}
+                                    className="w-full h-full object-cover"
+                                    muted
+                                  />
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <Video className="w-6 h-6 text-white opacity-80" />
+                                  </div>
+                                </div>
+                              ) : (
+                                <img
+                                  src={file.file_url}
+                                  alt={`File ${fileIdx + 1}`}
+                                  className="w-full h-20 object-cover rounded"
+                                />
+                              )}
+                              {!file.uploading && (
+                                <button
+                                  type="button"
+                                  onClick={() => removePhoto(equipment.id, fileIdx)}
+                                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
                             </div>
                           ))}
                         </div>
                       )}
-                      {/* Photo buttons - With capture according to standard */}
-                      <div className="grid grid-cols-2 gap-2">
+                      {/* Photo/Video buttons */}
+                      <div className={`grid gap-2 ${settings?.enable_videos ? 'grid-cols-3' : 'grid-cols-2'}`}>
                         {/* Camera Button - Opens modal with getUserMedia */}
                         <button
                           type="button"
@@ -750,6 +939,21 @@ export default function FillReport() {
                           <Camera className="w-6 h-6 text-blue-600 mb-1" />
                           <span className="text-sm font-medium text-blue-700">Camera</span>
                         </button>
+
+                        {/* Video Button - Opens video recorder modal (if enabled) */}
+                        {settings?.enable_videos && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCurrentEquipmentId(equipment.id);
+                              setVideoModalOpen(true);
+                            }}
+                            className="flex flex-col items-center justify-center h-20 w-full border-2 border-dashed border-purple-300 bg-purple-50 rounded-lg cursor-pointer hover:bg-purple-100 active:bg-purple-200 transition"
+                          >
+                            <Video className="w-6 h-6 text-purple-600 mb-1" />
+                            <span className="text-sm font-medium text-purple-700">Video</span>
+                          </button>
+                        )}
 
                         {/* Gallery Button */}
                         <div>
@@ -825,6 +1029,18 @@ export default function FillReport() {
             setCameraModalOpen(false);
             setCurrentEquipmentId(null);
           }}
+        />
+      )}
+
+      {/* Video Recorder Modal */}
+      {videoModalOpen && (
+        <VideoRecorderModal
+          onCapture={handleCapturedVideo}
+          onClose={() => {
+            setVideoModalOpen(false);
+            setCurrentEquipmentId(null);
+          }}
+          maxDuration={settings?.max_video_duration_seconds || 120}
         />
       )}
     </div>
@@ -1091,6 +1307,315 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+          }}
+        >
+          🔄
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Video Recorder Modal Component
+interface VideoRecorderModalProps {
+  onCapture: (blob: Blob) => void;
+  onClose: () => void;
+  maxDuration: number;
+}
+
+function VideoRecorderModal({ onCapture, onClose, maxDuration }: VideoRecorderModalProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [currentFacingMode, setCurrentFacingMode] = useState<'environment' | 'user'>('environment');
+  const [error, setError] = useState<string | null>(null);
+
+  // Start camera
+  async function startCamera(facingMode: 'environment' | 'user') {
+    try {
+      setError(null);
+      
+      // Stop previous stream
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
+      const constraints = {
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+        audio: true // Include audio for videos
+      };
+
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      setStream(newStream);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = newStream;
+        await videoRef.current.play();
+      }
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      setError('Could not access camera');
+    }
+  }
+
+  // Start recording
+  function startRecording() {
+    if (!stream) return;
+
+    try {
+      chunksRef.current = [];
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp8,opus'
+      });
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        onCapture(blob);
+        cleanup();
+      };
+
+      mediaRecorder.start();
+      mediaRecorderRef.current = mediaRecorder;
+      setIsRecording(true);
+      setRecordingTime(0);
+    } catch (err) {
+      console.error('Error starting recording:', err);
+      setError('Could not start recording');
+    }
+  }
+
+  // Stop recording
+  function stopRecording() {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  }
+
+  // Toggle camera
+  async function toggleCamera() {
+    const wasRecording = isRecording;
+    if (wasRecording) stopRecording();
+
+    const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+    try {
+      await startCamera(newFacingMode);
+      setCurrentFacingMode(newFacingMode);
+    } catch (err) {
+      console.error('Error switching camera:', err);
+      setError('Camera not available');
+    }
+  }
+
+  // Cleanup
+  function cleanup() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    if (isRecording) {
+      stopRecording();
+    }
+    onClose();
+  }
+
+  // Recording timer
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTime(prev => {
+          const newTime = prev + 1;
+          // Auto-stop at max duration
+          if (newTime >= maxDuration) {
+            stopRecording();
+            return maxDuration;
+          }
+          return newTime;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRecording, maxDuration]);
+
+  // Start camera on mount
+  useEffect(() => {
+    startCamera(currentFacingMode);
+    
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'black',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Video Preview */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted={!isRecording}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+          backgroundColor: '#000',
+        }}
+      />
+
+      {/* Recording Indicator */}
+      {isRecording && (
+        <div style={{
+          position: 'absolute',
+          top: '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'rgba(220, 38, 38, 0.9)',
+          color: 'white',
+          padding: '0.5rem 1rem',
+          borderRadius: '1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          fontSize: '18px',
+          fontWeight: 'bold',
+        }}>
+          <div style={{
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
+            backgroundColor: 'white',
+            animation: 'pulse 1s infinite',
+          }} />
+          {formatTime(recordingTime)} / {formatTime(maxDuration)}
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          color: 'white',
+          backgroundColor: 'rgba(220, 38, 38, 0.9)',
+          padding: '1rem',
+          borderRadius: '0.5rem',
+          textAlign: 'center',
+        }}>
+          {error}
+        </div>
+      )}
+
+      {/* Controls */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: '2rem',
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      }}>
+        {/* Close Button */}
+        <button
+          onClick={cleanup}
+          disabled={isRecording}
+          style={{
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            border: '3px solid white',
+            backgroundColor: isRecording ? 'rgba(107, 114, 128, 0.5)' : 'rgba(220, 38, 38, 0.8)',
+            color: 'white',
+            fontSize: '24px',
+            cursor: isRecording ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: isRecording ? 0.5 : 1,
+          }}
+        >
+          ×
+        </button>
+
+        {/* Record/Stop Button */}
+        <button
+          onClick={isRecording ? stopRecording : startRecording}
+          style={{
+            width: '70px',
+            height: '70px',
+            borderRadius: '50%',
+            border: '5px solid white',
+            backgroundColor: isRecording ? 'rgba(220, 38, 38, 0.8)' : 'rgba(220, 38, 38, 0.8)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '24px',
+          }}
+        >
+          {isRecording ? '■' : '●'}
+        </button>
+
+        {/* Toggle Camera Button */}
+        <button
+          onClick={toggleCamera}
+          disabled={isRecording}
+          style={{
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            border: '3px solid white',
+            backgroundColor: isRecording ? 'rgba(107, 114, 128, 0.5)' : 'rgba(75, 85, 99, 0.8)',
+            color: 'white',
+            fontSize: '24px',
+            cursor: isRecording ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: isRecording ? 0.5 : 1,
           }}
         >
           🔄
