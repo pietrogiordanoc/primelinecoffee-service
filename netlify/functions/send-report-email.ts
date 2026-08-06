@@ -11,6 +11,14 @@ const supabase = createClient(
     auth: {
       autoRefreshToken: false,
       persistSession: false
+    },
+    global: {
+      fetch: fetch
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 0
+      }
     }
   }
 );

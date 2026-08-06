@@ -5,7 +5,8 @@
   "dependencies": {
     "@netlify/functions": "^2.5.1",
     "@supabase/supabase-js": "^2.39.7",
-    "resend": "^3.2.0"
+    "resend": "^3.2.0",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.19"
