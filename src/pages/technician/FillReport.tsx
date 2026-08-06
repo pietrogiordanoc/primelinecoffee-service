@@ -81,8 +81,13 @@ export default function FillReport() {
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [currentEquipmentId, setCurrentEquipmentId] = useState<string | null>(null);
 
+  // Load settings immediately on mount
   useEffect(() => {
+    console.log('🔄 FillReport mounted - loading settings...');
     fetchSettings();
+  }, []);
+
+  useEffect(() => {
     loadForm();
   }, [formId]);
 
@@ -100,6 +105,9 @@ export default function FillReport() {
       console.warn('⚠️ Settings are NULL or not loaded yet');
     }
   }, [settings]);
+
+  // Compute video enabled status with fallback to true if settings not loaded
+  const videosEnabled = settings?.enable_videos !== false; // Default to true if undefined or null
 
   useEffect(() => {
     loadCompanyAndTechnicianData();
@@ -459,8 +467,8 @@ export default function FillReport() {
     if (!currentEquipmentId) return;
     
     try {
-      // Check if videos are enabled
-      if (!settings?.enable_videos) {
+      // Check if videos are enabled (strict check here)
+      if (settings && settings.enable_videos === false) {
         await alert('Video uploads are currently disabled.', 'Information');
         return;
       }
@@ -904,14 +912,15 @@ export default function FillReport() {
                     {/* Photos & Videos */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {settings?.enable_videos ? '📸 Photos & Videos (v2.0 - VIDEO ENABLED ✅)' : '📸 Photos Only (Videos: OFF ❌)'}
+                        {videosEnabled ? '📸 Photos & Videos (v2.0 - VIDEO ENABLED ✅)' : '📸 Photos Only (Videos: OFF ❌)'}
                       </label>
                       
                       {/* DEBUG INFO - Remove after testing */}
                       <div className="text-xs text-gray-500 mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
                         <strong>DEBUG:</strong> enable_videos = {String(settings?.enable_videos)} | 
                         Type: {typeof settings?.enable_videos} | 
-                        Settings loaded: {settings ? 'YES' : 'NO'}
+                        Settings loaded: {settings ? 'YES' : 'NO'} | 
+                        videosEnabled = {String(videosEnabled)}
                       </div>
                       
                       {equipment.files.length > 0 && (
@@ -954,7 +963,7 @@ export default function FillReport() {
                         </div>
                       )}
                       {/* Photo/Video buttons */}
-                      <div className={`grid gap-2 ${settings?.enable_videos ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                      <div className={`grid gap-2 ${videosEnabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
                         {/* Camera Button - Opens modal with getUserMedia */}
                         <button
                           type="button"
@@ -969,7 +978,7 @@ export default function FillReport() {
                         </button>
 
                         {/* Video Button - Opens video recorder modal (if enabled) */}
-                        {settings?.enable_videos && (
+                        {videosEnabled && (
                           <button
                             type="button"
                             onClick={() => {
