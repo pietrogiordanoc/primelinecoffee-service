@@ -50,9 +50,9 @@ export default function ReportHistory() {
 
   async function handleDelete(reportId: string, companyName: string) {
     const confirmed = await confirm({
-      title: 'Eliminar Reporte',
-      message: `¿Estás seguro de que quieres eliminar el reporte de ${companyName}? Esta acción no se puede deshacer.`,
-      confirmText: 'Eliminar',
+      title: 'Delete Report',
+      message: `Are you sure you want to delete the report from ${companyName}? This action cannot be undone.`,
+      confirmText: 'Delete',
       cancelText: 'Cancelar',
       danger: true,
     });
@@ -102,7 +102,7 @@ export default function ReportHistory() {
       await loadReports();
     } catch (error) {
       console.error('Error deleting report:', error);
-      await alert('Error al eliminar el reporte. Por favor intenta de nuevo.', 'Error');
+      await alert('Error deleting report. Please try again.', 'Error');
     } finally {
       setDeleting(null);
     }

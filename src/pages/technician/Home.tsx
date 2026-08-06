@@ -82,7 +82,7 @@ export default function TechnicianHome() {
 
   function handleStartReport(formId: string) {
     if (!selectedCompany) {
-      alert('Por favor selecciona una empresa primero.', 'Atención');
+      alert('Please select a company first.', 'Attention');
       return;
     }
     navigate(`/technician/report/${formId}?company=${selectedCompany.id}`);

@@ -60,7 +60,7 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
   const alert = (message: string, title?: string): Promise<void> => {
     return new Promise((resolve) => {
       setConfig({
-        title: title || 'Información',
+        title: title || 'Information',
         message,
         confirmText: 'Aceptar',
         cancelText: 'Cancel',

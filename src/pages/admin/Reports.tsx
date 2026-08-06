@@ -43,9 +43,9 @@ export default function ReportsPage() {
 
   async function handleDelete(reportId: string, companyName: string) {
     const confirmed = await confirm({
-      title: 'Eliminar Reporte',
-      message: `¿Estás seguro de que quieres eliminar el reporte de ${companyName}? Esta acción no se puede deshacer.`,
-      confirmText: 'Eliminar',
+      title: 'Delete Report',
+      message: `Are you sure you want to delete the report from ${companyName}? This action cannot be undone.`,
+      confirmText: 'Delete',
       cancelText: 'Cancelar',
       danger: true,
     });
@@ -94,7 +94,7 @@ export default function ReportsPage() {
       await loadReports();
     } catch (error) {
       console.error('Error deleting report:', error);
-      await alert('Error al eliminar el reporte. Por favor intenta de nuevo.', 'Error');
+      await alert('Error deleting report. Please try again.', 'Error');
     } finally {
       setDeleting(null);
     }
@@ -241,7 +241,7 @@ export default function ReportsPage() {
                         <button
                           onClick={() => handleView(report.id)}
                           className="text-primary-600 hover:text-primary-900"
-                          title="Ver detalles"
+                          title="View details"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -249,7 +249,7 @@ export default function ReportsPage() {
                           onClick={() => handleDelete(report.id, report.company_name)}
                           disabled={deleting === report.id}
                           className="text-red-600 hover:text-red-900 disabled:opacity-50"
-                          title="Eliminar reporte"
+                          title="Delete report"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

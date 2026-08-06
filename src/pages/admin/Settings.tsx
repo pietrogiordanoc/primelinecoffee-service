@@ -85,9 +85,9 @@ export default function SettingsPage() {
         auto_compress_images: autoCompress,
       });
 
-      await alert('Configuración guardada exitosamente', 'Éxito');
+      await alert('Settings saved successfully', 'Success');
     } catch (error: any) {
-      await alert('Error al guardar la configuración: ' + error.message, 'Error');
+      await alert('Error saving settings: ' + error.message, 'Error');
     } finally {
       setSaving(false);
     }
@@ -104,8 +104,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Configuración del Sistema</h1>
-        <p className="text-gray-600 mt-1">Administra las opciones globales de la aplicación</p>
+        <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
+        <p className="text-gray-600 mt-1">Manage global application settings</p>
       </div>
 
       {/* Email Notifications */}
@@ -113,15 +113,15 @@ export default function SettingsPage() {
         <div className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <Mail className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Notificaciones por Email</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Email Notifications</h2>
           </div>
 
           <div className="space-y-4">
             {/* Enable/Disable Emails */}
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <label className="font-medium text-gray-900">Activar notificaciones</label>
-                <p className="text-sm text-gray-600">Enviar emails automáticos cuando se crea un reporte</p>
+                <label className="font-medium text-gray-900">Enable notifications</label>
+                <p className="text-sm text-gray-600">Send automatic emails when a report is created</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -139,8 +139,8 @@ export default function SettingsPage() {
                 {/* Notify Technician */}
                 <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                   <div>
-                    <label className="font-medium text-gray-900 text-sm">Notificar al técnico</label>
-                    <p className="text-xs text-gray-600">Enviar copia del reporte al técnico que lo creó</p>
+                    <label className="font-medium text-gray-900 text-sm">Notify technician</label>
+                    <p className="text-xs text-gray-600">Send copy of report to the technician who created it</p>
                   </div>
                   <input
                     type="checkbox"
@@ -153,8 +153,8 @@ export default function SettingsPage() {
                 {/* Notify Super Admins */}
                 <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                   <div>
-                    <label className="font-medium text-gray-900 text-sm">Notificar a super admins</label>
-                    <p className="text-xs text-gray-600">Enviar a todos los usuarios con rol Super Admin</p>
+                    <label className="font-medium text-gray-900 text-sm">Notify super admins</label>
+                    <p className="text-xs text-gray-600">Send to all users with Super Admin role</p>
                   </div>
                   <input
                     type="checkbox"
@@ -166,30 +166,30 @@ export default function SettingsPage() {
 
                 {/* Additional Emails */}
                 <Input
-                  label="Emails adicionales (opcional)"
+                  label="Additional emails (optional)"
                   type="text"
                   value={additionalEmails}
                   onChange={(e) => setAdditionalEmails(e.target.value)}
                   placeholder="email1@example.com, email2@example.com"
-                  helperText="Separar múltiples emails con comas"
+                  helperText="Separate multiple emails with commas"
                 />
 
                 {/* Sender Configuration */}
                 <div className="grid grid-cols-2 gap-4">
                   <Input
-                    label="Nombre del remitente"
+                    label="Sender name"
                     type="text"
                     value={senderName}
                     onChange={(e) => setSenderName(e.target.value)}
                     placeholder="Prime Line Coffee Service"
                   />
                   <Input
-                    label="Email del remitente (Resend)"
+                    label="Sender email (Resend)"
                     type="email"
                     value={senderEmail}
                     onChange={(e) => setSenderEmail(e.target.value)}
                     placeholder="reports@yourdomain.com"
-                    helperText="Debe estar verificado en Resend"
+                    helperText="Must be verified in Resend"
                   />
                 </div>
 
@@ -197,8 +197,8 @@ export default function SettingsPage() {
                 <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
                   <div className="text-sm text-amber-800">
-                    <p className="font-medium">Configuración de Resend requerida</p>
-                    <p className="mt-1">Asegúrate de tener configurada la variable de entorno <code className="bg-amber-100 px-1 py-0.5 rounded">RESEND_API_KEY</code> en Netlify para que funcionen los emails.</p>
+                    <p className="font-medium">Resend configuration required</p>
+                    <p className="mt-1">Make sure you have the <code className="bg-amber-100 px-1 py-0.5 rounded">RESEND_API_KEY</code> environment variable configured in Netlify for emails to work.</p>
                   </div>
                 </div>
               </>
@@ -212,26 +212,26 @@ export default function SettingsPage() {
         <div className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <Building2 className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Información de la Empresa</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Company Information</h2>
           </div>
 
           <div className="space-y-4">
             <Input
-              label="Nombre de la empresa"
+              label="Company name"
               type="text"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               placeholder="Prime Line Coffee Service"
             />
             <Input
-              label="Teléfono"
+              label="Phone"
               type="tel"
               value={companyPhone}
               onChange={(e) => setCompanyPhone(e.target.value)}
               placeholder="+1 (555) 123-4567"
             />
             <Input
-              label="Dirección"
+              label="Address"
               type="text"
               value={companyAddress}
               onChange={(e) => setCompanyAddress(e.target.value)}
@@ -246,15 +246,15 @@ export default function SettingsPage() {
         <div className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <FileText className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Configuración de Reportes</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Report Settings</h2>
           </div>
 
           <div className="space-y-4">
             {/* Require Photos */}
             <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <div>
-                <label className="font-medium text-gray-900 text-sm">Fotos obligatorias</label>
-                <p className="text-xs text-gray-600">Requerir al menos una foto en cada reporte</p>
+                <label className="font-medium text-gray-900 text-sm">Required photos</label>
+                <p className="text-xs text-gray-600">Require at least one photo in each report</p>
               </div>
               <input
                 type="checkbox"
@@ -267,8 +267,8 @@ export default function SettingsPage() {
             {/* Auto Compress */}
             <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <div>
-                <label className="font-medium text-gray-900 text-sm">Comprimir imágenes</label>
-                <p className="text-xs text-gray-600">Optimizar fotos automáticamente antes de subir</p>
+                <label className="font-medium text-gray-900 text-sm">Compress images</label>
+                <p className="text-xs text-gray-600">Optimize photos automatically before uploading</p>
               </div>
               <input
                 type="checkbox"
@@ -280,7 +280,7 @@ export default function SettingsPage() {
 
             {/* Max Photos */}
             <Input
-              label="Máximo de fotos por reporte"
+              label="Maximum photos per report"
               type="number"
               value={maxPhotos}
               onChange={(e) => setMaxPhotos(parseInt(e.target.value))}
@@ -298,7 +298,7 @@ export default function SettingsPage() {
           disabled={saving}
           className="px-8"
         >
-          {saving ? 'Guardando...' : 'Guardar Cambios'}
+          {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
     </div>

@@ -82,10 +82,10 @@ export default function FillReport() {
     console.log('🏠 Es localhost:', isLocalhost);
     
     if (!isHTTPS && !isLocalhost) {
-      console.error('❌ ADVERTENCIA: El sitio NO está en HTTPS. La cámara puede no funcionar en móviles.');
+      console.error('❌ WARNING: Site is NOT using HTTPS. Camera may not work on mobile devices.');
       console.error('❌ Solución: Asegúrate de acceder vía https:// o espera el despliegue en Netlify');
     } else {
-      console.log('✅ Sitio seguro para usar cámara (HTTPS o localhost)');
+      console.log('✅ Secure site for camera use (HTTPS or localhost)');
     }
 
     // Verificar disponibilidad de API de medios
@@ -95,14 +95,14 @@ export default function FillReport() {
       // Intentar verificar permisos (puede no funcionar en todos los navegadores)
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(() => {
-          console.log('✅ Permisos de cámara concedidos o disponibles');
+          console.log('✅ Camera permissions granted or available');
         })
         .catch((err) => {
-          console.warn('⚠️ Permisos de cámara no disponibles:', err.message);
-          console.log('ℹ️ Esto es normal si aún no has usado la cámara. Los permisos se solicitarán al tomar foto.');
+          console.warn('⚠️ Camera permissions not available:', err.message);
+          console.log('ℹ️ This is normal if you haven\'t used the camera yet. Permissions will be requested when taking a photo.');
         });
     } else {
-      console.error('❌ API navigator.mediaDevices NO disponible en este navegador');
+      console.error('❌ API navigator.mediaDevices NOT available in this browser');
     }
   }, []);
 
@@ -251,7 +251,7 @@ export default function FillReport() {
       e.target.value = '';
     } catch (error) {
       console.error('❌ Error optimizing images:', error);
-      await alert('Error al optimizar imágenes. Por favor intenta de nuevo.', 'Error');
+      await alert('Error optimizing images. Please try again.', 'Error');
     }
   }
 
@@ -301,7 +301,7 @@ export default function FillReport() {
     e.preventDefault();
 
     if (!companyId) {
-      await alert('No hay empresa seleccionada.', 'Error');
+      await alert('No company selected.', 'Error');
       return;
     }
 
@@ -445,20 +445,20 @@ export default function FillReport() {
         });
 
         if (emailResponse.ok) {
-          console.log('✅ Email enviado correctamente');
+          console.log('✅ Email sent successfully');
         } else {
-          console.warn('⚠️ Error enviando email, pero el reporte se guardó correctamente');
+          console.warn('⚠️ Error sending email, but report was saved correctly');
         }
       } catch (emailError) {
-        console.error('Error al enviar email:', emailError);
-        // No fallar todo el proceso si el email falla
+        console.error('Error sending email:', emailError);
+        // Don't fail entire process if email fails
       }
 
-      await alert('¡Reporte enviado exitosamente!', 'Éxito');
+      await alert('Report submitted successfully!', 'Success');
       navigate('/technician');
     } catch (error: any) {
       console.error('Error submitting report:', error);
-      await alert('Error al enviar el reporte: ' + error.message, 'Error');
+      await alert('Error submitting report: ' + error.message, 'Error');
     } finally {
       setSubmitting(false);
     }
@@ -748,7 +748,7 @@ export default function FillReport() {
                           className="flex flex-col items-center justify-center h-20 w-full border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 active:bg-blue-200 transition"
                         >
                           <Camera className="w-6 h-6 text-blue-600 mb-1" />
-                          <span className="text-sm font-medium text-blue-700">Cámara</span>
+                          <span className="text-sm font-medium text-blue-700">Camera</span>
                         </button>
 
                         {/* Botón Galería */}
@@ -896,8 +896,8 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
         }
       }
     } catch (err) {
-      console.error('❌ Error al acceder a la cámara:', err);
-      const errorMsg = 'No se pudo acceder a la cámara';
+      console.error('❌ Error accessing camera:', err);
+      const errorMsg = 'Could not access camera';
       setError(errorMsg);
       throw err;
     }

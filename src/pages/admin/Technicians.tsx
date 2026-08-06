@@ -213,9 +213,9 @@ export default function TechniciansPage() {
 
   async function handleDelete(technician: Technician) {
     const confirmed = await confirm({
-      title: 'Eliminar Staff',
-      message: `¿Estás seguro de que quieres eliminar a ${technician.user?.full_name}? Esta acción no se puede deshacer.`,
-      confirmText: 'Eliminar',
+      title: 'Delete Staff',
+      message: `Are you sure you want to delete ${technician.user?.full_name}? This action cannot be undone.`,
+      confirmText: 'Delete',
       cancelText: 'Cancelar',
       danger: true,
     });
@@ -240,7 +240,7 @@ export default function TechniciansPage() {
       await loadTechnicians();
     } catch (error) {
       console.error('Error deleting technician:', error);
-      await alert('Error al eliminar el staff. Por favor intenta de nuevo.', 'Error');
+      await alert('Error deleting staff. Please try again.', 'Error');
     }
   }
 

@@ -64,9 +64,9 @@ export default function CompaniesPage() {
 
   async function handleDelete(company: Company) {
     const confirmed = await confirm({
-      title: 'Eliminar Empresa',
-      message: `¿Estás seguro de que quieres eliminar ${company.name}? Esta acción no se puede deshacer.`,
-      confirmText: 'Eliminar',
+      title: 'Delete Company',
+      message: `Are you sure you want to delete ${company.name}? This action cannot be undone.`,
+      confirmText: 'Delete',
       cancelText: 'Cancelar',
       danger: true,
     });
@@ -88,7 +88,7 @@ export default function CompaniesPage() {
       await loadCompanies();
     } catch (error) {
       console.error('Error deleting company:', error);
-      await alert('Error al eliminar la empresa. Por favor intenta de nuevo.', 'Error');
+      await alert('Error deleting company. Please try again.', 'Error');
     }
   }
 

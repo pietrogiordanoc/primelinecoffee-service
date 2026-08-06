@@ -47,9 +47,9 @@ export default function FormBuilderPage() {
 
   async function handleDeleteForm(form: DynamicForm) {
     const confirmed = await confirm({
-      title: 'Eliminar Formulario',
-      message: `¿Eliminar formulario "${form.name}"? Esta acción no se puede deshacer.`,
-      confirmText: 'Eliminar',
+      title: 'Delete Form',
+      message: `Delete form "${form.name}"? This action cannot be undone.`,
+      confirmText: 'Delete',
       cancelText: 'Cancelar',
       danger: true,
     });
@@ -69,7 +69,7 @@ export default function FormBuilderPage() {
       await loadForms();
     } catch (error) {
       console.error('Error deleting form:', error);
-      await alert('Error al eliminar el formulario. Por favor intenta de nuevo.', 'Error');
+      await alert('Error deleting form. Please try again.', 'Error');
     } finally {
       setLoading(false);
     }
@@ -420,9 +420,9 @@ function FieldBuilderModal({ form, isOpen, onClose }: FieldBuilderModalProps) {
 
   async function handleDeleteField(fieldId: string) {
     const confirmed = await confirm({
-      title: 'Eliminar Campo',
-      message: '¿Estás seguro de que quieres eliminar este campo?',
-      confirmText: 'Eliminar',
+      title: 'Delete Field',
+      message: 'Are you sure you want to delete this field?',
+      confirmText: 'Delete',
       cancelText: 'Cancelar',
       danger: true,
     });
