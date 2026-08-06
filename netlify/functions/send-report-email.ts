@@ -1,27 +1,9 @@
 import { Handler, HandlerEvent } from '@netlify/functions';
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
+import WebSocket from 'ws';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    },
-    db: {
-      schema: 'public'
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'netlify-function'
-      }
-    }
-  }
-);
 
 interface EmailAttachment {
   filename: string;
@@ -29,6 +11,24 @@ interface EmailAttachment {
 }
 
 const handler: Handler = async (event: HandlerEvent) => {
+  // Create Supabase client inside handler to avoid initialization issues
+  const supabase = createClient(
+    process.env.VITE_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      db: {
+        schema: 'public'
+      },
+      realtime: {
+        transport: WebSocket as any
+      }
+    }
+  );
+  
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
