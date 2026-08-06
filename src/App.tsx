@@ -16,6 +16,7 @@ import CompaniesPage from '@/pages/admin/Companies';
 import FormBuilderPage from '@/pages/admin/FormBuilder';
 import ReportsPage from '@/pages/admin/Reports';
 import SettingsPage from '@/pages/admin/Settings';
+import StorageDashboardPage from '@/pages/admin/StorageDashboard';
 import TechnicianViewPage from '@/pages/admin/TechnicianView';
 import TechnicianHome from '@/pages/technician/Home';
 import FillReport from '@/pages/technician/FillReport';
@@ -131,6 +132,7 @@ function App() {
           <Route path="reports" element={<ReportsPage />} />
           <Route path="reports/:reportId" element={<ViewReport />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="storage" element={<StorageDashboardPage />} />
           <Route path="technician-view" element={<TechnicianViewPage />} />
         </Route>
 

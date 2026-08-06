@@ -7,6 +7,7 @@ import {
   FileText,
   ClipboardList,
   Settings,
+  HardDrive,
   LogOut,
   Menu,
   X,
@@ -33,6 +34,7 @@ export default function AdminLayout() {
     { name: 'Companies', href: '/admin/companies', icon: Building2 },
     { name: 'Forms', href: '/admin/forms', icon: FileText },
     { name: 'Reports', href: '/admin/reports', icon: ClipboardList },
+    { name: 'Storage', href: '/admin/storage', icon: HardDrive },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
