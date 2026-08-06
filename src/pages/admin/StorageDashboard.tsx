@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { HardDrive, TrendingUp, Users, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useSettingsStore } from '@/stores/settingsStore';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface StorageMetrics {
@@ -31,19 +32,29 @@ interface StoragePrediction {
   confidence: 'high' | 'medium' | 'low';
 }
 
-const STORAGE_LIMIT_GB = 50; // 50% of 100 GB total
-const STORAGE_LIMIT_BYTES = STORAGE_LIMIT_GB * 1024 * 1024 * 1024;
-
 export default function StorageDashboard() {
+  const { settings, fetchSettings } = useSettingsStore();
   const [loading, setLoading] = useState(true);
   const [currentMetrics, setCurrentMetrics] = useState<StorageMetrics | null>(null);
   const [historicalMetrics, setHistoricalMetrics] = useState<StorageMetrics[]>([]);
   const [technicianStats, setTechnicianStats] = useState<TechnicianStats[]>([]);
   const [prediction, setPrediction] = useState<StoragePrediction | null>(null);
 
+  // Get storage limits from settings
+  const STORAGE_LIMIT_GB = settings?.storage_limit_gb || 50;
+  const STORAGE_LIMIT_BYTES = STORAGE_LIMIT_GB * 1024 * 1024 * 1024;
+  const WARNING_PERCENT = settings?.storage_warning_percent || 70;
+  const CRITICAL_PERCENT = settings?.storage_critical_percent || 85;
+
   useEffect(() => {
-    loadStorageData();
+    fetchSettings();
   }, []);
+
+  useEffect(() => {
+    if (settings) {
+      loadStorageData();
+    }
+  }, [settings]);
 
   async function loadStorageData() {
     try {
@@ -159,8 +170,8 @@ export default function StorageDashboard() {
 
   function getStorageLevel(): 'safe' | 'warning' | 'critical' {
     const percentage = getStoragePercentage();
-    if (percentage >= 85) return 'critical';
-    if (percentage >= 70) return 'warning';
+    if (percentage >= CRITICAL_PERCENT) return 'critical';
+    if (percentage >= WARNING_PERCENT) return 'warning';
     return 'safe';
   }
 
@@ -232,8 +243,8 @@ export default function StorageDashboard() {
           {/* Level indicators */}
           <div className="flex justify-between text-xs text-gray-600">
             <span>0%</span>
-            <span className="text-amber-600">70% Warning</span>
-            <span className="text-red-600">85% Critical</span>
+            <span className="text-amber-600">{WARNING_PERCENT}% Warning</span>
+            <span className="text-red-600">{CRITICAL_PERCENT}% Critical</span>
             <span>100%</span>
           </div>
         </div>

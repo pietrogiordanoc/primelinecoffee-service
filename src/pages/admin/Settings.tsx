@@ -4,7 +4,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Mail, Building2, Settings as SettingsIcon, FileText, AlertCircle } from 'lucide-react';
+import { Mail, Building2, Settings as SettingsIcon, FileText, AlertCircle, HardDrive } from 'lucide-react';
 import { useConfirm } from '@/contexts/ConfirmContext';
 
 export default function SettingsPage() {
@@ -30,6 +30,18 @@ export default function SettingsPage() {
   const [maxPhotos, setMaxPhotos] = useState(10);
   const [autoCompress, setAutoCompress] = useState(true);
 
+  // Storage Settings
+  const [storageLimit, setStorageLimit] = useState(50);
+  const [warningPercent, setWarningPercent] = useState(70);
+  const [criticalPercent, setCriticalPercent] = useState(85);
+  const [maxPhotoSize, setMaxPhotoSize] = useState(10);
+  const [maxVideoSize, setMaxVideoSize] = useState(50);
+  const [maxVideoDuration, setMaxVideoDuration] = useState(120);
+  const [videoCompressionEnabled, setVideoCompressionEnabled] = useState(true);
+  const [videoMaxResolution, setVideoMaxResolution] = useState(720);
+  const [videoBitrate, setVideoBitrate] = useState(1.5);
+  const [enableVideos, setEnableVideos] = useState(true);
+
   useEffect(() => {
     fetchSettings();
   }, []);
@@ -53,6 +65,18 @@ export default function SettingsPage() {
       setRequirePhotos(settings.require_photos);
       setMaxPhotos(settings.max_photos_per_report);
       setAutoCompress(settings.auto_compress_images);
+
+      // Load storage settings
+      setStorageLimit(settings.storage_limit_gb || 50);
+      setWarningPercent(settings.storage_warning_percent || 70);
+      setCriticalPercent(settings.storage_critical_percent || 85);
+      setMaxPhotoSize(settings.max_photo_size_mb || 10);
+      setMaxVideoSize(settings.max_video_size_mb || 50);
+      setMaxVideoDuration(settings.max_video_duration_seconds || 120);
+      setVideoCompressionEnabled(settings.video_compression_enabled ?? true);
+      setVideoMaxResolution(settings.video_max_resolution_height || 720);
+      setVideoBitrate(settings.video_target_bitrate_mbps || 1.5);
+      setEnableVideos(settings.enable_videos ?? true);
     }
   }, [settings]);
 
@@ -83,6 +107,18 @@ export default function SettingsPage() {
         require_photos: requirePhotos,
         max_photos_per_report: maxPhotos,
         auto_compress_images: autoCompress,
+
+        // Storage settings
+        storage_limit_gb: storageLimit,
+        storage_warning_percent: warningPercent,
+        storage_critical_percent: criticalPercent,
+        max_photo_size_mb: maxPhotoSize,
+        max_video_size_mb: maxVideoSize,
+        max_video_duration_seconds: maxVideoDuration,
+        video_compression_enabled: videoCompressionEnabled,
+        video_max_resolution_height: videoMaxResolution,
+        video_target_bitrate_mbps: videoBitrate,
+        enable_videos: enableVideos,
       });
 
       await alert('Settings saved successfully', 'Success');
@@ -287,6 +323,152 @@ export default function SettingsPage() {
               min={1}
               max={50}
             />
+          </div>
+        </div>
+      </Card>
+
+      {/* Storage Settings */}
+      <Card>
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <HardDrive className="w-5 h-5 text-blue-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Storage Settings</h2>
+          </div>
+
+          <div className="space-y-4">
+            {/* Storage Limit */}
+            <Input
+              label="Storage Limit (GB)"
+              type="number"
+              value={storageLimit}
+              onChange={(e) => setStorageLimit(parseInt(e.target.value))}
+              min={1}
+              max={1000}
+              helperText="Total storage allocation for this project"
+            />
+
+            {/* Warning and Critical Levels */}
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Warning Level (%)"
+                type="number"
+                value={warningPercent}
+                onChange={(e) => setWarningPercent(parseInt(e.target.value))}
+                min={1}
+                max={100}
+                helperText="Show warning at this %"
+              />
+              <Input
+                label="Critical Level (%)"
+                type="number"
+                value={criticalPercent}
+                onChange={(e) => setCriticalPercent(parseInt(e.target.value))}
+                min={1}
+                max={100}
+                helperText="Show critical alert at this %"
+              />
+            </div>
+
+            {/* Enable Videos */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <label className="font-medium text-gray-900">Enable videos</label>
+                <p className="text-sm text-gray-600">Allow technicians to upload videos in reports</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={enableVideos}
+                  onChange={(e) => setEnableVideos(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            {/* File Size Limits */}
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Max Photo Size (MB)"
+                type="number"
+                value={maxPhotoSize}
+                onChange={(e) => setMaxPhotoSize(parseInt(e.target.value))}
+                min={1}
+                max={100}
+              />
+              <Input
+                label="Max Video Size (MB)"
+                type="number"
+                value={maxVideoSize}
+                onChange={(e) => setMaxVideoSize(parseInt(e.target.value))}
+                min={1}
+                max={500}
+                disabled={!enableVideos}
+              />
+            </div>
+
+            {/* Video Duration */}
+            <Input
+              label="Max Video Duration (seconds)"
+              type="number"
+              value={maxVideoDuration}
+              onChange={(e) => setMaxVideoDuration(parseInt(e.target.value))}
+              min={10}
+              max={600}
+              helperText={`${Math.floor(maxVideoDuration / 60)} minutes ${maxVideoDuration % 60} seconds`}
+              disabled={!enableVideos}
+            />
+
+            {/* Video Compression */}
+            <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+              <div>
+                <label className="font-medium text-gray-900 text-sm">Compress videos</label>
+                <p className="text-xs text-gray-600">Automatically compress videos before upload</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={videoCompressionEnabled}
+                onChange={(e) => setVideoCompressionEnabled(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                disabled={!enableVideos}
+              />
+            </div>
+
+            {videoCompressionEnabled && enableVideos && (
+              <div className="grid grid-cols-2 gap-4 ml-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                <Input
+                  label="Max Resolution (height)"
+                  type="number"
+                  value={videoMaxResolution}
+                  onChange={(e) => setVideoMaxResolution(parseInt(e.target.value))}
+                  min={360}
+                  max={4320}
+                  step={180}
+                  helperText={`${videoMaxResolution}p`}
+                />
+                <Input
+                  label="Target Bitrate (Mbps)"
+                  type="number"
+                  value={videoBitrate}
+                  onChange={(e) => setVideoBitrate(parseFloat(e.target.value))}
+                  min={0.5}
+                  max={10}
+                  step={0.1}
+                />
+              </div>
+            )}
+
+            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-amber-800">
+                <p className="font-medium">Storage configuration tips</p>
+                <ul className="mt-1 list-disc list-inside space-y-1">
+                  <li>Lower resolution and bitrate = smaller files and longer storage capacity</li>
+                  <li>720p at 1.5 Mbps is recommended for optimal quality/size balance</li>
+                  <li>Monitor your storage usage in the Storage Dashboard</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </Card>

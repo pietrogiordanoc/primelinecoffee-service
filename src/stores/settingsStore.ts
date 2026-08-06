@@ -27,6 +27,18 @@ export interface SystemSettings {
   max_photos_per_report: number;
   auto_compress_images: boolean;
   
+  // Storage Settings
+  storage_limit_gb: number;
+  storage_warning_percent: number;
+  storage_critical_percent: number;
+  max_photo_size_mb: number;
+  max_video_size_mb: number;
+  max_video_duration_seconds: number;
+  video_compression_enabled: boolean;
+  video_max_resolution_height: number;
+  video_target_bitrate_mbps: number;
+  enable_videos: boolean;
+  
   created_at: string;
   updated_at: string;
 }
