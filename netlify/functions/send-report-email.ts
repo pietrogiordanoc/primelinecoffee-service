@@ -153,9 +153,9 @@ const handler: Handler = async (event: HandlerEvent) => {
     const reportDate = new Date(report.created_at);
     const formattedDate = `${String(reportDate.getMonth() + 1).padStart(2, '0')}/${String(reportDate.getDate()).padStart(2, '0')}/${reportDate.getFullYear()}`;
     
-    // Build detailed subject line
+    // Build simple subject line with just code, date, company, and technician
     const technicianName = report.technician?.user?.full_name || report.technician?.user?.email || 'Unknown';
-    const emailSubject = `${report.form.title} (${report.form.name}) ${formattedDate} ${report.company.name} by ${technicianName}`;
+    const emailSubject = `${report.form.name} ${formattedDate} ${report.company.name} by ${technicianName}`;
     
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: `${fromName} <${fromEmail}>`,
