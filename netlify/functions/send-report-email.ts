@@ -149,10 +149,18 @@ const handler: Handler = async (event: HandlerEvent) => {
     const fromName = settings.email_sender_name || 'Prime Line Coffee Service';
     const fromEmail = settings.email_sender_email || 'onboarding@resend.dev';
     
+    // Format date as MM/DD/YYYY
+    const reportDate = new Date(report.created_at);
+    const formattedDate = `${String(reportDate.getMonth() + 1).padStart(2, '0')}/${String(reportDate.getDate()).padStart(2, '0')}/${reportDate.getFullYear()}`;
+    
+    // Build detailed subject line
+    const technicianName = report.technician?.user?.full_name || report.technician?.user?.email || 'Unknown';
+    const emailSubject = `${report.form.title} (${report.form.name}) ${formattedDate} ${report.company.name} by ${technicianName}`;
+    
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: `${fromName} <${fromEmail}>`,
       to: recipientEmails,
-      subject: `New Service Report - ${report.company.name}`,
+      subject: emailSubject,
       html: emailHtml,
     });
 
@@ -165,7 +173,7 @@ const handler: Handler = async (event: HandlerEvent) => {
       {
         report_id: reportId,
         recipient_email: recipientEmails.join(', '),
-        subject: `New Service Report - ${report.company.name}`,
+        subject: emailSubject,
         status: 'sent',
         resend_id: emailData?.id,
       },
