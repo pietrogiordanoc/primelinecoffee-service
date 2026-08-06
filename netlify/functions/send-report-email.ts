@@ -5,11 +5,6 @@ import WebSocket from 'ws';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-interface EmailAttachment {
-  filename: string;
-  content: string;
-}
-
 const handler: Handler = async (event: HandlerEvent) => {
   // Create Supabase client inside handler to avoid initialization issues
   const supabase = createClient(
@@ -126,42 +121,14 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
-    // Prepare attachments
-    const attachments: EmailAttachment[] = [];
+    // Generate photo download links (optimized: always use signed URLs to avoid Netlify bandwidth)
     const photoLinks: string[] = [];
 
     if (report.photos && report.photos.length > 0) {
-      // Check total size
-      const totalSize = report.photos.reduce(
-        (sum: number, photo: any) => sum + (photo.file_size || 0),
-        0
-      );
-      const totalMB = totalSize / (1024 * 1024);
-
-      if (totalMB <= 12) {
-        // Attach files directly (under 12MB)
-        for (const photo of report.photos) {
-          try {
-            const { data: fileData } = await supabase.storage
-              .from('service-photos')
-              .download(photo.file_name);
-
-            if (fileData) {
-              const buffer = await fileData.arrayBuffer();
-              const base64 = Buffer.from(buffer).toString('base64');
-
-              attachments.push({
-                filename: photo.file_name,
-                content: base64,
-              });
-            }
-          } catch (err) {
-            console.error('Error downloading photo:', err);
-          }
-        }
-      } else {
-        // Generate signed URLs (over 12MB)
-        for (const photo of report.photos) {
+      // Always generate signed URLs instead of downloading photos
+      // This avoids consuming Netlify bandwidth and function memory
+      for (const photo of report.photos) {
+        try {
           const { data: signedUrl } = await supabase.storage
             .from('service-photos')
             .createSignedUrl(photo.file_name, 604800); // 7 days
@@ -169,6 +136,8 @@ const handler: Handler = async (event: HandlerEvent) => {
           if (signedUrl) {
             photoLinks.push(signedUrl.signedUrl);
           }
+        } catch (err) {
+          console.error('Error generating signed URL for photo:', err);
         }
       }
     }
@@ -185,13 +154,6 @@ const handler: Handler = async (event: HandlerEvent) => {
       to: recipientEmails,
       subject: `New Service Report - ${report.company.name}`,
       html: emailHtml,
-      attachments:
-        attachments.length > 0
-          ? attachments.map((att) => ({
-              filename: att.filename,
-              content: Buffer.from(att.content, 'base64'),
-            }))
-          : undefined,
     });
 
     if (emailError) {
