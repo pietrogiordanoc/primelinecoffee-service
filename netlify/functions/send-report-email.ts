@@ -59,19 +59,63 @@ const handler: Handler = async (event: HandlerEvent) => {
       throw new Error('Report not found');
     }
 
-    // Get Super Admin emails from users table
-    const { data: admins } = await supabase
-      .from('users')
-      .select('email')
-      .eq('role', 'super_admin');
+    // Get system settings for email configuration
+    const { data: settings } = await supabase
+      .from('system_settings')
+      .select('*')
+      .single();
 
-    // Prepare recipient list: admins + technician
-    const adminEmails = admins?.map(admin => admin.email) || [];
-    const technicianEmail = report.technician.user.email;
-    
-    const recipientEmails = [...adminEmails];
-    if (technicianEmail && !recipientEmails.includes(technicianEmail)) {
-      recipientEmails.push(technicianEmail);
+    // Check if email notifications are enabled
+    if (!settings || !settings.email_notifications_enabled) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ 
+          message: 'Email notifications are disabled in settings',
+          sent: false 
+        }),
+      };
+    }
+
+    // Build recipient list based on settings
+    const recipientEmails: string[] = [];
+
+    // Add super admins if enabled
+    if (settings.notify_super_admins) {
+      const { data: admins } = await supabase
+        .from('users')
+        .select('email')
+        .eq('role', 'super_admin');
+      
+      const adminEmails = admins?.map(admin => admin.email) || [];
+      recipientEmails.push(...adminEmails);
+    }
+
+    // Add technician if enabled
+    if (settings.notify_technician) {
+      const technicianEmail = report.technician.user.email;
+      if (technicianEmail && !recipientEmails.includes(technicianEmail)) {
+        recipientEmails.push(technicianEmail);
+      }
+    }
+
+    // Add additional emails from settings
+    if (settings.additional_notification_emails && settings.additional_notification_emails.length > 0) {
+      settings.additional_notification_emails.forEach((email: string) => {
+        if (email && !recipientEmails.includes(email)) {
+          recipientEmails.push(email);
+        }
+      });
+    }
+
+    // If no recipients, return early
+    if (recipientEmails.length === 0) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ 
+          message: 'No recipients configured in settings',
+          sent: false 
+        }),
+      };
     }
 
     // Prepare attachments
@@ -124,13 +168,14 @@ const handler: Handler = async (event: HandlerEvent) => {
     // Generate email HTML
     const emailHtml = generateEmailHtml(report, photoLinks);
 
-    // Use first Super Admin email as sender
-    const fromEmail = adminEmails[0] || 'onboarding@resend.dev';
+    // Use configured sender email or fallback
+    const fromName = settings.email_sender_name || 'Prime Line Coffee Service';
+    const fromEmail = settings.email_sender_email || 'onboarding@resend.dev';
     
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: fromEmail,
+      from: `${fromName} <${fromEmail}>`,
       to: recipientEmails,
-      subject: `New Service Report - ${report.company.name}`,
+      subject: `Nuevo Reporte de Servicio - ${report.company.name}`,
       html: emailHtml,
       attachments:
         attachments.length > 0

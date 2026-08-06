@@ -1,5 +1,8 @@
 import type { UserRole, ReportStatus, FieldType } from './database';
 
+// Re-export store types
+export type { SystemSettings } from '@/stores/settingsStore';
+
 // Extended types for application use
 
 export interface User {
