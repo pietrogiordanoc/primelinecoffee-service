@@ -71,7 +71,7 @@ export default function FillReport() {
     loadCompanyAndTechnicianData();
   }, [companyId, userProfile]);
 
-  // Verificar HTTPS y permisos de cámara
+  // Check HTTPS and camera permissions
   useEffect(() => {
     const isHTTPS = window.location.protocol === 'https:';
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -83,14 +83,14 @@ export default function FillReport() {
     
     if (!isHTTPS && !isLocalhost) {
       console.error('❌ WARNING: Site is NOT using HTTPS. Camera may not work on mobile devices.');
-      console.error('❌ Solución: Asegúrate de acceder vía https:// o espera el despliegue en Netlify');
+      console.error('❌ Solution: Make sure to access via https:// or wait for Netlify deployment');
     } else {
       console.log('✅ Secure site for camera use (HTTPS or localhost)');
     }
 
     // Verificar disponibilidad de API de medios
     if (navigator.mediaDevices) {
-      console.log('✅ API navigator.mediaDevices disponible');
+      console.log('✅ API navigator.mediaDevices available');
       
       // Intentar verificar permisos (puede no funcionar en todos los navegadores)
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -173,7 +173,7 @@ export default function FillReport() {
 
   function removeEquipmentRecord(id: string) {
     if (equipmentRecords.length === 1) {
-      alert('Debe haber al menos un registro de equipo.', 'Atención');
+      alert('There must be at least one equipment record.', 'Attention');
       return;
     }
     setEquipmentRecords(equipmentRecords.filter(r => r.id !== id));
@@ -437,7 +437,7 @@ export default function FillReport() {
 
       // Send email notification
       try {
-        console.log('📧 Enviando email de notificación...');
+        console.log('📧 Sending notification email...');
         const emailResponse = await fetch('/.netlify/functions/send-report-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -736,9 +736,9 @@ export default function FillReport() {
                           ))}
                         </div>
                       )}
-                      {/* Botones para fotos - Con capture según estándar */}
+                      {/* Photo buttons - With capture according to standard */}
                       <div className="grid grid-cols-2 gap-2">
-                        {/* Botón Cámara - Abre modal con getUserMedia */}
+                        {/* Camera Button - Opens modal with getUserMedia */}
                         <button
                           type="button"
                           onClick={() => {
@@ -751,14 +751,14 @@ export default function FillReport() {
                           <span className="text-sm font-medium text-blue-700">Camera</span>
                         </button>
 
-                        {/* Botón Galería */}
+                        {/* Gallery Button */}
                         <div>
                           <label 
                             htmlFor={`file-gallery-${equipment.id}`}
                             className="flex flex-col items-center justify-center h-20 w-full border-2 border-dashed border-green-300 bg-green-50 rounded-lg cursor-pointer hover:bg-green-100 active:bg-green-200 transition"
                           >
                             <Image className="w-6 h-6 text-green-600 mb-1" />
-                            <span className="text-sm font-medium text-green-700">Galería</span>
+                            <span className="text-sm font-medium text-green-700">Gallery</span>
                           </label>
                           <input
                             id={`file-gallery-${equipment.id}`}
@@ -817,7 +817,7 @@ export default function FillReport() {
         </Button>
       </form>
 
-      {/* Camera Modal - Tu código simple que funciona */}
+      {/* Camera Modal - Simple code that works */}
       {cameraModalOpen && (
         <CameraModal
           onCapture={handleCapturedPhoto}
@@ -831,7 +831,7 @@ export default function FillReport() {
   );
 }
 
-// Camera Modal Component - Código simple del usuario que funciona perfectamente
+// Camera Modal Component - Simple code that works perfectly
 interface CameraModalProps {
   onCapture: (blob: Blob) => void;
   onClose: () => void;
@@ -844,7 +844,7 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
   const [currentFacingMode, setCurrentFacingMode] = useState<'environment' | 'user'>('user');
   const [error, setError] = useState<string | null>(null);
 
-  // Iniciar cámara - Siguiendo instrucciones completas para móviles
+  // Start camera - Following complete instructions for mobile
   async function startCamera(facingMode: 'environment' | 'user') {
     try {
       setError(null);
@@ -872,7 +872,7 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
         const video = videoRef.current;
         video.srcObject = newStream;
         
-        // ⚠️ CRÍTICO: Esperar a que el video cargue su metadata
+        // ⚠️ CRITICAL: Wait for video to load its metadata
         await new Promise<void>((resolve) => {
           video.onloadedmetadata = () => {
             console.log('✅ Video metadata cargado:', video.videoWidth, 'x', video.videoHeight);
@@ -880,11 +880,11 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
           };
         });
         
-        // ⚠️ CRÍTICO: Iniciar reproducción explícitamente
+        // ⚠️ CRITICAL: Start playback explicitly
         await video.play();
         console.log('✅ Video reproduciendo');
         
-        // ⚠️ CRÍTICO: Espera adicional para estabilizar
+        // ⚠️ CRITICAL: Additional wait to stabilize
         await new Promise(r => setTimeout(r, 300));
         
         // Verificar dimensiones
@@ -925,7 +925,7 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
     }, 'image/jpeg', 0.9);
   }
 
-  // Alternar entre cámara trasera y frontal
+  // Toggle between rear and front camera
   async function toggleCamera() {
     const previousFacingMode = currentFacingMode;
     const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
@@ -935,9 +935,9 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
       setCurrentFacingMode(newFacingMode);
     } catch (err) {
       // Si falla, mantener la anterior
-      console.error('Error cambiando cámara:', err);
+      console.error('Error switching camera:', err);
       setCurrentFacingMode(previousFacingMode);
-      setError('Cámara no disponible');
+      setError('Camera not available');
       setTimeout(() => setError(null), 3000);
     }
   }
@@ -950,7 +950,7 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
     onClose();
   }
 
-  // Iniciar cámara cuando el modal se abre
+  // Start camera when modal opens
   useEffect(() => {
     startCamera(currentFacingMode);
     
@@ -1043,7 +1043,7 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
       }}>
-        {/* Botón Cerrar */}
+        {/* Close Button */}
         <button
           onClick={cleanup}
           style={{
@@ -1063,7 +1063,7 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
           ×
         </button>
 
-        {/* Botón Capturar */}
+        {/* Capture Button */}
         <button
           onClick={capturePhoto}
           style={{
@@ -1076,7 +1076,7 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
           }}
         />
 
-        {/* Botón Alternar Cámara */}
+        {/* Toggle Camera Button */}
         <button
           onClick={toggleCamera}
           style={{

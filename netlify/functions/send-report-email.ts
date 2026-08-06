@@ -183,7 +183,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     const { data: emailData, error: emailError } = await resend.emails.send({
       from: `${fromName} <${fromEmail}>`,
       to: recipientEmails,
-      subject: `Nuevo Reporte de Servicio - ${report.company.name}`,
+      subject: `New Service Report - ${report.company.name}`,
       html: emailHtml,
       attachments:
         attachments.length > 0
