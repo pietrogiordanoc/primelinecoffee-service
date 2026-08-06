@@ -531,6 +531,14 @@ export default function FillReport() {
     try {
       setSubmitting(true);
 
+      // Capture technician's local time information
+      const localDate = new Date();
+      const localTimeString = localDate.toLocaleString('en-US', { 
+        dateStyle: 'long', 
+        timeStyle: 'long' 
+      });
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       const reportData = {
         serviceDate,
         technicianName,
@@ -538,6 +546,8 @@ export default function FillReport() {
         customerEmail,
         property,
         serviceType,
+        technicianLocalTime: localTimeString,
+        technicianTimeZone: timeZone,
         equipmentRecords: equipmentRecords.map(r => ({
           brand: r.brand,
           model: r.model,

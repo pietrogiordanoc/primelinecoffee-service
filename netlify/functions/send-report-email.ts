@@ -308,8 +308,9 @@ function generateEmailHtml(report: any, photoLinks: string[]): string {
           <p style="margin: 0; color: #1f2937; font-size: 16px;">${report.form.name}</p>
         </div>
         <div>
-          <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Date</p>
-          <p style="margin: 0; color: #1f2937; font-size: 16px;">${new Date(report.submitted_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}</p>
+          <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Submitted</p>
+          <p style="margin: 0; color: #1f2937; font-size: 16px;">${report.form_data?.technicianLocalTime || new Date(report.submitted_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'long' })}</p>
+          ${report.form_data?.technicianTimeZone ? `<p style="margin: 4px 0 0 0; color: #6b7280; font-size: 13px;">(${report.form_data.technicianTimeZone})</p>` : ''}
         </div>
       </div>
     </div>
