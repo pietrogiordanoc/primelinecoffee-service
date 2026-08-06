@@ -86,6 +86,17 @@ export default function FillReport() {
     loadForm();
   }, [formId]);
 
+  // Debug: Log settings to verify they're loading
+  useEffect(() => {
+    if (settings) {
+      console.log('🎥 VIDEO SETTINGS:', {
+        enable_videos: settings.enable_videos,
+        max_video_size_mb: settings.max_video_size_mb,
+        max_video_duration_seconds: settings.max_video_duration_seconds,
+      });
+    }
+  }, [settings]);
+
   useEffect(() => {
     loadCompanyAndTechnicianData();
   }, [companyId, userProfile]);
