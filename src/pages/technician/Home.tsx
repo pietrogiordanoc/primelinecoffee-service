@@ -105,10 +105,10 @@ export default function TechnicianHome() {
 
   return (
     <div className="pb-6">
-      {/* Search Bar - Fixed */}
-      <div className="sticky top-0 z-20 bg-gray-50 pb-1.5 -mx-3 px-3">
+      {/* Search Bar - Sticky below fixed header */}
+      <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm -mx-3 px-3 py-2">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input
             type="text"
             placeholder="Search company..."

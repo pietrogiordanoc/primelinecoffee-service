@@ -21,8 +21,8 @@ export default function TechnicianLayout() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header - Ultra Compact */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
+      {/* Header - FIXED at top */}
+      <header className="fixed top-0 left-0 right-0 z-30 bg-white border-b border-gray-200 shadow-sm">
         <div className="px-3 py-2">
           <div className="flex items-center gap-2">
             <img 
@@ -38,8 +38,8 @@ export default function TechnicianLayout() {
         </div>
       </header>
 
-      {/* Main content - Extra padding bottom for fixed nav */}
-      <main className="flex-1 overflow-y-auto bg-gray-50 pb-20">
+      {/* Main content - Padding top for fixed header + padding bottom for fixed nav */}
+      <main className="flex-1 overflow-y-auto bg-gray-50 pt-[52px] pb-20">
         <div className="w-full px-3 py-2 md:w-[80%] md:mx-auto md:px-6 md:py-6">
           <Outlet />
         </div>
