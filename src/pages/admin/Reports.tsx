@@ -173,8 +173,9 @@ export default function ReportsPage() {
       {/* Filters */}
       <Card>
         <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            {/* Search - takes more space */}
+            <div className="lg:col-span-5">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -186,63 +187,77 @@ export default function ReportsPage() {
                 />
               </div>
             </div>
-            <Select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              options={[
-                { value: '', label: 'All statuses' },
-                { value: 'draft', label: 'Draft' },
-                { value: 'submitted', label: 'Submitted' },
-                { value: 'reviewed', label: 'Reviewed' },
-                { value: 'completed', label: 'Completed' },
-              ]}
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="text-sm font-medium text-gray-700">Date:</label>
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value as any)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
-            >
-              <option value="all">All dates</option>
-              <option value="today">Today</option>
-              <option value="week">Last 7 days</option>
-              <option value="month">Last 30 days</option>
-              <option value="custom">Custom range</option>
-            </select>
+            
+            {/* Status Filter */}
+            <div className="lg:col-span-2">
+              <Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                options={[
+                  { value: '', label: 'All statuses' },
+                  { value: 'draft', label: 'Draft' },
+                  { value: 'submitted', label: 'Submitted' },
+                  { value: 'reviewed', label: 'Reviewed' },
+                  { value: 'completed', label: 'Completed' },
+                ]}
+              />
+            </div>
+            
+            {/* Date Filter */}
+            <div className="lg:col-span-2">
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value as any)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="all">All dates</option>
+                <option value="today">Today</option>
+                <option value="week">Last 7 days</option>
+                <option value="month">Last 30 days</option>
+                <option value="custom">Custom range</option>
+              </select>
+            </div>
+            
+            {/* Custom Date Inputs */}
             {dateFilter === 'custom' && (
               <>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
-                  placeholder="From"
-                />
-                <span className="text-gray-500">to</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
-                  placeholder="To"
-                />
+                <div className="lg:col-span-1.5">
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
+                    placeholder="From"
+                  />
+                </div>
+                <div className="lg:col-span-1.5">
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
+                    placeholder="To"
+                  />
+                </div>
               </>
             )}
+            
+            {/* Clear Button */}
             {(dateFilter !== 'all' || statusFilter || searchTerm) && (
-              <button
-                onClick={() => {
-                  setDateFilter('all');
-                  setStartDate('');
-                  setEndDate('');
-                  setStatusFilter('');
-                  setSearchTerm('');
-                }}
-                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 underline"
-              >
-                Clear filters
-              </button>
+              <div className={dateFilter === 'custom' ? 'lg:col-span-12' : 'lg:col-span-3'}>
+                <button
+                  onClick={() => {
+                    setDateFilter('all');
+                    setStartDate('');
+                    setEndDate('');
+                    setStatusFilter('');
+                    setSearchTerm('');
+                  }}
+                  className="w-full lg:w-auto px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                >
+                  Clear filters
+                </button>
+              </div>
             )}
           </div>
         </div>

@@ -118,10 +118,10 @@ export default function CompaniesPage() {
       {sortedCompanies.length > 0 ? (
         <Card>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[900px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left px-3 py-2">
+                  <th className="text-left px-3 py-2 w-[20%]">
                     <button
                       onClick={() => handleSort('name')}
                       className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
@@ -130,7 +130,7 @@ export default function CompaniesPage() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="text-left px-3 py-2">
+                  <th className="text-left px-3 py-2 w-[12%]">
                     <button
                       onClick={() => handleSort('city')}
                       className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
@@ -139,7 +139,7 @@ export default function CompaniesPage() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="text-left px-3 py-2">
+                  <th className="text-left px-3 py-2 w-[15%]">
                     <button
                       onClick={() => handleSort('contact_name')}
                       className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
@@ -148,7 +148,7 @@ export default function CompaniesPage() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="text-left px-3 py-2">
+                  <th className="text-left px-3 py-2 w-[20%]">
                     <button
                       onClick={() => handleSort('contact_email')}
                       className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
@@ -157,7 +157,7 @@ export default function CompaniesPage() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="text-left px-3 py-2">
+                  <th className="text-left px-3 py-2 w-[13%]">
                     <button
                       onClick={() => handleSort('contact_phone')}
                       className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
@@ -166,10 +166,10 @@ export default function CompaniesPage() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
+                  <th className="text-left px-3 py-2 w-[10%] text-xs font-medium text-gray-700">
                     Status
                   </th>
-                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
+                  <th className="text-right px-3 py-2 w-[10%] text-xs font-medium text-gray-700">
                     Actions
                   </th>
                 </tr>
@@ -182,7 +182,7 @@ export default function CompaniesPage() {
                         <div className="w-6 h-6 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
                           <Building2 className="w-3 h-3" />
                         </div>
-                        <span className="text-sm font-medium text-gray-900 truncate">
+                        <span className="text-sm font-medium text-gray-900">
                           {company.name}
                         </span>
                       </div>
@@ -193,15 +193,17 @@ export default function CompaniesPage() {
                     <td className="px-3 py-2 text-sm text-gray-900">
                       {company.contact_name || '-'}
                     </td>
-                    <td className="px-3 py-2 text-sm text-gray-600 truncate max-w-[200px]">
-                      {company.contact_email || '-'}
+                    <td className="px-3 py-2 text-sm text-gray-600">
+                      <div className="truncate" title={company.contact_email}>
+                        {company.contact_email || '-'}
+                      </div>
                     </td>
                     <td className="px-3 py-2 text-sm text-gray-600">
                       {company.contact_phone || '-'}
                     </td>
                     <td className="px-3 py-2">
                       <span
-                        className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                        className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${
                           company.is_active
                             ? 'bg-green-100 text-green-700'
                             : 'bg-red-100 text-red-700'
@@ -211,7 +213,7 @@ export default function CompaniesPage() {
                       </span>
                     </td>
                     <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => {
                             setEditingCompany(company);
