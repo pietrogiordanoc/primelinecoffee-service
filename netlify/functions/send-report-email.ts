@@ -201,6 +201,10 @@ const handler: Handler = async (event: HandlerEvent) => {
 };
 
 function generateEmailHtml(report: any, photoLinks: string[]): string {
+  // Get app URL from environment or use default
+  const appUrl = process.env.VITE_APP_URL || 'https://plforms.netlify.app';
+  const reportsUrl = `${appUrl}/admin/reports`;
+  
   const formDataHtml = Object.entries(report.form_data)
     .map(
       ([key, value]) => `
@@ -313,6 +317,20 @@ function generateEmailHtml(report: any, photoLinks: string[]): string {
           ${report.form_data?.technicianTimeZone ? `<p style="margin: 4px 0 0 0; color: #6b7280; font-size: 13px;">(${report.form_data.technicianTimeZone})</p>` : ''}
         </div>
       </div>
+    </div>
+
+    <!-- Call to Action Button -->
+    <div style="margin: 32px 40px; text-align: center;">
+      <a href="${reportsUrl}" 
+         target="_blank" 
+         rel="noopener noreferrer"
+         style="display: inline-block; background-color: #003f7f; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(0, 63, 127, 0.2); transition: background-color 0.3s ease;">
+        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px; font-size: 20px;">open_in_new</span>
+        View Report in App
+      </a>
+      <p style="color: #6b7280; margin: 12px 0 0 0; font-size: 13px;">
+        Click to access the full report management system
+      </p>
     </div>
 
     <!-- Company Details -->
