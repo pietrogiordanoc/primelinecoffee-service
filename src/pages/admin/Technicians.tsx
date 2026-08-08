@@ -216,7 +216,7 @@ export default function TechniciansPage() {
       title: 'Delete Staff',
       message: `Are you sure you want to delete ${technician.user?.full_name}? This action cannot be undone.`,
       confirmText: 'Delete',
-      cancelText: 'Cancelar',
+      cancelText: 'Cancel',
       danger: true,
     });
 

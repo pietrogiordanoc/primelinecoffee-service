@@ -49,7 +49,7 @@ export default function ReportsPage() {
       title: 'Delete Report',
       message: `Are you sure you want to delete the report from ${companyName}? This action cannot be undone.`,
       confirmText: 'Delete',
-      cancelText: 'Cancelar',
+      cancelText: 'Cancel',
       danger: true,
     });
     

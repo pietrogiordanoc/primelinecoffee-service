@@ -47,8 +47,8 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
       setConfig({
         title: options.title || 'Confirm',
         message: options.message,
-        confirmText: options.confirmText || 'Aceptar',
-        cancelText: options.cancelText || 'Cancelar',
+        confirmText: options.confirmText || 'Accept',
+        cancelText: options.cancelText || 'Cancel',
         danger: options.danger || false,
       });
       setIsAlert(false);
@@ -62,7 +62,7 @@ export function ConfirmProvider({ children }: ConfirmProviderProps) {
       setConfig({
         title: title || 'Information',
         message,
-        confirmText: 'Aceptar',
+        confirmText: 'Accept',
         cancelText: 'Cancel',
         danger: false,
       });

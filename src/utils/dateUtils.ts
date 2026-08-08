@@ -1,20 +1,20 @@
 import { format, formatDistance, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 
 /**
  * Format date to localized string
  */
 export function formatDate(date: string | Date, formatStr = 'PPP'): string {
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return format(dateObj, formatStr, { locale: es });
+  return format(dateObj, formatStr, { locale: enUS });
 }
 
 /**
- * Format date to relative time (e.g., "hace 2 horas")
+ * Format date to relative time (e.g., "2 hours ago")
  */
 export function formatRelativeTime(date: string | Date): string {
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return formatDistance(dateObj, new Date(), { addSuffix: true, locale: es });
+  return formatDistance(dateObj, new Date(), { addSuffix: true, locale: enUS });
 }
 
 /**

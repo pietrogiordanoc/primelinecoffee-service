@@ -50,7 +50,7 @@ export default function FormBuilderPage() {
       title: 'Delete Form',
       message: `Delete form "${form.name}"? This action cannot be undone.`,
       confirmText: 'Delete',
-      cancelText: 'Cancelar',
+      cancelText: 'Cancel',
       danger: true,
     });
 
@@ -423,7 +423,7 @@ function FieldBuilderModal({ form, isOpen, onClose }: FieldBuilderModalProps) {
       title: 'Delete Field',
       message: 'Are you sure you want to delete this field?',
       confirmText: 'Delete',
-      cancelText: 'Cancelar',
+      cancelText: 'Cancel',
       danger: true,
     });
 
