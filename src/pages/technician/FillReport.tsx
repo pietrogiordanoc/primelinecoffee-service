@@ -59,6 +59,10 @@ export default function FillReport() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [property, setProperty] = useState('');
   const [serviceType, setServiceType] = useState('');
+  const [salesRepresentativeId, setSalesRepresentativeId] = useState('');
+  
+  // Sales representatives list
+  const [salesReps, setSalesReps] = useState<Array<{id: string, full_name: string, email: string}>>([]);
   
   // Equipment records
   const [equipmentRecords, setEquipmentRecords] = useState<EquipmentRecord[]>([
@@ -88,6 +92,7 @@ export default function FillReport() {
 
   useEffect(() => {
     loadForm();
+    loadSalesRepresentatives();
   }, [formId]);
 
   // Compute video enabled status with fallback to true if settings not loaded
@@ -178,6 +183,22 @@ export default function FillReport() {
       console.error('Error loading form:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadSalesRepresentatives() {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name, email')
+        .eq('role', 'sales_representative')
+        .eq('is_active', true)
+        .order('full_name');
+
+      if (error) throw error;
+      setSalesReps(data || []);
+    } catch (error) {
+      console.error('Error loading sales representatives:', error);
     }
   }
 
@@ -622,6 +643,7 @@ export default function FillReport() {
           form_id: formId!,
           technician_id: techData.id,
           company_id: companyId,
+          sales_representative_id: salesRepresentativeId || null,
           status: 'submitted',
           form_data: reportData,
           submitted_at: new Date().toISOString(),
@@ -782,6 +804,26 @@ export default function FillReport() {
                 <option value="Training">Training</option>
                 <option value="Other">Other</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sales Representative
+              </label>
+              <select
+                value={salesRepresentativeId}
+                onChange={(e) => setSalesRepresentativeId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+              >
+                <option value="">None</option>
+                {salesReps.map((rep) => (
+                  <option key={rep.id} value={rep.id}>
+                    {rep.full_name} ({rep.email})
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Who requested this service?
+              </p>
             </div>
           </div>
         </div>

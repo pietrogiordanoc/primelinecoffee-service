@@ -276,6 +276,9 @@ export default function ReportsPage() {
                   Technician
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Sales Rep
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Form
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -295,7 +298,7 @@ export default function ReportsPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredReports.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                       No reports found
                   </td>
                 </tr>
@@ -310,6 +313,16 @@ export default function ReportsPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{report.technician_name}</div>
                       <div className="text-sm text-gray-500">{report.technician_email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {report.sales_rep_name ? (
+                        <>
+                          <div className="text-sm text-gray-900">{report.sales_rep_name}</div>
+                          <div className="text-sm text-gray-500">{report.sales_rep_email}</div>
+                        </>
+                      ) : (
+                        <span className="text-sm text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {report.form_name}

@@ -1,6 +1,6 @@
 // Generated types for Supabase database schema
 
-export type UserRole = 'super_admin' | 'admin' | 'technician';
+export type UserRole = 'super_admin' | 'admin' | 'technician' | 'sales_representative';
 export type ReportStatus = 'draft' | 'submitted' | 'reviewed' | 'completed';
 export type FieldType =
   | 'text'

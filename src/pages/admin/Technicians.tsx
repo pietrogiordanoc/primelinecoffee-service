@@ -19,7 +19,7 @@ const editTechnicianSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email('Invalid email').optional(),
   password: z.string().optional(),
-  role: z.enum(['super_admin', 'admin', 'technician']),
+  role: z.enum(['super_admin', 'admin', 'technician', 'sales_representative']),
 });
 
 // Schema for create mode (password required)
@@ -28,7 +28,7 @@ const createTechnicianSchema = z.object({
   email: z.string().email('Invalid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   phone: z.string().optional(),
-  role: z.enum(['super_admin', 'admin', 'technician']),
+  role: z.enum(['super_admin', 'admin', 'technician', 'sales_representative']),
 });
 
 type TechnicianFormInput = z.infer<typeof editTechnicianSchema> | z.infer<typeof createTechnicianSchema>;
@@ -40,7 +40,7 @@ export default function TechniciansPage() {
   const [editingTechnician, setEditingTechnician] = useState<Technician | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedTechnicianForAssign, setSelectedTechnicianForAssign] = useState<Technician | null>(null);
-  const [roleFilter, setRoleFilter] = useState<'all' | 'super_admin' | 'admin' | 'technician'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'super_admin' | 'admin' | 'technician' | 'sales_representative'>('all');
   const [sortField, setSortField] = useState<'name' | 'email' | 'role' | 'phone' | 'status'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [assignmentStatus, setAssignmentStatus] = useState<Record<string, boolean>>({});
@@ -347,6 +347,16 @@ export default function TechniciansPage() {
           >
             Technicians
           </button>
+          <button
+            onClick={() => setRoleFilter('sales_representative')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              roleFilter === 'sales_representative'
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Sales Reps
+          </button>
         </div>
       </Card>
 
@@ -441,10 +451,12 @@ export default function TechniciansPage() {
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                         technician.user?.role === 'super_admin' ? 'bg-purple-100 text-purple-700' :
                         technician.user?.role === 'admin' ? 'bg-blue-100 text-blue-700' :
+                        technician.user?.role === 'sales_representative' ? 'bg-orange-100 text-orange-700' :
                         'bg-green-100 text-green-700'
                       }`}>
                         {technician.user?.role === 'super_admin' ? 'Super Admin' :
                          technician.user?.role === 'admin' ? 'Manager' :
+                         technician.user?.role === 'sales_representative' ? 'Sales Rep' :
                          'Technician'}
                       </span>
                     </td>
@@ -704,6 +716,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
           >
             <option value="technician">Technician</option>
             <option value="admin">Manager</option>
+            <option value="sales_representative">Sales Representative</option>
             <option value="super_admin">Super Admin</option>
           </select>
           {errors.role && (

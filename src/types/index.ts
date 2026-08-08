@@ -103,6 +103,7 @@ export interface ServiceReport {
   form_id: string;
   technician_id: string;
   company_id: string;
+  sales_representative_id?: string;
   status: ReportStatus;
   form_data: Record<string, any>;
   signature_url?: string;
@@ -115,6 +116,7 @@ export interface ServiceReport {
   form?: DynamicForm;
   technician?: Technician;
   company?: Company;
+  sales_representative?: User;
   photos?: ReportPhoto[];
 }
 
@@ -161,6 +163,9 @@ export interface ReportSummary {
   company_name: string;
   technician_name: string;
   technician_email?: string;
+  sales_rep_id?: string;
+  sales_rep_name?: string;
+  sales_rep_email?: string;
   photo_count: number;
 }
 
