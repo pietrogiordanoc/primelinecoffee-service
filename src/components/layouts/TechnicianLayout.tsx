@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Home, ClipboardList, LogOut } from 'lucide-react';
+import { Home, ClipboardList, LogOut, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/utils/helpers';
@@ -17,6 +17,7 @@ export default function TechnicianLayout() {
   const navigation = [
     { name: 'Home', href: '/technician', icon: Home, end: true },
     { name: 'History', href: '/technician/history', icon: ClipboardList, end: false },
+    { name: 'Staff', href: '/technician/staff', icon: Users, end: false },
   ];
 
   return (

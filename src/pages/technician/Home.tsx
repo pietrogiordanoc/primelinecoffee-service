@@ -8,7 +8,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { FileText, ChevronRight, Plus, ChevronDown, Search, MapPin, Phone, Mail, User, Calendar } from 'lucide-react';
+import { FileText, ChevronRight, Plus, ChevronDown, Search, MapPin, Phone, Mail, User, Calendar, ArrowUpDown, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import type { DynamicForm, Company } from '@/types';
 
@@ -23,6 +23,9 @@ export default function TechnicianHome() {
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadData();
@@ -90,10 +93,29 @@ export default function TechnicianHome() {
     navigate(`/technician/report/${formId}?company=${selectedCompany.id}`);
   }
 
-  // Filter companies by search query
-  const filteredCompanies = companies.filter(company =>
-    company.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter and sort companies
+  const filteredCompanies = companies
+    .filter(company =>
+      company.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a.name.localeCompare(b.name);
+      } else {
+        return b.name.localeCompare(a.name);
+      }
+    });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCompanies = filteredCompanies.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search/filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortOrder, itemsPerPage]);
 
   if (loading) {
     return (
@@ -107,20 +129,45 @@ export default function TechnicianHome() {
     <div className="pb-6">
       {/* Search Bar - FIXED below header */}
       <div className="fixed top-[52px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2">
-        <div className="relative max-w-full md:max-w-[80%] md:mx-auto">
-          <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search company..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-6 pr-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs bg-white"
-          />
+        <div className="max-w-full md:max-w-[80%] md:mx-auto space-y-1.5">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search company..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-6 pr-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs bg-white"
+            />
+          </div>
+          {/* Filters Row */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50"
+            >
+              <ArrowUpDown className="w-3 h-3" />
+              {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
+            </button>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="px-2 py-1 text-xs border border-gray-300 rounded bg-white"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+            <span className="text-xs text-gray-500">
+              {filteredCompanies.length} total
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Content - Padding for fixed search */}
-      <div className="pt-12">
+      <div className="pt-[100px]">{/* Increased padding for larger search area */}
         {/* Select Company */}
         <div className="mt-1">
         <div className="flex items-center justify-between mb-1.5">
@@ -149,8 +196,9 @@ export default function TechnicianHome() {
             </div>
           </Card>
         ) : (
-          <div className="space-y-1">
-            {filteredCompanies.map((company: any) => {
+          <>
+            <div className="space-y-1">
+              {paginatedCompanies.map((company: any) => {
               const isExpanded = expandedCompany === company.id;
               const isSelected = selectedCompany?.id === company.id;
               
@@ -255,6 +303,32 @@ export default function TechnicianHome() {
               );
             })}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-2 flex items-center justify-between">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-3 h-3" />
+                Prev
+              </button>
+              <span className="text-xs text-gray-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+                <ChevronRightIcon className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+          </>
         )}
       </div>
 

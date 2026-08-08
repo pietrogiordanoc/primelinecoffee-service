@@ -6,7 +6,7 @@ import { useConfirm } from '@/contexts/ConfirmContext';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate, formatRelativeTime } from '@/utils/dateUtils';
-import { Clock, FileText, Eye, Trash2, Building2, ChevronRight, ChevronDown, Search, Calendar, Image as ImageIcon } from 'lucide-react';
+import { Clock, FileText, Eye, Trash2, Building2, ChevronRight, ChevronDown, Search, Calendar, Image as ImageIcon, ArrowUpDown, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import type { ReportSummary } from '@/types';
 
 export default function ReportHistory() {
@@ -18,6 +18,9 @@ export default function ReportHistory() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [expandedReport, setExpandedReport] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadReports();
@@ -110,11 +113,30 @@ export default function ReportHistory() {
     }
   }
 
-  // Filter reports by search query
-  const filteredReports = reports.filter(report =>
-    report.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    report.form_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter and sort reports
+  const filteredReports = reports
+    .filter(report =>
+      report.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.form_name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a.company_name.localeCompare(b.company_name);
+      } else {
+        return b.company_name.localeCompare(a.company_name);
+      }
+    });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedReports = filteredReports.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search/filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortOrder, itemsPerPage]);
 
   if (loading) {
     return (
@@ -128,10 +150,11 @@ export default function ReportHistory() {
     <div className="pb-6">
       {/* Search Bar - FIXED below header */}
       <div className="fixed top-[52px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2">
-        <div className="max-w-full md:max-w-[80%] md:mx-auto">
+        <div className="max-w-full md:max-w-[80%] md:mx-auto space-y-1.5">
           <div className="flex items-center justify-between mb-1">
             <h1 className="text-sm font-bold text-gray-900">Reports</h1>
           </div>
+          {/* Search Input */}
           <div className="relative">
             <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
             <input
@@ -142,11 +165,33 @@ export default function ReportHistory() {
               className="w-full pl-6 pr-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs bg-white"
             />
           </div>
+          {/* Filters Row */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50"
+            >
+              <ArrowUpDown className="w-3 h-3" />
+              {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
+            </button>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="px-2 py-1 text-xs border border-gray-300 rounded bg-white"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+            <span className="text-xs text-gray-500">
+              {filteredReports.length} total
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Content - Padding for fixed search */}
-      <div className="pt-16">
+      <div className="pt-[120px]">
         {filteredReports.length === 0 ? (
         <Card>
           <div className="p-12 text-center">
@@ -157,8 +202,9 @@ export default function ReportHistory() {
           </div>
         </Card>
       ) : (
-        <div className="space-y-1">
-          {filteredReports.map((report) => {
+        <>
+          <div className="space-y-1">
+            {paginatedReports.map((report) => {
             const isExpanded = expandedReport === report.id;
             
             return (
@@ -269,6 +315,32 @@ export default function ReportHistory() {
             );
           })}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="mt-2 flex items-center justify-between">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-3 h-3" />
+              Prev
+            </button>
+            <span className="text-xs text-gray-600">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+              <ChevronRightIcon className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+        </>
       )}
       </div> {/* End pt-16 wrapper */}
     </div>
