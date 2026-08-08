@@ -21,18 +21,18 @@ export default function TechnicianLayout() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header - Minimalist */}
+      {/* Header - Ultra Compact */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="px-4 py-3">
-          <div className="flex items-center gap-3">
+        <div className="px-3 py-2">
+          <div className="flex items-center gap-2">
             <img 
               src="/logo.png" 
               alt="Prime Line Coffee Service" 
-              className="h-8 w-auto"
+              className="h-7 w-auto"
             />
             <div>
-              <p className="text-sm font-medium text-gray-900">{userProfile?.full_name}</p>
-              <p className="text-xs text-gray-500">Technician</p>
+              <p className="text-xs font-medium text-gray-900 leading-tight">{userProfile?.full_name}</p>
+              <p className="text-xs text-gray-500 leading-tight">Technician</p>
             </div>
           </div>
         </div>
@@ -40,7 +40,7 @@ export default function TechnicianLayout() {
 
       {/* Main content - Extra padding bottom for fixed nav */}
       <main className="flex-1 overflow-y-auto bg-gray-50 pb-20">
-        <div className="w-full px-3 py-4 md:w-[80%] md:mx-auto md:px-6 md:py-6">
+        <div className="w-full px-3 py-2 md:w-[80%] md:mx-auto md:px-6 md:py-6">
           <Outlet />
         </div>
       </main>
