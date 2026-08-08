@@ -222,3 +222,77 @@ export async function validateVideo(
 
   return { valid: true };
 }
+
+/**
+ * Generate a thumbnail from video file
+ * Extracts the first frame as a JPEG image
+ * @param file - Video file (File or Blob)
+ * @param seekTime - Time in seconds to capture frame (default 0.5s)
+ * @returns Blob containing JPEG thumbnail
+ */
+export async function generateVideoThumbnail(
+  file: Blob | File,
+  seekTime: number = 0.5
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      reject(new Error('Could not get canvas context'));
+      return;
+    }
+
+    video.preload = 'metadata';
+    video.src = URL.createObjectURL(file);
+    video.muted = true;
+    video.playsInline = true;
+
+    video.onloadedmetadata = () => {
+      // Seek to specific time to get a better frame
+      video.currentTime = Math.min(seekTime, video.duration);
+    };
+
+    video.onseeked = () => {
+      try {
+        // Set canvas dimensions to video dimensions (max 640px width for thumbnail)
+        const maxWidth = 640;
+        const aspectRatio = video.videoWidth / video.videoHeight;
+        
+        if (video.videoWidth > maxWidth) {
+          canvas.width = maxWidth;
+          canvas.height = maxWidth / aspectRatio;
+        } else {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+        }
+
+        // Draw video frame to canvas
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert canvas to blob (JPEG for smaller size)
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(video.src);
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to create thumbnail blob'));
+            }
+          },
+          'image/jpeg',
+          0.85 // 85% quality
+        );
+      } catch (error) {
+        URL.revokeObjectURL(video.src);
+        reject(error);
+      }
+    };
+
+    video.onerror = () => {
+      URL.revokeObjectURL(video.src);
+      reject(new Error('Failed to load video'));
+    };
+  });
+}

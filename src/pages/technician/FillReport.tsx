@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { Camera, X, Check, Plus, Trash2, ChevronDown, ChevronUp, Image, Video, Upload } from 'lucide-react';
-import { compressVideo, validateVideo, getVideoDuration } from '@/utils/videoCompression';
+import { compressVideo, validateVideo, getVideoDuration, generateVideoThumbnail } from '@/utils/videoCompression';
 import { optimizeImages } from '@/utils/imageOptimization';
 import type { DynamicForm, OptimizedPhoto } from '@/types';
 
@@ -302,7 +302,40 @@ export default function FillReport() {
         .from('service-photos')
         .getPublicUrl(fileName);
 
-      // Update file with URL and remove uploading status
+      let thumbnailUrl = urlData.publicUrl; // Default to video URL for photos
+
+      // Generate and upload thumbnail for videos
+      if (type === 'video') {
+        try {
+          console.log('🎬 Generating video thumbnail...');
+          const thumbnailBlob = await generateVideoThumbnail(file, 0.5);
+          const thumbnailFileName = fileName.replace(/\.(mp4|webm|mov)$/i, '_thumb.jpg');
+          
+          console.log('📤 Uploading thumbnail:', thumbnailFileName);
+          const { error: thumbError } = await supabase.storage
+            .from('service-photos')
+            .upload(thumbnailFileName, thumbnailBlob, {
+              contentType: 'image/jpeg',
+              cacheControl: '3600',
+              upsert: false,
+            });
+
+          if (thumbError) {
+            console.warn('⚠️ Failed to upload thumbnail:', thumbError);
+          } else {
+            const { data: thumbUrlData } = supabase.storage
+              .from('service-photos')
+              .getPublicUrl(thumbnailFileName);
+            thumbnailUrl = thumbUrlData.publicUrl;
+            console.log('✅ Thumbnail uploaded:', thumbnailUrl);
+          }
+        } catch (thumbError) {
+          console.warn('⚠️ Error generating video thumbnail:', thumbError);
+          // Continue without thumbnail - will show video icon instead
+        }
+      }
+
+      // Update file with URL, thumbnail URL, and remove uploading status
       setEquipmentRecords(prev =>
         prev.map(r =>
           r.id === equipmentId
@@ -310,7 +343,12 @@ export default function FillReport() {
                 ...r,
                 files: r.files.map(f =>
                   f.id === fileId
-                    ? { ...f, file_url: urlData.publicUrl, uploading: false }
+                    ? { 
+                        ...f, 
+                        file_url: urlData.publicUrl, 
+                        thumbnail_url: thumbnailUrl,
+                        uploading: false 
+                      }
                     : f
                 ),
               }
@@ -914,14 +952,27 @@ export default function FillReport() {
                                 </div>
                               ) : file.type === 'video' ? (
                                 <div className="relative w-full h-20 bg-black rounded overflow-hidden">
-                                  <video
-                                    src={file.file_url}
-                                    className="w-full h-full object-cover"
-                                    muted
-                                  />
-                                  <div className="absolute inset-0 flex items-center justify-center">
+                                  {file.thumbnail_url ? (
+                                    <img
+                                      src={file.thumbnail_url}
+                                      alt={`Video ${fileIdx + 1} thumbnail`}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <video
+                                      src={file.file_url}
+                                      className="w-full h-full object-cover"
+                                      muted
+                                    />
+                                  )}
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
                                     <Video className="w-6 h-6 text-white opacity-80" />
                                   </div>
+                                  {file.duration && (
+                                    <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 rounded">
+                                      {Math.floor(file.duration)}s
+                                    </div>
+                                  )}
                                 </div>
                               ) : (
                                 <img
