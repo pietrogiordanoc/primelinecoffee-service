@@ -15,60 +15,50 @@ export default function TechnicianLayout() {
   };
 
   const navigation = [
-    { name: 'Home', href: '/technician', icon: Home },
-    { name: 'History', href: '/technician/history', icon: ClipboardList },
+    { name: 'Home', href: '/technician', icon: Home, end: true },
+    { name: 'History', href: '/technician/history', icon: ClipboardList, end: false },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
+      {/* Header - Minimalist */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="px-3 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3">
-                <img 
-                  src="/logo.png" 
-                  alt="Prime Line Coffee Service" 
-                  className="h-8 w-auto"
-                />
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">•</span>
-                  <p className="text-xs text-gray-600 truncate">Hi, {userProfile?.full_name}! Select company</p>
-                </div>
-              </div>
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-3">
+            <img 
+              src="/logo.png" 
+              alt="Prime Line Coffee Service" 
+              className="h-8 w-auto"
+            />
+            <div>
+              <p className="text-sm font-medium text-gray-900">{userProfile?.full_name}</p>
+              <p className="text-xs text-gray-500">Technician</p>
             </div>
-            <button
-              onClick={handleLogout}
-              className="p-2 hover:bg-gray-100 rounded transition flex-shrink-0"
-            >
-              <LogOut className="w-4 h-4 text-gray-600" />
-            </button>
           </div>
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50">
+      {/* Main content - Extra padding bottom for fixed nav */}
+      <main className="flex-1 overflow-y-auto bg-gray-50 pb-20">
         <div className="w-full px-3 py-4 md:w-[80%] md:mx-auto md:px-6 md:py-6">
           <Outlet />
         </div>
       </main>
 
-      {/* Bottom navigation */}
-      <nav className="bg-white border-t border-gray-200">
-        <div className="flex justify-around">
+      {/* Bottom navigation - Fixed on mobile, modern app style */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg md:relative md:shadow-none">
+        <div className="flex justify-around items-center h-16">
           {navigation.map((item) => (
             <NavLink
               key={item.name}
               to={item.href}
-              end
+              end={item.end}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center flex-1 py-2 text-xs font-medium transition-colors',
+                  'flex flex-col items-center justify-center flex-1 h-full transition-all',
                   isActive
-                    ? 'text-primary-600 bg-primary-50'
-                    : 'text-gray-600 hover:text-primary-600'
+                    ? 'text-primary-600'
+                    : 'text-gray-400 hover:text-primary-500'
                 )
               }
             >
@@ -76,15 +66,30 @@ export default function TechnicianLayout() {
                 <>
                   <item.icon
                     className={cn(
-                      'w-5 h-5 mb-1',
-                      isActive ? 'text-primary-600' : 'text-gray-400'
+                      'w-6 h-6 mb-1 transition-all',
+                      isActive ? 'text-primary-600 scale-110' : 'text-gray-400'
                     )}
+                    strokeWidth={isActive ? 2.5 : 2}
                   />
-                  {item.name}
+                  <span className={cn(
+                    'text-xs font-medium',
+                    isActive ? 'text-primary-600' : 'text-gray-500'
+                  )}>
+                    {item.name}
+                  </span>
                 </>
               )}
             </NavLink>
           ))}
+          
+          {/* Logout button */}
+          <button
+            onClick={handleLogout}
+            className="flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-red-500 transition-all"
+          >
+            <LogOut className="w-6 h-6 mb-1" strokeWidth={2} />
+            <span className="text-xs font-medium text-gray-500">Logout</span>
+          </button>
         </div>
       </nav>
     </div>
