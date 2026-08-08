@@ -105,22 +105,24 @@ export default function TechnicianHome() {
 
   return (
     <div className="pb-6">
-      {/* Search Bar - Sticky below fixed header */}
-      <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm -mx-3 px-3 py-2">
-        <div className="relative">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+      {/* Search Bar - FIXED below header */}
+      <div className="fixed top-[52px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2">
+        <div className="relative max-w-full md:max-w-[80%] md:mx-auto">
+          <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input
             type="text"
             placeholder="Search company..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs bg-white"
+            className="w-full pl-6 pr-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs bg-white"
           />
         </div>
       </div>
 
-      {/* Select Company */}
-      <div className="mt-1">
+      {/* Content - Padding for fixed search */}
+      <div className="pt-12">
+        {/* Select Company */}
+        <div className="mt-1">
         <div className="flex items-center justify-between mb-1.5">
           <h2 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Companies</h2>
           <Button
@@ -298,6 +300,7 @@ export default function TechnicianHome() {
           </div>
         </div>
       )}
+      </div> {/* End pt-12 wrapper */}
 
       {/* Add Company Modal */}
       <AddCompanyModal

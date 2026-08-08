@@ -126,24 +126,28 @@ export default function ReportHistory() {
 
   return (
     <div className="pb-6">
-      {/* Search Bar - Sticky below fixed header */}
-      <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm -mx-3 px-3 py-2">
-        <div className="flex items-center justify-between mb-1">
-          <h1 className="text-sm font-bold text-gray-900">Reports</h1>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search reports..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs bg-white"
-          />
+      {/* Search Bar - FIXED below header */}
+      <div className="fixed top-[52px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2">
+        <div className="max-w-full md:max-w-[80%] md:mx-auto">
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="text-sm font-bold text-gray-900">Reports</h1>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search reports..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-6 pr-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs bg-white"
+            />
+          </div>
         </div>
       </div>
 
-      {filteredReports.length === 0 ? (
+      {/* Content - Padding for fixed search */}
+      <div className="pt-16">
+        {filteredReports.length === 0 ? (
         <Card>
           <div className="p-12 text-center">
             <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
@@ -153,7 +157,7 @@ export default function ReportHistory() {
           </div>
         </Card>
       ) : (
-        <div className="space-y-1 mt-1">
+        <div className="space-y-1">
           {filteredReports.map((report) => {
             const isExpanded = expandedReport === report.id;
             
@@ -266,6 +270,7 @@ export default function ReportHistory() {
           })}
         </div>
       )}
+      </div> {/* End pt-16 wrapper */}
     </div>
   );
 }
