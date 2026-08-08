@@ -1,10 +1,12 @@
 // Service Worker for PWA - Enables standalone mode without browser bar
-const CACHE_NAME = 'plforms-v1';
+const CACHE_NAME = 'plforms-v2-20260808';
 const STATIC_CACHE = [
   '/',
   '/index.html',
   '/logo.png',
-  '/favicon.png',
+  '/favicon.jpg',
+  '/icon-192.jpg',
+  '/icon-512.jpg',
   '/manifest.json'
 ];
 
