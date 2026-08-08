@@ -1,5 +1,5 @@
 -- Function to get all staff members (admins and technicians)
--- This bypasses RLS to allow admins to see all users
+-- This bypasses RLS to allow admins and technicians (if enabled) to see all users
 CREATE OR REPLACE FUNCTION public.get_all_staff()
 RETURNS TABLE (
   id UUID,
@@ -13,14 +13,31 @@ RETURNS TABLE (
 ) 
 SECURITY DEFINER
 AS $$
+DECLARE
+  user_role user_role;
+  allow_technicians BOOLEAN;
 BEGIN
-  -- Check if the calling user is admin or super_admin
-  IF NOT EXISTS (
-    SELECT 1 FROM public.users 
-    WHERE users.id = auth.uid() 
-    AND users.role IN ('super_admin', 'admin')
-  ) THEN
-    RAISE EXCEPTION 'Access denied. Admin privileges required.';
+  -- Get the current user's role
+  SELECT users.role INTO user_role
+  FROM public.users 
+  WHERE users.id = auth.uid();
+
+  -- Check if user is admin or super_admin
+  IF user_role IN ('super_admin', 'admin') THEN
+    -- Admins always have access
+    NULL; -- Continue
+  ELSIF user_role = 'technician' THEN
+    -- Check if technicians are allowed to view staff
+    SELECT technicians_can_view_staff INTO allow_technicians
+    FROM public.system_settings
+    LIMIT 1;
+    
+    IF NOT COALESCE(allow_technicians, false) THEN
+      RAISE EXCEPTION 'Access denied. Technicians are not allowed to view staff directory.';
+    END IF;
+  ELSE
+    -- Other roles have no access
+    RAISE EXCEPTION 'Access denied. Admin or technician role required.';
   END IF;
 
   -- Return all users with their technician data if applicable

@@ -27,6 +27,9 @@ export interface SystemSettings {
   max_photos_per_report: number;
   auto_compress_images: boolean;
   
+  // Staff Access Settings
+  technicians_can_view_staff: boolean;
+  
   // Storage Settings
   storage_limit_gb: number;
   storage_warning_percent: number;

@@ -30,6 +30,9 @@ export default function SettingsPage() {
   const [maxPhotos, setMaxPhotos] = useState(10);
   const [autoCompress, setAutoCompress] = useState(true);
 
+  // Staff Access Settings
+  const [techniciansCanViewStaff, setTechniciansCanViewStaff] = useState(false);
+
   // Storage Settings
   const [storageLimit, setStorageLimit] = useState(50);
   const [warningPercent, setWarningPercent] = useState(70);
@@ -65,6 +68,9 @@ export default function SettingsPage() {
       setRequirePhotos(settings.require_photos);
       setMaxPhotos(settings.max_photos_per_report);
       setAutoCompress(settings.auto_compress_images);
+
+      // Load staff access settings
+      setTechniciansCanViewStaff(settings.technicians_can_view_staff || false);
 
       // Load storage settings
       setStorageLimit(settings.storage_limit_gb || 50);
@@ -107,6 +113,9 @@ export default function SettingsPage() {
         require_photos: requirePhotos,
         max_photos_per_report: maxPhotos,
         auto_compress_images: autoCompress,
+
+        // Staff access settings
+        technicians_can_view_staff: techniciansCanViewStaff,
 
         // Storage settings
         storage_limit_gb: storageLimit,
@@ -323,6 +332,44 @@ export default function SettingsPage() {
               min={1}
               max={50}
             />
+          </div>
+        </div>
+      </Card>
+
+      {/* Staff Access Settings */}
+      <Card>
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <SettingsIcon className="w-5 h-5 text-blue-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Staff Access</h2>
+          </div>
+
+          <div className="space-y-4">
+            {/* Allow Technicians to View Staff */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <label className="font-medium text-gray-900">Technicians can view staff directory</label>
+                <p className="text-sm text-gray-600">Allow technicians to see the list of all staff members</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={techniciansCanViewStaff}
+                  onChange={(e) => setTechniciansCanViewStaff(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            {/* Info about Staff Access */}
+            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium">Staff Directory Access</p>
+                <p className="mt-1">When enabled, technicians can view contact information for all staff members from their mobile view. This is useful for team coordination.</p>
+              </div>
+            </div>
           </div>
         </div>
       </Card>
