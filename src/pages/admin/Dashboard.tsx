@@ -18,6 +18,15 @@ interface StorageMetrics {
   report_count: number;
 }
 
+interface ServiceTypeCounts {
+  delivery: number;
+  pickup: number;
+  service: number;
+  tuneup: number;
+  training: number;
+  other: number;
+}
+
 interface TechnicianStat {
   technician_id: string;
   technician_name: string;
@@ -25,6 +34,7 @@ interface TechnicianStat {
   photo_count: number;
   video_count: number;
   total_size_bytes: number;
+  service_types: ServiceTypeCounts;
 }
 
 interface CompanyStat {
@@ -33,9 +43,18 @@ interface CompanyStat {
   report_count: number;
   photo_count: number;
   video_count: number;
+  service_types: ServiceTypeCounts;
 }
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#6366f1'];
+const SERVICE_TYPE_COLORS = {
+  delivery: '#3b82f6',    // blue
+  pickup: '#8b5cf6',      // purple
+  service: '#10b981',     // green
+  tuneup: '#f59e0b',      // amber
+  training: '#ec4899',    // pink
+  other: '#6366f1'        // indigo
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -46,6 +65,14 @@ export default function Dashboard() {
   const [storageMetrics, setStorageMetrics] = useState<StorageMetrics | null>(null);
   const [technicianStats, setTechnicianStats] = useState<TechnicianStat[]>([]);
   const [companyStats, setCompanyStats] = useState<CompanyStat[]>([]);
+  const [serviceTypeStats, setServiceTypeStats] = useState<ServiceTypeCounts>({
+    delivery: 0,
+    pickup: 0,
+    service: 0,
+    tuneup: 0,
+    training: 0,
+    other: 0
+  });
   const [activeTab, setActiveTab] = useState<'technicians' | 'companies'>('technicians');
 
   useEffect(() => {
@@ -121,15 +148,78 @@ export default function Dashboard() {
         .order('report_count', { ascending: false })
         .limit(10);
 
+      // Get service type counts per technician
+      const { data: reports } = await supabase
+        .from('service_reports')
+        .select('technician_id, service_type');
+
+      const techServiceTypes = new Map<string, ServiceTypeCounts>();
+      const globalServiceTypes: ServiceTypeCounts = {
+        delivery: 0,
+        pickup: 0,
+        service: 0,
+        tuneup: 0,
+        training: 0,
+        other: 0
+      };
+
+      reports?.forEach((report: any) => {
+        if (!report.technician_id) return;
+        
+        if (!techServiceTypes.has(report.technician_id)) {
+          techServiceTypes.set(report.technician_id, {
+            delivery: 0,
+            pickup: 0,
+            service: 0,
+            tuneup: 0,
+            training: 0,
+            other: 0
+          });
+        }
+        
+        const counts = techServiceTypes.get(report.technician_id)!;
+        const serviceType = report.service_type?.toLowerCase() || 'other';
+        
+        // Count for technician
+        if (serviceType === 'delivery') counts.delivery++;
+        else if (serviceType === 'pick up' || serviceType === 'pickup') counts.pickup++;
+        else if (serviceType === 'service') counts.service++;
+        else if (serviceType === 'tune up' || serviceType === 'tuneup') counts.tuneup++;
+        else if (serviceType === 'training') counts.training++;
+        else counts.other++;
+        
+        // Count for global stats
+        if (serviceType === 'delivery') globalServiceTypes.delivery++;
+        else if (serviceType === 'pick up' || serviceType === 'pickup') globalServiceTypes.pickup++;
+        else if (serviceType === 'service') globalServiceTypes.service++;
+        else if (serviceType === 'tune up' || serviceType === 'tuneup') globalServiceTypes.tuneup++;
+        else if (serviceType === 'training') globalServiceTypes.training++;
+        else globalServiceTypes.other++;
+      });
+
+      setServiceTypeStats(globalServiceTypes);
+
       if (stats) {
-        const formattedStats: TechnicianStat[] = stats.map((stat: any) => ({
-          technician_id: stat.technician_id,
-          technician_name: stat.technician?.user?.full_name || 'Unknown',
-          report_count: stat.report_count || 0,
-          photo_count: stat.photo_count || 0,
-          video_count: stat.video_count || 0,
-          total_size_bytes: stat.total_size_bytes || 0,
-        }));
+        const formattedStats: TechnicianStat[] = stats.map((stat: any) => {
+          const serviceCounts = techServiceTypes.get(stat.technician_id) || {
+            delivery: 0,
+            pickup: 0,
+            service: 0,
+            tuneup: 0,
+            training: 0,
+            other: 0
+          };
+          
+          return {
+            technician_id: stat.technician_id,
+            technician_name: stat.technician?.user?.full_name || 'Unknown',
+            report_count: stat.report_count || 0,
+            photo_count: stat.photo_count || 0,
+            video_count: stat.video_count || 0,
+            total_size_bytes: stat.total_size_bytes || 0,
+            service_types: serviceCounts
+          };
+        });
         setTechnicianStats(formattedStats);
       }
     } catch (error) {
@@ -145,12 +235,14 @@ export default function Dashboard() {
         .select(`
           company_id,
           company:companies(name),
-          id
+          id,
+          service_type
         `);
 
       if (stats) {
         // Group by company and count reports
         const companyMap = new Map<string, { name: string; count: number }>();
+        const companyServiceTypes = new Map<string, ServiceTypeCounts>();
         
         stats.forEach((report: any) => {
           const companyId = report.company_id;
@@ -161,6 +253,28 @@ export default function Dashboard() {
           } else {
             companyMap.set(companyId, { name: companyName, count: 1 });
           }
+          
+          // Count service types
+          if (!companyServiceTypes.has(companyId)) {
+            companyServiceTypes.set(companyId, {
+              delivery: 0,
+              pickup: 0,
+              service: 0,
+              tuneup: 0,
+              training: 0,
+              other: 0
+            });
+          }
+          
+          const counts = companyServiceTypes.get(companyId)!;
+          const serviceType = report.service_type?.toLowerCase() || 'other';
+          
+          if (serviceType === 'delivery') counts.delivery++;
+          else if (serviceType === 'pick up' || serviceType === 'pickup') counts.pickup++;
+          else if (serviceType === 'service') counts.service++;
+          else if (serviceType === 'tune up' || serviceType === 'tuneup') counts.tuneup++;
+          else if (serviceType === 'training') counts.training++;
+          else counts.other++;
         });
 
         // Get photo and video counts per company
@@ -193,12 +307,22 @@ export default function Dashboard() {
         const formattedStats: CompanyStat[] = Array.from(companyMap.entries())
           .map(([companyId, data]) => {
             const mediaCounts = companyPhotos.get(companyId) || { photos: 0, videos: 0 };
+            const serviceCounts = companyServiceTypes.get(companyId) || {
+              delivery: 0,
+              pickup: 0,
+              service: 0,
+              tuneup: 0,
+              training: 0,
+              other: 0
+            };
+            
             return {
               company_id: companyId,
               company_name: data.name,
               report_count: data.count,
               photo_count: mediaCounts.photos,
               video_count: mediaCounts.videos,
+              service_types: serviceCounts
             };
           })
           .sort((a, b) => b.report_count - a.report_count)
@@ -442,7 +566,7 @@ export default function Dashboard() {
           {/* Technician Statistics */}
           {activeTab === 'technicians' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Pie Chart - Reports Distribution */}
                 <div>
                   <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -458,7 +582,7 @@ export default function Dashboard() {
                           nameKey="technician_name"
                           cx="50%"
                           cy="50%"
-                          outerRadius={80}
+                          outerRadius={70}
                           label={(entry) => `${entry.technician_name}: ${entry.report_count}`}
                         >
                           {technicianStats.map((entry, index) => (
@@ -501,6 +625,50 @@ export default function Dashboard() {
                     <p className="text-gray-500 text-center py-12">No data available</p>
                   )}
                 </div>
+
+                {/* Pie Chart - Service Types Distribution */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    Service Types
+                  </h3>
+                  {serviceTypeStats && (serviceTypeStats.delivery + serviceTypeStats.pickup + serviceTypeStats.service + serviceTypeStats.tuneup + serviceTypeStats.training + serviceTypeStats.other) > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Delivery', value: serviceTypeStats.delivery },
+                            { name: 'Pick up', value: serviceTypeStats.pickup },
+                            { name: 'Service', value: serviceTypeStats.service },
+                            { name: 'Tune up', value: serviceTypeStats.tuneup },
+                            { name: 'Training', value: serviceTypeStats.training },
+                            { name: 'Other', value: serviceTypeStats.other }
+                          ].filter(item => item.value > 0)}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={70}
+                          label={(entry) => `${entry.name}: ${entry.value}`}
+                        >
+                          {[
+                            { name: 'Delivery', value: serviceTypeStats.delivery, color: SERVICE_TYPE_COLORS.delivery },
+                            { name: 'Pick up', value: serviceTypeStats.pickup, color: SERVICE_TYPE_COLORS.pickup },
+                            { name: 'Service', value: serviceTypeStats.service, color: SERVICE_TYPE_COLORS.service },
+                            { name: 'Tune up', value: serviceTypeStats.tuneup, color: SERVICE_TYPE_COLORS.tuneup },
+                            { name: 'Training', value: serviceTypeStats.training, color: SERVICE_TYPE_COLORS.training },
+                            { name: 'Other', value: serviceTypeStats.other, color: SERVICE_TYPE_COLORS.other }
+                          ].filter(item => item.value > 0).map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-gray-500 text-center py-12">No service type data yet</p>
+                  )}
+                </div>
               </div>
 
               {/* Detailed Table */}
@@ -515,13 +683,28 @@ export default function Dashboard() {
                         Reports
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Service
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Tune up
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Delivery
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Pick up
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Training
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Other
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         Photos
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         Videos
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Avg per Report
                       </th>
                     </tr>
                   </thead>
@@ -531,19 +714,32 @@ export default function Dashboard() {
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
                           {tech.technician_name}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">
+                        <td className="px-4 py-3 text-sm text-gray-700 font-bold">
                           {tech.report_count}
                         </td>
+                        <td className="px-4 py-3 text-sm text-green-600 font-medium">
+                          {tech.service_types.service}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-amber-600 font-medium">
+                          {tech.service_types.tuneup}
+                        </td>
                         <td className="px-4 py-3 text-sm text-blue-600 font-medium">
-                          {tech.photo_count}
+                          {tech.service_types.delivery}
                         </td>
                         <td className="px-4 py-3 text-sm text-purple-600 font-medium">
-                          {tech.video_count}
+                          {tech.service_types.pickup}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-pink-600 font-medium">
+                          {tech.service_types.training}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-indigo-600 font-medium">
+                          {tech.service_types.other}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {tech.report_count > 0
-                            ? `${((tech.photo_count + tech.video_count) / tech.report_count).toFixed(1)} files`
-                            : '0 files'}
+                          {tech.photo_count}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {tech.video_count}
                         </td>
                       </tr>
                     ))}
@@ -556,7 +752,7 @@ export default function Dashboard() {
           {/* Company Statistics */}
           {activeTab === 'companies' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Pie Chart - Reports by Company */}
                 <div>
                   <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -572,7 +768,7 @@ export default function Dashboard() {
                           nameKey="company_name"
                           cx="50%"
                           cy="50%"
-                          outerRadius={80}
+                          outerRadius={70}
                           label={(entry) => `${entry.company_name}: ${entry.report_count}`}
                         >
                           {companyStats.map((entry, index) => (
@@ -615,6 +811,50 @@ export default function Dashboard() {
                     <p className="text-gray-500 text-center py-12">No data available</p>
                   )}
                 </div>
+
+                {/* Pie Chart - Service Types */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    Service Types
+                  </h3>
+                  {serviceTypeStats && (serviceTypeStats.delivery + serviceTypeStats.pickup + serviceTypeStats.service + serviceTypeStats.tuneup + serviceTypeStats.training + serviceTypeStats.other) > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Delivery', value: serviceTypeStats.delivery },
+                            { name: 'Pick up', value: serviceTypeStats.pickup },
+                            { name: 'Service', value: serviceTypeStats.service },
+                            { name: 'Tune up', value: serviceTypeStats.tuneup },
+                            { name: 'Training', value: serviceTypeStats.training },
+                            { name: 'Other', value: serviceTypeStats.other }
+                          ].filter(item => item.value > 0)}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={70}
+                          label={(entry) => `${entry.name}: ${entry.value}`}
+                        >
+                          {[
+                            { name: 'Delivery', value: serviceTypeStats.delivery, color: SERVICE_TYPE_COLORS.delivery },
+                            { name: 'Pick up', value: serviceTypeStats.pickup, color: SERVICE_TYPE_COLORS.pickup },
+                            { name: 'Service', value: serviceTypeStats.service, color: SERVICE_TYPE_COLORS.service },
+                            { name: 'Tune up', value: serviceTypeStats.tuneup, color: SERVICE_TYPE_COLORS.tuneup },
+                            { name: 'Training', value: serviceTypeStats.training, color: SERVICE_TYPE_COLORS.training },
+                            { name: 'Other', value: serviceTypeStats.other, color: SERVICE_TYPE_COLORS.other }
+                          ].filter(item => item.value > 0).map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-gray-500 text-center py-12">No service type data yet</p>
+                  )}
+                </div>
               </div>
 
               {/* Detailed Table */}
@@ -629,13 +869,28 @@ export default function Dashboard() {
                         Reports
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Service
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Tune up
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Delivery
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Pick up
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Training
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Other
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         Photos
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         Videos
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Total Media
                       </th>
                     </tr>
                   </thead>
@@ -645,17 +900,32 @@ export default function Dashboard() {
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
                           {company.company_name}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">
+                        <td className="px-4 py-3 text-sm text-gray-700 font-bold">
                           {company.report_count}
                         </td>
+                        <td className="px-4 py-3 text-sm text-green-600 font-medium">
+                          {company.service_types.service}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-amber-600 font-medium">
+                          {company.service_types.tuneup}
+                        </td>
                         <td className="px-4 py-3 text-sm text-blue-600 font-medium">
-                          {company.photo_count}
+                          {company.service_types.delivery}
                         </td>
                         <td className="px-4 py-3 text-sm text-purple-600 font-medium">
-                          {company.video_count}
+                          {company.service_types.pickup}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-pink-600 font-medium">
+                          {company.service_types.training}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-indigo-600 font-medium">
+                          {company.service_types.other}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {company.photo_count + company.video_count} files
+                          {company.photo_count}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {company.video_count}
                         </td>
                       </tr>
                     ))}
