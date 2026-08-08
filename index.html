@@ -27,19 +27,19 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Service Worker Registration for PWA -->
+    <!-- Service Worker - Temporarily disabled to fix blank screen -->
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('SW registered:', registration);
-              // Check for updates every 60 seconds
-              setInterval(() => {
-                registration.update();
-              }, 60000);
-            })
-            .catch(err => console.log('SW registration failed:', err));
+        // Unregister all service workers
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          registrations.forEach(registration => {
+            registration.unregister();
+            console.log('SW unregistered:', registration);
+          });
+        });
+        // Clear all caches
+        caches.keys().then(keys => {
+          keys.forEach(key => caches.delete(key));
         });
       }
     </script>
