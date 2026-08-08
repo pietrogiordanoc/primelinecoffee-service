@@ -125,19 +125,22 @@ export default function ReportHistory() {
   }
 
   return (
-    <div className="space-y-4 pb-6">
-      <h1 className="text-xl font-bold text-gray-900">Report History</h1>
-
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search reports..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-        />
+    <div className="pb-6">
+      {/* Search Bar - Fixed/Sticky */}
+      <div className="sticky top-0 z-10 bg-gray-50 pb-2 -mx-3 px-3 pt-0">
+        <div className="flex items-center justify-between mb-1.5">
+          <h1 className="text-base font-bold text-gray-900">Report History</h1>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search reports..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+          />
+        </div>
       </div>
 
       {filteredReports.length === 0 ? (
@@ -150,34 +153,34 @@ export default function ReportHistory() {
           </div>
         </Card>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-1.5 mt-2">
           {filteredReports.map((report) => {
             const isExpanded = expandedReport === report.id;
             
             return (
               <div
                 key={report.id}
-                className="bg-white rounded-lg border-2 border-gray-200 hover:border-gray-300 transition-all"
+                className="bg-white rounded-md border border-gray-200 hover:border-gray-300 transition-all"
               >
                 {/* Report Header - Always Visible */}
                 <div
-                  className="flex items-center justify-between p-4 cursor-pointer"
+                  className="flex items-center justify-between p-3 cursor-pointer"
                   onClick={() => setExpandedReport(isExpanded ? null : report.id)}
                 >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="w-5 h-5" />
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="w-8 h-8 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
+                      <p className="text-sm font-medium text-gray-900 truncate leading-tight">
                         {report.company_name}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 leading-tight">
                         {formatRelativeTime(report.created_at)}
                       </p>
                     </div>
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full flex-shrink-0 ${
+                      className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
                         report.status === 'completed'
                           ? 'bg-green-100 text-green-700'
                           : report.status === 'reviewed'
@@ -197,25 +200,27 @@ export default function ReportHistory() {
                     </span>
                   </div>
                   {isExpanded ? (
-                    <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+                    <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
                   ) : (
-                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
                   )}
                 </div>
 
                 {/* Report Details - Expandable */}
                 {isExpanded && (
-                  <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
-                    <div className="flex items-center gap-2 pt-3">
-                      <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <p className="text-sm text-gray-900">{report.form_name}</p>
+                  <div className="px-3 pb-2 space-y-1.5 border-t border-gray-100">
+                    <div className="flex items-center gap-1.5 pt-2">
+                      <FileText className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <p className="text-xs text-gray-900">{report.form_name}</p>
                     </div>
                     {report.submitted_at && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <p className="text-sm text-gray-600">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <p className="text-xs text-gray-600">
                           {new Date(report.submitted_at).toLocaleDateString('en-US', {
-                            dateStyle: 'long',
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
                           })} at {new Date(report.submitted_at).toLocaleTimeString('en-US', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -224,25 +229,25 @@ export default function ReportHistory() {
                       </div>
                     )}
                     {report.photo_count > 0 && (
-                      <div className="flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <p className="text-sm text-gray-600">
+                      <div className="flex items-center gap-1.5">
+                        <ImageIcon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <p className="text-xs text-gray-600">
                           {report.photo_count} {report.photo_count === 1 ? 'photo' : 'photos'}
                         </p>
                       </div>
                     )}
                     
                     {/* Action Buttons */}
-                    <div className="flex gap-2 pt-2">
+                    <div className="flex gap-2 pt-1.5">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/technician/report/${report.id}/view`);
                         }}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium"
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition text-sm font-medium"
                       >
                         <Eye className="w-4 h-4" />
-                        View Report
+                        View
                       </button>
                       <button
                         onClick={(e) => {
@@ -250,7 +255,7 @@ export default function ReportHistory() {
                           handleDelete(report.id, report.company_name);
                         }}
                         disabled={deleting === report.id}
-                        className="px-4 py-2.5 border-2 border-red-200 text-red-600 rounded-lg hover:bg-red-50 hover:border-red-300 transition text-sm font-medium disabled:opacity-50"
+                        className="px-3 py-2 border border-red-200 text-red-600 rounded-md hover:bg-red-50 hover:border-red-300 transition text-sm font-medium disabled:opacity-50"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

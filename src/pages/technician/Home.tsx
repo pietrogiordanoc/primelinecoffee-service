@@ -104,23 +104,25 @@ export default function TechnicianHome() {
   }
 
   return (
-    <div className="space-y-4 pb-6">
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search company..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-        />
+    <div className="pb-6">
+      {/* Search Bar - Fixed/Sticky */}
+      <div className="sticky top-0 z-10 bg-gray-50 pb-2 -mx-3 px-3 pt-0">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search company..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+          />
+        </div>
       </div>
 
       {/* Select Company */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-900">Companies</h2>
+      <div className="mt-2">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Companies</h2>
           <Button
             onClick={() => setIsAddCompanyModalOpen(true)}
             variant="secondary"
@@ -145,7 +147,7 @@ export default function TechnicianHome() {
             </div>
           </Card>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {filteredCompanies.map((company: any) => {
               const isExpanded = expandedCompany === company.id;
               const isSelected = selectedCompany?.id === company.id;
@@ -153,7 +155,7 @@ export default function TechnicianHome() {
               return (
                 <div
                   key={company.id}
-                  className={`bg-white rounded-lg border-2 transition-all ${
+                  className={`bg-white rounded-md border transition-all ${
                     isSelected
                       ? 'border-primary-500 shadow-sm'
                       : 'border-gray-200 hover:border-gray-300'
@@ -161,82 +163,81 @@ export default function TechnicianHome() {
                 >
                   {/* Company Header - Always Visible */}
                   <div
-                    className="flex items-center justify-between p-4 cursor-pointer"
+                    className="flex items-center justify-between p-3 cursor-pointer"
                     onClick={() => {
                       setSelectedCompany(company);
                       setExpandedCompany(isExpanded ? null : company.id);
                     }}
                   >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
                       {isSelected && (
-                        <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="w-4 h-4 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
+                        <p className="text-sm font-medium text-gray-900 truncate leading-tight">
                           {company.name}
                         </p>
                         {company.last_visit && (
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            Last visit: {new Date(company.last_visit).toLocaleDateString('en-US', {
+                          <p className="text-xs text-gray-500 leading-tight">
+                            Last: {new Date(company.last_visit).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
-                              year: 'numeric',
                             })}
                           </p>
                         )}
                       </div>
                     </div>
                     {isExpanded ? (
-                      <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
                     ) : (
-                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
                     )}
                   </div>
 
                   {/* Company Details - Expandable */}
                   {isExpanded && (
-                    <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
+                    <div className="px-3 pb-2 space-y-1.5 border-t border-gray-100">
                       {company.address && (
-                        <div className="flex items-start gap-2 pt-3">
-                          <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex items-start gap-1.5 pt-2">
+                          <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-900">{company.address}</p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs text-gray-900 leading-tight">{company.address}</p>
+                            <p className="text-xs text-gray-600 leading-tight">
                               {company.city}{company.state && `, ${company.state}`} {company.postal_code}
                             </p>
                           </div>
                         </div>
                       )}
                       {company.contact_name && (
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <p className="text-sm text-gray-900">{company.contact_name}</p>
+                        <div className="flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                          <p className="text-xs text-gray-900">{company.contact_name}</p>
                         </div>
                       )}
                       {company.contact_phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <a href={`tel:${company.contact_phone}`} className="text-sm text-primary-600 hover:underline">
+                        <div className="flex items-center gap-1.5">
+                          <Phone className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                          <a href={`tel:${company.contact_phone}`} className="text-xs text-primary-600 hover:underline">
                             {company.contact_phone}
                           </a>
                         </div>
                       )}
                       {company.contact_email && (
-                        <div className="flex items-center gap-2">
-                          <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <a href={`mailto:${company.contact_email}`} className="text-sm text-primary-600 hover:underline truncate">
+                        <div className="flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                          <a href={`mailto:${company.contact_email}`} className="text-xs text-primary-600 hover:underline truncate">
                             {company.contact_email}
                           </a>
                         </div>
                       )}
                       {company.last_visit && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <p className="text-sm text-gray-600">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                          <p className="text-xs text-gray-600">
                             {new Date(company.last_visit).toLocaleDateString('en-US', {
                               dateStyle: 'long',
                             })} at {new Date(company.last_visit).toLocaleTimeString('en-US', {
@@ -257,11 +258,11 @@ export default function TechnicianHome() {
 
       {/* Select Form */}
       {selectedCompany && (
-        <div>
-          <h2 className="text-sm font-semibold text-gray-900 mb-3">
+        <div className="mt-3">
+          <h2 className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-2">
             Service Type
           </h2>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {forms.length === 0 ? (
               <Card>
                 <div className="p-4 text-center text-sm text-gray-500">
@@ -273,23 +274,23 @@ export default function TechnicianHome() {
                 <button
                   key={form.id}
                   onClick={() => handleStartReport(form.id)}
-                  className="w-full text-left p-4 rounded-lg border-2 border-gray-200 bg-white hover:border-primary-500 hover:bg-primary-50 transition-all"
+                  className="w-full text-left p-3 rounded-md border border-gray-200 bg-white hover:border-primary-500 hover:bg-primary-50 transition-all"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center flex-1 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-5 h-5" />
+                    <div className="flex items-center flex-1 min-w-0 gap-2">
+                      <div className="w-7 h-7 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-4 h-4" />
                       </div>
-                      <div className="ml-3 flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate leading-tight">
                           {form.name}
                         </p>
                         {form.category && (
-                          <p className="text-xs text-gray-500 truncate">{form.category}</p>
+                          <p className="text-xs text-gray-500 truncate leading-tight">{form.category}</p>
                         )}
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
                   </div>
                 </button>
               ))
