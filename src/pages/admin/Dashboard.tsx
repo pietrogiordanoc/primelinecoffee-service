@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Users, Building2, FileText, HardDrive, Image, Video, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Users, Building2, FileText, HardDrive, Image, Video, AlertTriangle, ExternalLink, BarChart3, Camera, Film } from 'lucide-react';
 import type { DashboardStats } from '@/types';
 import { useReportStore } from '@/stores/reportStore';
 import { useTechnicianStore } from '@/stores/technicianStore';
 import { useCompanyStore } from '@/stores/companyStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface StorageMetrics {
   total_size_bytes: number;
@@ -17,6 +18,25 @@ interface StorageMetrics {
   report_count: number;
 }
 
+interface TechnicianStat {
+  technician_id: string;
+  technician_name: string;
+  report_count: number;
+  photo_count: number;
+  video_count: number;
+  total_size_bytes: number;
+}
+
+interface CompanyStat {
+  company_id: string;
+  company_name: string;
+  report_count: number;
+  photo_count: number;
+  video_count: number;
+}
+
+const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#6366f1'];
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { settings, fetchSettings } = useSettingsStore();
@@ -24,6 +44,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [recentReports, setRecentReports] = useState<any[]>([]);
   const [storageMetrics, setStorageMetrics] = useState<StorageMetrics | null>(null);
+  const [technicianStats, setTechnicianStats] = useState<TechnicianStat[]>([]);
+  const [companyStats, setCompanyStats] = useState<CompanyStat[]>([]);
+  const [activeTab, setActiveTab] = useState<'technicians' | 'companies'>('technicians');
 
   useEffect(() => {
     fetchSettings();
@@ -68,10 +91,123 @@ export default function Dashboard() {
 
       // Load storage metrics
       await loadStorageMetrics();
+
+      // Load statistics
+      await loadTechnicianStats();
+      await loadCompanyStats();
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadTechnicianStats() {
+    try {
+      // Update stats first
+      await supabase.rpc('update_technician_storage_stats');
+
+      // Get technician stats
+      const { data: stats } = await supabase
+        .from('technician_storage_stats')
+        .select(`
+          *,
+          technician:technician_id (
+            user:user_id (
+              full_name
+            )
+          )
+        `)
+        .order('report_count', { ascending: false })
+        .limit(10);
+
+      if (stats) {
+        const formattedStats: TechnicianStat[] = stats.map((stat: any) => ({
+          technician_id: stat.technician_id,
+          technician_name: stat.technician?.user?.full_name || 'Unknown',
+          report_count: stat.report_count || 0,
+          photo_count: stat.photo_count || 0,
+          video_count: stat.video_count || 0,
+          total_size_bytes: stat.total_size_bytes || 0,
+        }));
+        setTechnicianStats(formattedStats);
+      }
+    } catch (error) {
+      console.error('Error loading technician stats:', error);
+    }
+  }
+
+  async function loadCompanyStats() {
+    try {
+      // Get company report stats
+      const { data: stats } = await supabase
+        .from('service_reports')
+        .select(`
+          company_id,
+          company:companies(name),
+          id
+        `);
+
+      if (stats) {
+        // Group by company and count reports
+        const companyMap = new Map<string, { name: string; count: number }>();
+        
+        stats.forEach((report: any) => {
+          const companyId = report.company_id;
+          const companyName = report.company?.name || 'Unknown';
+          
+          if (companyMap.has(companyId)) {
+            companyMap.get(companyId)!.count++;
+          } else {
+            companyMap.set(companyId, { name: companyName, count: 1 });
+          }
+        });
+
+        // Get photo and video counts per company
+        const { data: photos } = await supabase
+          .from('report_photos')
+          .select(`
+            service_report:service_reports(company_id),
+            file_type
+          `);
+
+        const companyPhotos = new Map<string, { photos: number; videos: number }>();
+        
+        photos?.forEach((photo: any) => {
+          const companyId = photo.service_report?.company_id;
+          if (!companyId) return;
+          
+          if (!companyPhotos.has(companyId)) {
+            companyPhotos.set(companyId, { photos: 0, videos: 0 });
+          }
+          
+          const counts = companyPhotos.get(companyId)!;
+          if (photo.file_type === 'photo') {
+            counts.photos++;
+          } else if (photo.file_type === 'video') {
+            counts.videos++;
+          }
+        });
+
+        // Combine data
+        const formattedStats: CompanyStat[] = Array.from(companyMap.entries())
+          .map(([companyId, data]) => {
+            const mediaCounts = companyPhotos.get(companyId) || { photos: 0, videos: 0 };
+            return {
+              company_id: companyId,
+              company_name: data.name,
+              report_count: data.count,
+              photo_count: mediaCounts.photos,
+              video_count: mediaCounts.videos,
+            };
+          })
+          .sort((a, b) => b.report_count - a.report_count)
+          .slice(0, 10);
+
+        setCompanyStats(formattedStats);
+      }
+    } catch (error) {
+      console.error('Error loading company stats:', error);
     }
   }
 
@@ -270,70 +406,262 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* Recent Reports */}
+      {/* Report Statistics - With Tabs */}
       <Card>
-        <div className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Recent Reports
-          </h2>
-          {recentReports.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
-              No recent reports
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Company
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Technician
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Form
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {recentReports.map((report) => (
-                    <tr key={report.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        {report.company_name}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        {report.technician_name}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        {report.form_name}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            report.status === 'completed'
-                              ? 'bg-green-100 text-green-700'
-                              : report.status === 'submitted'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-yellow-100 text-yellow-700'
-                          }`}
+        <div className="p-4">
+          {/* Header with Tabs */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-blue-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Report Statistics</h2>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab('technicians')}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
+                  activeTab === 'technicians'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                By Technician
+              </button>
+              <button
+                onClick={() => setActiveTab('companies')}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
+                  activeTab === 'companies'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                By Company
+              </button>
+            </div>
+          </div>
+
+          {/* Technician Statistics */}
+          {activeTab === 'technicians' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Pie Chart - Reports Distribution */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Reports Distribution
+                  </h3>
+                  {technicianStats.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={technicianStats}
+                          dataKey="report_count"
+                          nameKey="technician_name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          label={(entry) => `${entry.technician_name}: ${entry.report_count}`}
                         >
-                          {report.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
-                        {new Date(report.created_at).toLocaleDateString('en-US')}
-                      </td>
+                          {technicianStats.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-gray-500 text-center py-12">No data available</p>
+                  )}
+                </div>
+
+                {/* Bar Chart - Photos & Videos */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <Camera className="w-4 h-4" />
+                    Media Usage by Technician
+                  </h3>
+                  {technicianStats.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={technicianStats}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="technician_name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                          tick={{ fontSize: 11 }}
+                        />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="photo_count" fill="#3b82f6" name="Photos" />
+                        <Bar dataKey="video_count" fill="#8b5cf6" name="Videos" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-gray-500 text-center py-12">No data available</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Detailed Table */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Technician
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Reports
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Photos
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Videos
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Avg per Report
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {technicianStats.map((tech) => (
+                      <tr key={tech.technician_id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                          {tech.technician_name}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {tech.report_count}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-blue-600 font-medium">
+                          {tech.photo_count}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-purple-600 font-medium">
+                          {tech.video_count}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {tech.report_count > 0
+                            ? `${((tech.photo_count + tech.video_count) / tech.report_count).toFixed(1)} files`
+                            : '0 files'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Company Statistics */}
+          {activeTab === 'companies' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Pie Chart - Reports by Company */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    Reports by Company
+                  </h3>
+                  {companyStats.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={companyStats}
+                          dataKey="report_count"
+                          nameKey="company_name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          label={(entry) => `${entry.company_name}: ${entry.report_count}`}
+                        >
+                          {companyStats.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-gray-500 text-center py-12">No data available</p>
+                  )}
+                </div>
+
+                {/* Bar Chart - Media by Company */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <Film className="w-4 h-4" />
+                    Media Usage by Company
+                  </h3>
+                  {companyStats.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={companyStats}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="company_name" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                          tick={{ fontSize: 11 }}
+                        />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="photo_count" fill="#3b82f6" name="Photos" />
+                        <Bar dataKey="video_count" fill="#8b5cf6" name="Videos" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-gray-500 text-center py-12">No data available</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Detailed Table */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Company
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Reports
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Photos
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Videos
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Total Media
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {companyStats.map((company) => (
+                      <tr key={company.company_id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                          {company.company_name}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {company.report_count}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-blue-600 font-medium">
+                          {company.photo_count}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-purple-600 font-medium">
+                          {company.video_count}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {company.photo_count + company.video_count} files
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
