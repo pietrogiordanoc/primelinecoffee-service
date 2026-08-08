@@ -24,6 +24,11 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
   );
   
+  // Get app URL from request headers (works with any domain)
+  const protocol = event.headers['x-forwarded-proto'] || 'https';
+  const host = event.headers['host'] || event.headers['x-forwarded-host'] || 'primelinecoffee-service.netlify.app';
+  const appUrl = `${protocol}://${host}`;
+  
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
@@ -142,8 +147,8 @@ const handler: Handler = async (event: HandlerEvent) => {
       }
     }
 
-    // Generate email HTML
-    const emailHtml = generateEmailHtml(report, photoLinks);
+    // Generate email HTML with dynamic app URL
+    const emailHtml = generateEmailHtml(report, photoLinks, appUrl);
 
     // Use configured sender email or fallback
     const fromName = settings.email_sender_name || 'Prime Line Coffee Service';
@@ -200,9 +205,8 @@ const handler: Handler = async (event: HandlerEvent) => {
   }
 };
 
-function generateEmailHtml(report: any, photoLinks: string[]): string {
-  // Get app URL from environment or use default
-  const appUrl = process.env.VITE_APP_URL || 'https://plforms.netlify.app';
+function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): string {
+  // Build reports URL from provided app URL
   const reportsUrl = `${appUrl}/admin/reports`;
   
   const formDataHtml = Object.entries(report.form_data)
