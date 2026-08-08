@@ -83,7 +83,13 @@ function RoleBasedRedirect() {
 
 function App() {
   const { user, loading, setUser, setLoading } = useAuthStore();
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    // Only show splash on first visit or after 24 hours
+    const lastShown = localStorage.getItem('splashLastShown');
+    if (!lastShown) return true;
+    const dayInMs = 24 * 60 * 60 * 1000;
+    return Date.now() - parseInt(lastShown) > dayInMs;
+  });
   const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
@@ -103,12 +109,16 @@ function App() {
     return () => subscription.unsubscribe();
   }, [setUser, setLoading]);
 
-  // Show splash screen only on first load
+  // Show splash screen only on first load or after 24h
   if (showSplash) {
-    return <SplashScreen onFinish={() => {
-      setShowSplash(false);
-      setAppReady(true);
-    }} />;
+    return <SplashScreen 
+      onFinish={() => {
+        setShowSplash(false);
+        setAppReady(true);
+        localStorage.setItem('splashLastShown', Date.now().toString());
+      }} 
+      duration={2000}
+    />;
   }
 
   if (loading || !appReady) {

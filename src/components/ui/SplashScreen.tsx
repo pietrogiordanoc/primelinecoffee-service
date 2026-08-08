@@ -19,30 +19,31 @@ export default function SplashScreen({ onFinish, duration = 2000 }: SplashScreen
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-300 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-50 to-white transition-opacity duration-300 ${
         show ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      <div className="flex flex-col items-center gap-4 animate-fade-in">
-        {/* Logo/Favicon */}
+      <div className="flex flex-col items-center gap-6 animate-fade-in">
+        {/* Logo/Favicon - Smaller and elegant */}
         <div className="relative">
+          <div className="absolute inset-0 bg-blue-600 opacity-10 blur-2xl rounded-full"></div>
           <img
             src="/favicon.jpg"
             alt="Prime Line Coffee Service"
-            className="w-24 h-24 object-contain rounded-xl shadow-lg animate-scale-up"
+            className="relative w-20 h-20 object-contain rounded-2xl shadow-xl ring-4 ring-blue-100 animate-scale-up"
           />
         </div>
         
-        {/* Company Name */}
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Prime Line</h1>
-          <p className="text-sm text-gray-600">Coffee and Tea Division</p>
+        {/* Company Name - Elegant typography */}
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Prime Line</h1>
+          <p className="text-sm text-gray-500 font-medium">Coffee and Tea Division</p>
         </div>
 
-        {/* Loading indicator */}
-        <div className="mt-4">
-          <div className="w-32 h-1 bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-600 rounded-full animate-loading-bar"></div>
+        {/* Loading indicator - Minimalist */}
+        <div className="mt-2">
+          <div className="w-24 h-0.5 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-loading-bar"></div>
           </div>
         </div>
       </div>
