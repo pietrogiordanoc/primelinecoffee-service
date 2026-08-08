@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Users, Building2, FileText, CheckCircle, Clock, TrendingUp, HardDrive, Image, Video, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Users, Building2, FileText, HardDrive, Image, Video, AlertTriangle, ExternalLink } from 'lucide-react';
 import type { DashboardStats } from '@/types';
 import { useReportStore } from '@/stores/reportStore';
 import { useTechnicianStore } from '@/stores/technicianStore';
@@ -137,73 +137,53 @@ export default function Dashboard() {
 
   const statCards = [
     {
-      name: 'Total Reports',
+      name: 'Reports',
       value: stats?.total_reports || 0,
       icon: FileText,
       color: 'blue',
     },
     {
-      name: 'Pending Reports',
-      value: stats?.pending_reports || 0,
-      icon: Clock,
-      color: 'yellow',
-    },
-    {
-      name: 'Completed Reports',
-      value: stats?.completed_reports || 0,
-      icon: CheckCircle,
-      color: 'green',
-    },
-    {
-      name: 'Active Technicians',
+      name: 'Technicians',
       value: stats?.total_technicians || 0,
       icon: Users,
       color: 'purple',
     },
     {
-      name: 'Active Companies',
+      name: 'Companies',
       value: stats?.total_companies || 0,
       icon: Building2,
       color: 'indigo',
-    },
-    {
-      name: 'Trend',
-      value: '+12%',
-      icon: TrendingUp,
-      color: 'green',
     },
   ];
 
   const colorMap: Record<string, string> = {
     blue: 'bg-blue-100 text-blue-600',
-    yellow: 'bg-yellow-100 text-yellow-600',
-    green: 'bg-green-100 text-green-600',
     purple: 'bg-purple-100 text-purple-600',
     indigo: 'bg-indigo-100 text-indigo-600',
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">System activity summary</p>
+        <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-sm text-gray-600">System activity summary</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Stats Grid - Minimal */}
+      <div className="grid grid-cols-3 gap-3">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.name}>
-              <div className="p-6">
+              <div className="p-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">{stat.value}</p>
+                    <p className="text-xs font-medium text-gray-600">{stat.name}</p>
+                    <p className="text-xl font-bold text-gray-900 mt-1">{stat.value}</p>
                   </div>
-                  <div className={`p-3 rounded-lg ${colorMap[stat.color]}`}>
-                    <Icon className="w-6 h-6" />
+                  <div className={`p-2 rounded-lg ${colorMap[stat.color]}`}>
+                    <Icon className="w-4 h-4" />
                   </div>
                 </div>
               </div>
