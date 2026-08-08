@@ -1,19 +1,32 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Users, Building2, FileText, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import { Users, Building2, FileText, CheckCircle, Clock, TrendingUp, HardDrive, Image, Video, AlertTriangle, ExternalLink } from 'lucide-react';
 import type { DashboardStats } from '@/types';
 import { useReportStore } from '@/stores/reportStore';
 import { useTechnicianStore } from '@/stores/technicianStore';
 import { useCompanyStore } from '@/stores/companyStore';
+import { useSettingsStore } from '@/stores/settingsStore';
+
+interface StorageMetrics {
+  total_size_bytes: number;
+  photo_count: number;
+  video_count: number;
+  report_count: number;
+}
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+  const { settings, fetchSettings } = useSettingsStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [recentReports, setRecentReports] = useState<any[]>([]);
+  const [storageMetrics, setStorageMetrics] = useState<StorageMetrics | null>(null);
 
   useEffect(() => {
+    fetchSettings();
     loadDashboardData();
   }, []);
 
@@ -52,11 +65,66 @@ export default function Dashboard() {
         .limit(5);
 
       setRecentReports(recentReportsData || []);
+
+      // Load storage metrics
+      await loadStorageMetrics();
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function loadStorageMetrics() {
+    try {
+      // Calculate current metrics
+      await supabase.rpc('calculate_storage_metrics');
+
+      // Get latest metrics
+      const { data } = await supabase
+        .from('storage_metrics')
+        .select('*')
+        .order('measured_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data) {
+        setStorageMetrics(data);
+      }
+    } catch (error) {
+      console.error('Error loading storage metrics:', error);
+    }
+  }
+
+  function formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  function getStoragePercentage(): number {
+    if (!storageMetrics || !settings) return 0;
+    const limitBytes = (settings.storage_limit_gb || 50) * 1024 * 1024 * 1024;
+    return (storageMetrics.total_size_bytes / limitBytes) * 100;
+  }
+
+  function getStorageLevel(): 'safe' | 'warning' | 'critical' {
+    const percentage = getStoragePercentage();
+    const warningPercent = settings?.storage_warning_percent || 70;
+    const criticalPercent = settings?.storage_critical_percent || 85;
+    
+    if (percentage >= criticalPercent) return 'critical';
+    if (percentage >= warningPercent) return 'warning';
+    return 'safe';
+  }
+
+  function getStorageLevelColor(): string {
+    const level = getStorageLevel();
+    if (level === 'critical') return 'bg-red-500';
+    if (level === 'warning') return 'bg-amber-500';
+    return 'bg-green-500';
   }
 
   if (loading) {
@@ -143,6 +211,82 @@ export default function Dashboard() {
           );
         })}
       </div>
+
+      {/* Storage Monitor - Compact */}
+      {storageMetrics && settings && (
+        <Card>
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <HardDrive className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Storage Usage</h2>
+                {getStorageLevel() === 'critical' && (
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                )}
+                {getStorageLevel() === 'warning' && (
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                )}
+              </div>
+              <button
+                onClick={() => navigate('/admin/storage')}
+                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                View Details
+                <ExternalLink className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Thermometer Bar */}
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium text-gray-700">
+                  {formatBytes(storageMetrics.total_size_bytes)} used
+                </span>
+                <span className="text-gray-600">
+                  {settings.storage_limit_gb} GB limit
+                </span>
+              </div>
+
+              <div className="relative w-full h-6 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-500 ${getStorageLevelColor()}`}
+                  style={{ width: `${Math.min(getStoragePercentage(), 100)}%` }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xs font-semibold text-gray-900">
+                    {getStoragePercentage().toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
+                <Image className="w-5 h-5 text-blue-600 mx-auto mb-1" />
+                <div className="text-lg font-bold text-blue-900">
+                  {storageMetrics.photo_count}
+                </div>
+                <div className="text-xs text-blue-700">Photos</div>
+              </div>
+              <div className="text-center p-3 bg-purple-50 rounded-lg">
+                <Video className="w-5 h-5 text-purple-600 mx-auto mb-1" />
+                <div className="text-lg font-bold text-purple-900">
+                  {storageMetrics.video_count}
+                </div>
+                <div className="text-xs text-purple-700">Videos</div>
+              </div>
+              <div className="text-center p-3 bg-green-50 rounded-lg">
+                <FileText className="w-5 h-5 text-green-600 mx-auto mb-1" />
+                <div className="text-lg font-bold text-green-900">
+                  {storageMetrics.report_count}
+                </div>
+                <div className="text-xs text-green-700">Reports</div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Recent Reports */}
       <Card>
