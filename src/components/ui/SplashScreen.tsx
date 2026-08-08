@@ -9,12 +9,22 @@ export default function SplashScreen({ onFinish, duration = 2000 }: SplashScreen
   const [show, setShow] = useState(true);
 
   useEffect(() => {
+    // Main timer
     const timer = setTimeout(() => {
       setShow(false);
       setTimeout(onFinish, 300); // Wait for fade out animation
     }, duration);
 
-    return () => clearTimeout(timer);
+    // Safety timeout - force finish after 5 seconds no matter what
+    const safetyTimer = setTimeout(() => {
+      setShow(false);
+      onFinish();
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(safetyTimer);
+    };
   }, [duration, onFinish]);
 
   return (
@@ -31,6 +41,10 @@ export default function SplashScreen({ onFinish, duration = 2000 }: SplashScreen
             src="/favicon.jpg"
             alt="Prime Line Coffee Service"
             className="relative w-20 h-20 object-contain rounded-2xl shadow-xl ring-4 ring-blue-100 animate-scale-up"
+            onError={(e) => {
+              // Fallback to logo if favicon fails
+              e.currentTarget.src = '/logo.png';
+            }}
           />
         </div>
         

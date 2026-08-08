@@ -30,6 +30,9 @@ export default function TechnicianLayout() {
               src="/favicon.jpg" 
               alt="Icon" 
               className="h-9 w-9 object-contain rounded-lg shadow-sm"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
             />
             <img 
               src="/logo.png" 

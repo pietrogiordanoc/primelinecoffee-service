@@ -67,6 +67,9 @@ export default function AdminLayout() {
                 src="/favicon.jpg" 
                 alt="Icon" 
                 className="h-10 w-10 object-contain rounded-lg shadow-sm"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
               <img 
                 src="/logo.png" 
@@ -175,6 +178,9 @@ export default function AdminLayout() {
                 src="/favicon.jpg" 
                 alt="Icon" 
                 className="h-8 w-8 object-contain rounded-lg shadow-sm lg:hidden"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
               <h1 className="text-xl font-semibold text-gray-900">
                 Prime Line Coffee Service
