@@ -90,7 +90,6 @@ function App() {
     const dayInMs = 24 * 60 * 60 * 1000;
     return Date.now() - parseInt(lastShown) > dayInMs;
   });
-  const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
     // Get session from Supabase
@@ -114,14 +113,13 @@ function App() {
     return <SplashScreen 
       onFinish={() => {
         setShowSplash(false);
-        setAppReady(true);
         localStorage.setItem('splashLastShown', Date.now().toString());
       }} 
       duration={2000}
     />;
   }
 
-  if (loading || !appReady) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
