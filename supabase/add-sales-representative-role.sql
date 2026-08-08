@@ -1,21 +1,34 @@
 -- Migration: Add Sales Representative Role
 -- Description: Adds 'sales_representative' role and connects it to service reports
 
--- Step 1: Add sales_representative to the user_role enum
+-- ⚠️ IMPORTANT: Execute this migration in TWO STEPS
+-- PostgreSQL requires enum values to be committed before use
+
+-- =====================================================
+-- STEP 1: Add enum value (Execute this FIRST, then wait)
+-- =====================================================
+
+-- Add sales_representative to the user_role enum
 ALTER TYPE user_role ADD VALUE 'sales_representative';
 
--- Step 2: Add sales_representative_id to service_reports table
+-- ⏸️ STOP HERE! Click RUN, wait for success, then continue to STEP 2
+
+
+-- =====================================================
+-- STEP 2: Add columns and policies (Execute AFTER step 1 succeeds)
+-- =====================================================
+
+-- Add sales_representative_id to service_reports table
 ALTER TABLE service_reports
-ADD COLUMN sales_representative_id UUID REFERENCES users(id);
+ADD COLUMN IF NOT EXISTS sales_representative_id UUID REFERENCES users(id);
 
--- Step 3: Create index for performance
-CREATE INDEX idx_reports_sales_rep ON service_reports(sales_representative_id);
+-- Create index for performance
+CREATE INDEX IF NOT EXISTS idx_reports_sales_rep ON service_reports(sales_representative_id);
 
--- Step 4: Add comment for documentation
+-- Add comment for documentation
 COMMENT ON COLUMN service_reports.sales_representative_id IS 'The sales representative who requested this service for the company';
 
--- Step 5: Update RLS policies to allow sales reps to view their reports
--- Allow sales representatives to view reports they requested
+-- Update RLS policies to allow sales reps to view their reports
 CREATE POLICY "Sales reps can view their own reports"
   ON service_reports FOR SELECT
   USING (
@@ -23,13 +36,10 @@ CREATE POLICY "Sales reps can view their own reports"
     sales_representative_id = auth.uid()
   );
 
--- Note: Sales representatives can only VIEW reports, not create/edit/delete them
--- Only technicians can create reports and assign them to a sales rep
-
--- Step 6: Grant necessary permissions
+-- Grant necessary permissions
 GRANT SELECT ON service_reports TO authenticated;
 
--- Step 7: Update report_summary view to include sales representative
+-- Update report_summary view to include sales representative
 CREATE OR REPLACE VIEW public.report_summary AS
 SELECT
   sr.id,

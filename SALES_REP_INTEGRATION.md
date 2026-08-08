@@ -47,33 +47,31 @@ Archivo: `src/pages/admin/Reports.tsx`
 
 ### **PASO 1: Ejecutar Migración SQL en Supabase** ⚠️ CRÍTICO
 
+**IMPORTANTE:** Esta migración debe ejecutarse en **DOS PASOS** porque PostgreSQL requiere que los valores ENUM se "commiteen" antes de usarlos.
+
 1. Ve a tu proyecto en Supabase: https://supabase.com/dashboard
 2. Abre **SQL Editor** (menú lateral)
 3. Crea una nueva query
-4. Copia y pega el contenido de `supabase/add-sales-representative-role.sql`
-5. Click en **RUN** o presiona `Ctrl + Enter`
 
-**O copia directamente este SQL:**
-
+**Ejecuta PASO 1 primero:**
 ```sql
--- Migration: Add Sales Representative Role
--- Description: Adds 'sales_representative' role and connects it to service reports
-
--- Step 1: Add sales_representative to the user_role enum
+-- PASO 1: Agregar valor al ENUM
 ALTER TYPE user_role ADD VALUE 'sales_representative';
+```
+- Click **RUN**
+- Espera a que diga "Success"
 
--- Step 2: Add sales_representative_id to service_reports table
+**Luego ejecuta PASO 2:**
+```sql
+-- PASO 2: Agregar columna, índices y políticas
+
 ALTER TABLE service_reports
-ADD COLUMN sales_representative_id UUID REFERENCES users(id);
+ADD COLUMN IF NOT EXISTS sales_representative_id UUID REFERENCES users(id);
 
--- Step 3: Create index for performance
-CREATE INDEX idx_reports_sales_rep ON service_reports(sales_representative_id);
+CREATE INDEX IF NOT EXISTS idx_reports_sales_rep ON service_reports(sales_representative_id);
 
--- Step 4: Add comment for documentation
 COMMENT ON COLUMN service_reports.sales_representative_id IS 'The sales representative who requested this service for the company';
 
--- Step 5: Update RLS policies to allow sales reps to view their reports
--- Allow sales representatives to view reports they requested
 CREATE POLICY "Sales reps can view their own reports"
   ON service_reports FOR SELECT
   USING (
@@ -81,13 +79,8 @@ CREATE POLICY "Sales reps can view their own reports"
     sales_representative_id = auth.uid()
   );
 
--- Note: Sales representatives can only VIEW reports, not create/edit/delete them
--- Only technicians can create reports and assign them to a sales rep
-
--- Step 6: Grant necessary permissions
 GRANT SELECT ON service_reports TO authenticated;
 
--- Step 7: Update report_summary view to include sales representative
 CREATE OR REPLACE VIEW public.report_summary AS
 SELECT
   sr.id,
@@ -109,9 +102,12 @@ JOIN public.technicians t ON t.id = sr.technician_id
 JOIN public.users u ON u.id = t.user_id
 LEFT JOIN public.users sales_rep ON sales_rep.id = sr.sales_representative_id;
 
--- Grant access to updated view
 GRANT SELECT ON public.report_summary TO authenticated;
 ```
+- Click **RUN**
+- Espera a que termine
+
+**O usa el archivo completo** con instrucciones: `supabase/add-sales-representative-role.sql`
 
 ### **PASO 2: Verificar en la App**
 
