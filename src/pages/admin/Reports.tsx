@@ -19,6 +19,9 @@ export default function ReportsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     loadReports();
@@ -112,7 +115,41 @@ export default function ReportsPage() {
 
     const matchesStatus = !statusFilter || report.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    // Date filter
+    let matchesDate = true;
+    if (dateFilter !== 'all') {
+      const reportDate = new Date(report.created_at);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (dateFilter === 'today') {
+        matchesDate = reportDate >= today;
+      } else if (dateFilter === 'week') {
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        matchesDate = reportDate >= weekAgo;
+      } else if (dateFilter === 'month') {
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        matchesDate = reportDate >= monthAgo;
+      } else if (dateFilter === 'custom' && (startDate || endDate)) {
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          matchesDate = reportDate >= start && reportDate <= end;
+        } else if (startDate) {
+          const start = new Date(startDate);
+          matchesDate = reportDate >= start;
+        } else if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          matchesDate = reportDate <= end;
+        }
+      }
+    }
+
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   if (loading) {
@@ -136,7 +173,7 @@ export default function ReportsPage() {
       {/* Filters */}
       <Card>
         <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="md:col-span-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -160,6 +197,53 @@ export default function ReportsPage() {
                 { value: 'completed', label: 'Completed' },
               ]}
             />
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">Date:</label>
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value as any)}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
+            >
+              <option value="all">All dates</option>
+              <option value="today">Today</option>
+              <option value="week">Last 7 days</option>
+              <option value="month">Last 30 days</option>
+              <option value="custom">Custom range</option>
+            </select>
+            {dateFilter === 'custom' && (
+              <>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
+                  placeholder="From"
+                />
+                <span className="text-gray-500">to</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
+                  placeholder="To"
+                />
+              </>
+            )}
+            {(dateFilter !== 'all' || statusFilter || searchTerm) && (
+              <button
+                onClick={() => {
+                  setDateFilter('all');
+                  setStartDate('');
+                  setEndDate('');
+                  setStatusFilter('');
+                  setSearchTerm('');
+                }}
+                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 underline"
+              >
+                Clear filters
+              </button>
+            )}
           </div>
         </div>
       </Card>

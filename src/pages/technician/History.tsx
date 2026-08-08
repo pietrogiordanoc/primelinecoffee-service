@@ -21,6 +21,9 @@ export default function ReportHistory() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     loadReports();
@@ -115,10 +118,47 @@ export default function ReportHistory() {
 
   // Filter and sort reports
   const filteredReports = reports
-    .filter(report =>
-      report.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.form_name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    .filter(report => {
+      // Search filter
+      const matchesSearch = report.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        report.form_name.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Date filter
+      let matchesDate = true;
+      if (dateFilter !== 'all') {
+        const reportDate = new Date(report.created_at);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (dateFilter === 'today') {
+          matchesDate = reportDate >= today;
+        } else if (dateFilter === 'week') {
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          matchesDate = reportDate >= weekAgo;
+        } else if (dateFilter === 'month') {
+          const monthAgo = new Date(today);
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          matchesDate = reportDate >= monthAgo;
+        } else if (dateFilter === 'custom' && (startDate || endDate)) {
+          if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            matchesDate = reportDate >= start && reportDate <= end;
+          } else if (startDate) {
+            const start = new Date(startDate);
+            matchesDate = reportDate >= start;
+          } else if (endDate) {
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            matchesDate = reportDate <= end;
+          }
+        }
+      }
+      
+      return matchesSearch && matchesDate;
+    })
     .sort((a, b) => {
       if (sortOrder === 'asc') {
         return a.company_name.localeCompare(b.company_name);
@@ -136,7 +176,7 @@ export default function ReportHistory() {
   // Reset to page 1 when search/filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, sortOrder, itemsPerPage]);
+  }, [searchQuery, sortOrder, itemsPerPage, dateFilter, startDate, endDate]);
 
   if (loading) {
     return (
@@ -166,7 +206,7 @@ export default function ReportHistory() {
             />
           </div>
           {/* Filters Row */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50"
@@ -174,6 +214,35 @@ export default function ReportHistory() {
               <ArrowUpDown className="w-3 h-3" />
               {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
             </button>
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value as any)}
+              className="px-2 py-1 text-xs border border-gray-300 rounded bg-white"
+            >
+              <option value="all">All dates</option>
+              <option value="today">Today</option>
+              <option value="week">Last 7 days</option>
+              <option value="month">Last 30 days</option>
+              <option value="custom">Custom range</option>
+            </select>
+            {dateFilter === 'custom' && (
+              <>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-2 py-1 text-xs border border-gray-300 rounded bg-white"
+                  placeholder="From"
+                />
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-2 py-1 text-xs border border-gray-300 rounded bg-white"
+                  placeholder="To"
+                />
+              </>
+            )}
             <select
               value={itemsPerPage}
               onChange={(e) => setItemsPerPage(Number(e.target.value))}
