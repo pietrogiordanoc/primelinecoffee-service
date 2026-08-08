@@ -145,46 +145,36 @@ export default function TechniciansPage() {
     try {
       setLoading(true);
       
-      // Load all users
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Use RPC function to load all staff (bypasses RLS)
+      const { data: staffData, error: staffError } = await supabase
+        .rpc('get_all_staff');
 
-      if (usersError) throw usersError;
+      if (staffError) {
+        console.error('Error loading staff:', staffError);
+        await alert(`Failed to load staff: ${staffError.message}`, 'Error');
+        return;
+      }
 
-      // For each user, check if they have technician data
-      const techniciansWithData = await Promise.all(
-        (usersData || []).map(async (user) => {
-          if (user.role === 'technician') {
-            const { data: techData } = await supabase
-              .from('technicians')
-              .select('*')
-              .eq('user_id', user.id)
-              .single();
-            
-            return {
-              ...techData,
-              id: techData?.id || user.id,
-              user_id: user.id,
-              is_active: techData?.is_active ?? user.is_active,
-              user: user,
-            };
-          } else {
-            // For non-technicians, create a virtual technician object
-            return {
-              id: user.id,
-              user_id: user.id,
-              is_active: user.is_active,
-              user: user,
-            };
-          }
-        })
-      );
+      // Map the data to the expected format
+      const techniciansWithData = (staffData || []).map((staff: any) => ({
+        id: staff.id,
+        user_id: staff.user_id,
+        is_active: staff.is_active,
+        user: {
+          id: staff.user_id,
+          email: staff.email,
+          full_name: staff.full_name,
+          phone: staff.phone,
+          role: staff.role,
+          is_active: staff.is_active,
+          created_at: staff.created_at,
+        },
+      }));
 
-      setTechnicians(techniciansWithData || []);
+      setTechnicians(techniciansWithData);
     } catch (error) {
       console.error('Error loading staff:', error);
+      await alert('An error occurred while loading staff. Please try again.', 'Error');
     } finally {
       setLoading(false);
     }
