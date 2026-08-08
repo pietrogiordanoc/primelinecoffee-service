@@ -8,7 +8,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { FileText, ChevronRight, Plus } from 'lucide-react';
+import { FileText, ChevronRight, Plus, ChevronDown, Search, MapPin, Phone, Mail, User, Calendar } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import type { DynamicForm, Company } from '@/types';
 
@@ -20,6 +20,8 @@ export default function TechnicianHome() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
 
   useEffect(() => {
@@ -88,6 +90,11 @@ export default function TechnicianHome() {
     navigate(`/technician/report/${formId}?company=${selectedCompany.id}`);
   }
 
+  // Filter companies by search query
+  const filteredCompanies = companies.filter(company =>
+    company.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -98,9 +105,21 @@ export default function TechnicianHome() {
 
   return (
     <div className="space-y-4 pb-6">
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search company..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+        />
+      </div>
+
       {/* Select Company */}
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-gray-900">Companies</h2>
           <Button
             onClick={() => setIsAddCompanyModalOpen(true)}
@@ -111,125 +130,135 @@ export default function TechnicianHome() {
             New
           </Button>
         </div>
-        {companies.length === 0 ? (
+        {filteredCompanies.length === 0 ? (
           <Card>
-            <div className="p-4 text-center">
-              <p className="text-sm text-gray-500 mb-2">No companies</p>
-              <Button onClick={() => setIsAddCompanyModalOpen(true)} size="sm">
-                <Plus className="w-4 h-4 mr-1" />
-                Add Company
-              </Button>
+            <div className="p-8 text-center">
+              <p className="text-sm text-gray-500 mb-3">
+                {searchQuery ? 'No companies found' : 'No companies available'}
+              </p>
+              {!searchQuery && (
+                <Button onClick={() => setIsAddCompanyModalOpen(true)} size="sm">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Company
+                </Button>
+              )}
             </div>
           </Card>
         ) : (
-          <Card>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Name
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Address
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      City / State
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Contact
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Phone
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Email
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Last Visit
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {companies.map((company: any) => (
-                    <tr
-                      key={company.id}
-                      onClick={() => setSelectedCompany(company)}
-                      className={`cursor-pointer transition-colors ${
-                        selectedCompany?.id === company.id
-                          ? 'bg-primary-50 border-l-4 border-l-primary-500'
-                          : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {selectedCompany?.id === company.id && (
-                            <div className="w-4 h-4 rounded-full bg-primary-500 flex items-center justify-center mr-2 flex-shrink-0">
-                              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            </div>
-                          )}
-                          <p className="text-sm font-medium text-gray-900">
-                            {company.name}
-                          </p>
+          <div className="space-y-2">
+            {filteredCompanies.map((company: any) => {
+              const isExpanded = expandedCompany === company.id;
+              const isSelected = selectedCompany?.id === company.id;
+              
+              return (
+                <div
+                  key={company.id}
+                  className={`bg-white rounded-lg border-2 transition-all ${
+                    isSelected
+                      ? 'border-primary-500 shadow-sm'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {/* Company Header - Always Visible */}
+                  <div
+                    className="flex items-center justify-between p-4 cursor-pointer"
+                    onClick={() => {
+                      setSelectedCompany(company);
+                      setExpandedCompany(isExpanded ? null : company.id);
+                    }}
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {isSelected && (
+                        <div className="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
                         </div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <p className="text-sm text-gray-600">{company.address || '-'}</p>
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <p className="text-sm text-gray-600">
-                          {company.city}
-                          {company.state && `, ${company.state}`}
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {company.name}
                         </p>
-                        {company.postal_code && (
-                          <p className="text-xs text-gray-400">{company.postal_code}</p>
+                        {company.last_visit && (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Last visit: {new Date(company.last_visit).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
+                          </p>
                         )}
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <p className="text-sm text-gray-900">{company.contact_name || '-'}</p>
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <p className="text-sm text-gray-600">{company.contact_phone || '-'}</p>
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <p className="text-sm text-gray-600">{company.contact_email || '-'}</p>
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        {company.last_visit ? (
-                          <div>
-                            <p className="text-sm text-gray-900">
-                              {new Date(company.last_visit).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                              })}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {new Date(company.last_visit).toLocaleTimeString('en-US', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
+                      </div>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    )}
+                  </div>
+
+                  {/* Company Details - Expandable */}
+                  {isExpanded && (
+                    <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
+                      {company.address && (
+                        <div className="flex items-start gap-2 pt-3">
+                          <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-900">{company.address}</p>
+                            <p className="text-sm text-gray-600">
+                              {company.city}{company.state && `, ${company.state}`} {company.postal_code}
                             </p>
                           </div>
-                        ) : (
-                          <span className="text-sm text-gray-400 italic">Never</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+                        </div>
+                      )}
+                      {company.contact_name && (
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <p className="text-sm text-gray-900">{company.contact_name}</p>
+                        </div>
+                      )}
+                      {company.contact_phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <a href={`tel:${company.contact_phone}`} className="text-sm text-primary-600 hover:underline">
+                            {company.contact_phone}
+                          </a>
+                        </div>
+                      )}
+                      {company.contact_email && (
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <a href={`mailto:${company.contact_email}`} className="text-sm text-primary-600 hover:underline truncate">
+                            {company.contact_email}
+                          </a>
+                        </div>
+                      )}
+                      {company.last_visit && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <p className="text-sm text-gray-600">
+                            {new Date(company.last_visit).toLocaleDateString('en-US', {
+                              dateStyle: 'long',
+                            })} at {new Date(company.last_visit).toLocaleTimeString('en-US', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
       {/* Select Form */}
       {selectedCompany && (
         <div>
-          <h2 className="text-sm font-semibold text-gray-900 mb-2">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">
             Service Type
           </h2>
           <div className="space-y-2">
@@ -244,21 +273,23 @@ export default function TechnicianHome() {
                 <button
                   key={form.id}
                   onClick={() => handleStartReport(form.id)}
-                  className="w-full text-left p-2 rounded-lg border border-gray-200 bg-white hover:border-primary-500 hover:bg-primary-50 transition-all"
+                  className="w-full text-left p-4 rounded-lg border-2 border-gray-200 bg-white hover:border-primary-500 hover:bg-primary-50 transition-all"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center flex-1 min-w-0">
-                      <div className="w-7 h-7 rounded bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-4 h-4" />
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-5 h-5" />
                       </div>
-                      <div className="ml-2 flex-1 min-w-0">
-                        <p className="text-sm text-gray-900 truncate">
-                          <strong>{form.name}</strong>
-                          {form.category && <span className="text-gray-500 font-normal"> • {form.category}</span>}
+                      <div className="ml-3 flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {form.name}
                         </p>
+                        {form.category && (
+                          <p className="text-xs text-gray-500 truncate">{form.category}</p>
+                        )}
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
                   </div>
                 </button>
               ))

@@ -6,7 +6,7 @@ import { useConfirm } from '@/contexts/ConfirmContext';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate, formatRelativeTime } from '@/utils/dateUtils';
-import { Clock, FileText, Eye, Trash2, Building2 } from 'lucide-react';
+import { Clock, FileText, Eye, Trash2, Building2, ChevronRight, ChevronDown, Search, Calendar, Image as ImageIcon } from 'lucide-react';
 import type { ReportSummary } from '@/types';
 
 export default function ReportHistory() {
@@ -16,6 +16,8 @@ export default function ReportHistory() {
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [expandedReport, setExpandedReport] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadReports();
@@ -53,7 +55,7 @@ export default function ReportHistory() {
       title: 'Delete Report',
       message: `Are you sure you want to delete the report from ${companyName}? This action cannot be undone.`,
       confirmText: 'Delete',
-      cancelText: 'Cancelar',
+      cancelText: 'Cancel',
       danger: true,
     });
     
@@ -108,6 +110,12 @@ export default function ReportHistory() {
     }
   }
 
+  // Filter reports by search query
+  const filteredReports = reports.filter(report =>
+    report.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    report.form_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -117,119 +125,142 @@ export default function ReportHistory() {
   }
 
   return (
-    <div className="p-4 space-y-4 pb-24">
-      <h1 className="text-2xl font-bold text-gray-900">Report History</h1>
+    <div className="space-y-4 pb-6">
+      <h1 className="text-xl font-bold text-gray-900">Report History</h1>
 
-      {reports.length === 0 ? (
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search reports..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+        />
+      </div>
+
+      {filteredReports.length === 0 ? (
         <Card>
           <div className="p-12 text-center">
             <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500">You have no reports yet</p>
+            <p className="text-gray-500">
+              {searchQuery ? 'No reports found' : 'You have no reports yet'}
+            </p>
           </div>
         </Card>
       ) : (
-        <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
-                    Company
-                  </th>
-                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
-                    Form
-                  </th>
-                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
-                    Date
-                  </th>
-                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
-                    Status
-                  </th>
-                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
-                    Photos
-                  </th>
-                  <th className="text-left px-3 py-2 text-xs font-medium text-gray-700">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {reports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50">
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                          <Building2 className="w-3 h-3" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-900">
-                          {report.company_name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 text-sm text-gray-600">
-                      {report.form_name}
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-500">
-                          {formatRelativeTime(report.created_at)}
-                        </span>
-                        {report.submitted_at && (
-                          <span className="text-xs text-gray-400">
-                            {formatDate(report.submitted_at, 'MMM d, HH:mm')}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                          report.status === 'completed'
-                            ? 'bg-green-100 text-green-700'
-                            : report.status === 'reviewed'
-                            ? 'bg-blue-100 text-blue-700'
-                            : report.status === 'submitted'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        {report.status === 'completed'
-                          ? 'Completed'
+        <div className="space-y-2">
+          {filteredReports.map((report) => {
+            const isExpanded = expandedReport === report.id;
+            
+            return (
+              <div
+                key={report.id}
+                className="bg-white rounded-lg border-2 border-gray-200 hover:border-gray-300 transition-all"
+              >
+                {/* Report Header - Always Visible */}
+                <div
+                  className="flex items-center justify-between p-4 cursor-pointer"
+                  onClick={() => setExpandedReport(isExpanded ? null : report.id)}
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {report.company_name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {formatRelativeTime(report.created_at)}
+                      </p>
+                    </div>
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full flex-shrink-0 ${
+                        report.status === 'completed'
+                          ? 'bg-green-100 text-green-700'
                           : report.status === 'reviewed'
-                          ? 'Reviewed'
+                          ? 'bg-blue-100 text-blue-700'
                           : report.status === 'submitted'
-                          ? 'Submitted'
-                          : 'Draft'}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-sm text-gray-600">
-                      {report.photo_count > 0 ? `${report.photo_count}` : '-'}
-                    </td>
-                    <td className="px-3 py-2">
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {report.status === 'completed'
+                        ? 'Completed'
+                        : report.status === 'reviewed'
+                        ? 'Reviewed'
+                        : report.status === 'submitted'
+                        ? 'Submitted'
+                        : 'Draft'}
+                    </span>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+                  ) : (
+                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+                  )}
+                </div>
+
+                {/* Report Details - Expandable */}
+                {isExpanded && (
+                  <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
+                    <div className="flex items-center gap-2 pt-3">
+                      <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <p className="text-sm text-gray-900">{report.form_name}</p>
+                    </div>
+                    {report.submitted_at && (
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => navigate(`/technician/report/${report.id}/view`)}
-                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                          title="View"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(report.id, report.company_name)}
-                          disabled={deleting === report.id}
-                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <p className="text-sm text-gray-600">
+                          {new Date(report.submitted_at).toLocaleDateString('en-US', {
+                            dateStyle: 'long',
+                          })} at {new Date(report.submitted_at).toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                    )}
+                    {report.photo_count > 0 && (
+                      <div className="flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <p className="text-sm text-gray-600">
+                          {report.photo_count} {report.photo_count === 1 ? 'photo' : 'photos'}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/technician/report/${report.id}/view`);
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-medium"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View Report
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(report.id, report.company_name);
+                        }}
+                        disabled={deleting === report.id}
+                        className="px-4 py-2.5 border-2 border-red-200 text-red-600 rounded-lg hover:bg-red-50 hover:border-red-300 transition text-sm font-medium disabled:opacity-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
