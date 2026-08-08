@@ -27,13 +27,18 @@ export default function TechnicianLayout() {
         <div className="px-3 py-2">
           <div className="flex items-center gap-2">
             <img 
+              src="/favicon.jpg" 
+              alt="Icon" 
+              className="h-9 w-9 object-contain rounded-lg shadow-sm"
+            />
+            <img 
               src="/logo.png" 
               alt="Prime Line Coffee Service" 
               className="h-7 w-auto"
             />
-            <div>
-              <p className="text-xs font-medium text-gray-900 leading-tight">{userProfile?.full_name}</p>
-              <p className="text-xs text-gray-500 leading-tight">Technician</p>
+            <div className="ml-auto">
+              <p className="text-xs font-medium text-gray-900 leading-tight text-right">{userProfile?.full_name}</p>
+              <p className="text-xs text-gray-500 leading-tight text-right">Technician</p>
             </div>
           </div>
         </div>

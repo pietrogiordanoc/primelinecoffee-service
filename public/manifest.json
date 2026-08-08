@@ -1,24 +1,30 @@
 {
   "name": "Prime Line Coffee Service",
-  "short_name": "PLCS",
+  "short_name": "Prime Line",
   "description": "Sistema de Reportes de Servicio Técnico",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0ea5e9",
+  "theme_color": "#003f7f",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/logo.png",
+      "src": "/favicon.jpg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "/logo.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "/icon-192.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
       "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
   ],
   "categories": ["productivity", "business"]

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { supabase } from '@/lib/supabase';
@@ -26,6 +26,7 @@ import Staff from '@/pages/technician/Staff';
 
 // Components
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import SplashScreen from '@/components/ui/SplashScreen';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 function RoleBasedRedirect() {
@@ -82,6 +83,8 @@ function RoleBasedRedirect() {
 
 function App() {
   const { user, loading, setUser, setLoading } = useAuthStore();
+  const [showSplash, setShowSplash] = useState(true);
+  const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
     // Get session from Supabase
@@ -100,7 +103,15 @@ function App() {
     return () => subscription.unsubscribe();
   }, [setUser, setLoading]);
 
-  if (loading) {
+  // Show splash screen only on first load
+  if (showSplash) {
+    return <SplashScreen onFinish={() => {
+      setShowSplash(false);
+      setAppReady(true);
+    }} />;
+  }
+
+  if (loading || !appReady) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />

@@ -62,11 +62,16 @@ export default function AdminLayout() {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center">
+            <div className="flex items-center gap-3">
+              <img 
+                src="/favicon.jpg" 
+                alt="Icon" 
+                className="h-10 w-10 object-contain rounded-lg shadow-sm"
+              />
               <img 
                 src="/logo.png" 
                 alt="Prime Line Coffee Service" 
-                className="h-10 w-auto"
+                className="h-8 w-auto"
               />
             </div>
             <button
@@ -165,7 +170,12 @@ export default function AdminLayout() {
             >
               <Menu className="w-6 h-6" />
             </button>
-            <div className="flex-1 lg:ml-0 ml-4">
+            <div className="flex items-center gap-3 flex-1 lg:ml-0 ml-4">
+              <img 
+                src="/favicon.jpg" 
+                alt="Icon" 
+                className="h-8 w-8 object-contain rounded-lg shadow-sm lg:hidden"
+              />
               <h1 className="text-xl font-semibold text-gray-900">
                 Prime Line Coffee Service
               </h1>
