@@ -39,8 +39,10 @@ CREATE POLICY "Sales reps can view their own reports"
 -- Grant necessary permissions
 GRANT SELECT ON service_reports TO authenticated;
 
--- Update report_summary view to include sales representative
-CREATE OR REPLACE VIEW public.report_summary AS
+-- Drop and recreate report_summary view to include sales representative
+DROP VIEW IF EXISTS public.report_summary;
+
+CREATE VIEW public.report_summary AS
 SELECT
   sr.id,
   sr.status,
