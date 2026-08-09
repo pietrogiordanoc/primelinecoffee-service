@@ -152,7 +152,7 @@ INSERT INTO public.form_fields (
   '00000000-0000-0000-0000-000000000105'::uuid,
   'contact_phone',
   'Phone',
-  'tel',
+  'phone',
   '(555) 123-4567',
   false,
   10
