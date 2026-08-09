@@ -133,7 +133,15 @@ export interface ReportPhoto {
   order_index: number;
   uploaded_at: string;
 }
-
+export interface AdminComment {
+  id: string;
+  report_id: string;
+  user_id: string;
+  comment: string;
+  created_at: string;
+  updated_at?: string;
+  user?: User;
+}
 export interface ActivityLog {
   id: string;
   user_id?: string;

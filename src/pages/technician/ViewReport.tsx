@@ -5,24 +5,33 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate } from '@/utils/dateUtils';
-import { ArrowLeft, Building2, User, Calendar, FileText, Image as ImageIcon } from 'lucide-react';
-import type { ServiceReport } from '@/types';
+import { ArrowLeft, Building2, User, Calendar, FileText, Image as ImageIcon, MessageSquare, Send } from 'lucide-react';
+import type { ServiceReport, AdminComment } from '@/types';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function ViewReport() {
   const { reportId } = useParams<{ reportId: string }>();
   const navigate = useNavigate();
+  const { userProfile } = useAuthStore();
   const [report, setReport] = useState<ServiceReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [comments, setComments] = useState<AdminComment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
   
   // Detect if we're in admin or technician view
   const isAdminView = window.location.pathname.includes('/admin/');
   const backPath = isAdminView ? '/admin/reports' : '/technician/history';
+  const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'super_admin';
 
   useEffect(() => {
     if (reportId) {
       loadReport();
+      if (isAdmin) {
+        loadComments();
+      }
     }
-  }, [reportId]);
+  }, [reportId, isAdmin]);
 
   async function loadReport() {
     try {
@@ -58,6 +67,55 @@ export default function ViewReport() {
       console.error('Error loading report:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadComments() {
+    try {
+      const { data, error } = await supabase
+        .from('admin_comments')
+        .select(`
+          *,
+          user:users(full_name, email)
+        `)
+        .eq('report_id', reportId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setComments(data || []);
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    }
+  }
+
+  async function addComment() {
+    if (!newComment.trim() || !reportId || !userProfile) return;
+
+    try {
+      setSubmittingComment(true);
+
+      const { data, error } = await supabase
+        .from('admin_comments')
+        .insert({
+          report_id: reportId,
+          user_id: userProfile.id,
+          comment: newComment.trim(),
+        })
+        .select(`
+          *,
+          user:users(full_name, email)
+        `)
+        .single();
+
+      if (error) throw error;
+
+      setComments([data, ...comments]);
+      setNewComment('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      alert('Error adding comment. Please try again.');
+    } finally {
+      setSubmittingComment(false);
     }
   }
 
@@ -403,6 +461,71 @@ export default function ViewReport() {
           <div className="p-4">
             <h2 className="text-sm font-semibold text-gray-900 mb-2">Notes</h2>
             <p className="text-sm text-gray-700 whitespace-pre-wrap">{report.notes}</p>
+          </div>
+        </Card>
+      )}
+
+      {/* Admin Comments Section - Only visible to admins */}
+      {isAdmin && (
+        <Card>
+          <div className="p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <MessageSquare className="w-5 h-5 text-primary-600" />
+              <h2 className="text-sm font-semibold text-gray-900">Admin Comments</h2>
+              <span className="text-xs text-gray-500">({comments.length})</span>
+            </div>
+
+            {/* New Comment Input */}
+            <div className="mb-6">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Add an internal note or comment..."
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none text-sm"
+              />
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-xs text-gray-500">
+                  Only visible to admins. Your name and timestamp will be recorded.
+                </p>
+                <Button
+                  onClick={addComment}
+                  disabled={!newComment.trim() || submittingComment}
+                  size="sm"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  {submittingComment ? 'Adding...' : 'Add Comment'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Comments List */}
+            <div className="space-y-3">
+              {comments.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  No comments yet. Add the first one above.
+                </div>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {comment.user?.full_name || 'Unknown Admin'}
+                        </p>
+                        <p className="text-xs text-gray-500">{comment.user?.email}</p>
+                      </div>
+                      <p className="text-xs text-gray-500 whitespace-nowrap">
+                        {formatDate(comment.created_at, 'PPp')}
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                      {comment.comment}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </Card>
       )}
