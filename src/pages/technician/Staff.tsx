@@ -100,7 +100,9 @@ export default function Staff() {
     );
   }
 
-  return (& Filters - FIXED below header */}
+  return (
+    <div className="pb-6">
+      {/* Search Bar & Filters - FIXED below header */}
       <div className="fixed top-[52px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2.5">
         <div className="max-w-full md:max-w-[80%] md:mx-auto space-y-2">
           {/* Search Input */}
@@ -207,9 +209,7 @@ export default function Staff() {
                         href={`tel:${member.phone}`} 
                         className="text-xs text-primary-600 hover:underline"
                       >
-                        {memberclassName="w-3 h-3 text-gray-400 flex-shrink-0" />
-                      <a href={`tel:${tech.phone}`} className="text-xs text-primary-600 hover:underline leading-tight">
-                        {tech.phone}
+                        {member.phone}
                       </a>
                     </div>
                   )}
