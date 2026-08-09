@@ -14,8 +14,6 @@ interface StaffMember {
   created_at: string;
 }
 
-type RoleFilter = 'all' | 'super_admin' | 'admin' | 'technician' | 'sales_representative';
-
 const roleLabels: Record<string, string> = {
   super_admin: 'Super Admin',
   admin: 'Admin',
@@ -102,7 +100,15 @@ export default function Staff() {
 
   if (loading) {
     return (
-      <div className="fSort - FIXED below header */}
+      <div className="flex items-center justify-center h-64">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="pb-6">
+      {/* Search Bar & Sort - FIXED below header */}
       <div className="fixed top-[52px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2.5">
         <div className="max-w-full md:max-w-[80%] md:mx-auto space-y-2">
           {/* Search Input */}
@@ -146,15 +152,7 @@ export default function Staff() {
       </div>
 
       {/* Content - Padding for fixed search */}
-      <div className="pt-[110text-xs font-medium text-gray-600">
-              {filteredStaff.length} {filteredStaff.length === 1 ? 'person' : 'people'}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Content - Padding for fixed filters */}
-      <div className="pt-[165px] px-3">
+      <div className="pt-[110px] px-3">
         {filteredStaff.length === 0 ? (
           <Card>
             <div className="p-12 text-center">
