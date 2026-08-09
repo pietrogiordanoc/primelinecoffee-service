@@ -6,7 +6,7 @@
 
 -- Add report_code column
 ALTER TABLE public.service_reports 
-ADD COLUMN report_code VARCHAR(20) UNIQUE;
+ADD COLUMN report_code VARCHAR(50) UNIQUE;
 
 -- Create function to generate report code
 CREATE OR REPLACE FUNCTION generate_report_code()
