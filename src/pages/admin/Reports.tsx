@@ -8,7 +8,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { FileText, Search, Download, Eye, Trash2 } from 'lucide-react';
+import { FileText, Search, Download, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import type { ReportSummary } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 
@@ -24,6 +24,8 @@ export default function ReportsPage() {
   const [endDate, setEndDate] = useState('');
   const [selectedReports, setSelectedReports] = useState<Set<string>>(new Set());
   const [processing, setProcessing] = useState(false);
+  const [sortColumn, setSortColumn] = useState<string>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     loadReports();
@@ -133,6 +135,24 @@ export default function ReportsPage() {
     navigate(`/admin/reports/${reportId}`);
   }
 
+  function handleSort(column: string) {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  }
+
+  function getSortIcon(column: string) {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="w-4 h-4 text-primary-600" />
+      : <ArrowDown className="w-4 h-4 text-primary-600" />;
+  }
+
   const filteredReports = reportSummaries.filter((report) => {
     const matchesSearch =
       report.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -177,6 +197,47 @@ export default function ReportsPage() {
     }
 
     return matchesSearch && matchesStatus && matchesDate;
+  })
+  .sort((a, b) => {
+    let aValue: any;
+    let bValue: any;
+
+    switch (sortColumn) {
+      case 'report_code':
+        aValue = a.report_code || '';
+        bValue = b.report_code || '';
+        break;
+      case 'company_name':
+        aValue = a.company_name.toLowerCase();
+        bValue = b.company_name.toLowerCase();
+        break;
+      case 'technician_name':
+        aValue = a.technician_name.toLowerCase();
+        bValue = b.technician_name.toLowerCase();
+        break;
+      case 'sales_rep_name':
+        aValue = (a.sales_rep_name || '').toLowerCase();
+        bValue = (b.sales_rep_name || '').toLowerCase();
+        break;
+      case 'form_name':
+        aValue = a.form_name.toLowerCase();
+        bValue = b.form_name.toLowerCase();
+        break;
+      case 'status':
+        aValue = a.status;
+        bValue = b.status;
+        break;
+      case 'created_at':
+        aValue = new Date(a.created_at).getTime();
+        bValue = new Date(b.created_at).getTime();
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
   });
 
   if (loading) {
@@ -341,29 +402,71 @@ export default function ReportsPage() {
                     className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   />
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Code
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('report_code')}
+                >
+                  <div className="flex items-center gap-2">
+                    Code
+                    {getSortIcon('report_code')}
+                  </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Company
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('company_name')}
+                >
+                  <div className="flex items-center gap-2">
+                    Company
+                    {getSortIcon('company_name')}
+                  </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Technician
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('technician_name')}
+                >
+                  <div className="flex items-center gap-2">
+                    Technician
+                    {getSortIcon('technician_name')}
+                  </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sales Rep
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('sales_rep_name')}
+                >
+                  <div className="flex items-center gap-2">
+                    Sales Rep
+                    {getSortIcon('sales_rep_name')}
+                  </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Form
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('form_name')}
+                >
+                  <div className="flex items-center gap-2">
+                    Form
+                    {getSortIcon('form_name')}
+                  </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('status')}
+                >
+                  <div className="flex items-center gap-2">
+                    Status
+                    {getSortIcon('status')}
+                  </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Photos
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('created_at')}
+                >
+                  <div className="flex items-center gap-2">
+                    Date
+                    {getSortIcon('created_at')}
+                  </div>
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
