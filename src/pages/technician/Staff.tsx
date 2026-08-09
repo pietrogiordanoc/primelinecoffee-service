@@ -2,36 +2,54 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { User, Mail, Phone, CheckCircle, XCircle, Search, ArrowUpDown } from 'lucide-react';
+import { User, Mail, Phone, Search, ArrowUpDown } from 'lucide-react';
 
-interface Technician {
+interface StaffMember {
   id: string;
   full_name: string;
   email: string;
   phone: string | null;
   is_active: boolean;
+  role: 'super_admin' | 'admin' | 'technician' | 'sales_representative';
   created_at: string;
 }
 
+type RoleFilter = 'all' | 'super_admin' | 'admin' | 'technician' | 'sales_representative';
+
+const roleLabels: Record<string, string> = {
+  super_admin: 'Super Admin',
+  admin: 'Admin',
+  technician: 'Technician',
+  sales_representative: 'Sales Rep',
+};
+
+const roleColors: Record<string, string> = {
+  super_admin: 'bg-purple-100 text-purple-700 border-purple-200',
+  admin: 'bg-blue-100 text-blue-700 border-blue-200',
+  technician: 'bg-green-100 text-green-700 border-green-200',
+  sales_representative: 'bg-orange-100 text-orange-700 border-orange-200',
+};
+
 export default function Staff() {
-  const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
-    loadTechnicians();
+    loadStaff();
   }, []);
 
-  async function loadTechnicians() {
+  async function loadStaff() {
     try {
       setLoading(true);
 
-      // Direct query to users table - simple approach
+      // Query all active users
       const { data: userData, error } = await supabase
         .from('users')
         .select('id, full_name, email, phone, is_active, created_at, role')
-        .eq('role', 'technician')
+        .eq('is_active', true)
         .order('full_name');
 
       if (error) {
@@ -39,31 +57,33 @@ export default function Staff() {
         throw error;
       }
 
-      // Map to technician format
-      const techniciansFormatted = (userData || []).map((user: any) => ({
-        id: user.id,
-        full_name: user.full_name,
-        email: user.email,
-        phone: user.phone,
-        is_active: user.is_active,
-        created_at: user.created_at,
-      }));
-
-      setTechnicians(techniciansFormatted);
+      setStaff(userData || []);
     } catch (error: any) {
-      console.error('Error loading technicians:', error);
+      console.error('Error loading staff:', error);
       alert('Error al cargar el directorio de staff.');
     } finally {
       setLoading(false);
     }
   }
 
-  // Filter and sort technicians
-  const filteredTechnicians = technicians
-    .filter(tech =>
-      tech.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tech.email.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+  // Filter and sort staff
+  const filteredStaff = staff
+    .filter(member => {
+      // Filter by role
+      if (roleFilter !== 'all' && member.role !== roleFilter) {
+        return false;
+      }
+      // Filter by search query
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return (
+          member.full_name.toLowerCase().includes(query) ||
+          member.email.toLowerCase().includes(query) ||
+          (member.phone && member.phone.includes(query))
+        );
+      }
+      return true;
+    })
     .sort((a, b) => {
       if (sortOrder === 'asc') {
         return a.full_name.localeCompare(b.full_name);
@@ -80,94 +100,114 @@ export default function Staff() {
     );
   }
 
-  return (
-    <div className="pb-6">
-      {/* Search Bar - FIXED below header */}
-      <div className="fixed top-[52px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2">
-        <div className="max-w-full md:max-w-[80%] md:mx-auto space-y-1.5">
-          <div className="flex items-center justify-between mb-1">
-            <h1 className="text-sm font-bold text-gray-900">Staff Directory</h1>
-          </div>
+  return (& Filters - FIXED below header */}
+      <div className="fixed top-[52px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2.5">
+        <div className="max-w-full md:max-w-[80%] md:mx-auto space-y-2">
           {/* Search Input */}
           <div className="relative">
-            <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search staff..."
+              placeholder="Search name, email or phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-6 pr-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs bg-white"
+              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm bg-white"
             />
           </div>
-          {/* Filters Row */}
-          <div className="flex items-center gap-2">
+          
+          {/* Role Filters */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            <button
+              onClick={() => setRoleFilter('all')}
+              className={`px-3 py-1 text-xs font-medium rounded-full border whitespace-nowrap transition-colors ${
+                roleFilter === 'all'
+                  ? 'bg-primary-500 text-white border-primary-500'
+                  : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              All ({staff.length})
+            </button>
+            {Object.entries(roleLabels).map(([role, label]) => {
+              const count = staff.filter(m => m.role === role).length;
+              return (
+                <button
+                  key={role}
+                  onClick={() => setRoleFilter(role as RoleFilter)}
+                  className={`px-3 py-1 text-xs font-medium rounded-full border whitespace-nowrap transition-colors ${
+                    roleFilter === role
+                      ? roleColors[role]
+                      : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {label} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Sort & Count */}
+          <div className="flex items-center justify-between">
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50"
             >
-              <ArrowUpDown className="w-3 h-3" />
+              <ArrowUpDown className="w-3.5 h-3.5" />
               {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
             </button>
-            <span className="text-xs text-gray-500">
-              {filteredTechnicians.length} technicians
+            <span className="text-xs font-medium text-gray-600">
+              {filteredStaff.length} {filteredStaff.length === 1 ? 'person' : 'people'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Content - Padding for fixed search */}
-      <div className="pt-[120px]">
-        {filteredTechnicians.length === 0 ? (
+      {/* Content - Padding for fixed filters */}
+      <div className="pt-[165px] px-3">
+        {filteredStaff.length === 0 ? (
           <Card>
             <div className="p-12 text-center">
               <User className="w-12 h-12 mx-auto text-gray-400 mb-4" />
               <p className="text-gray-500">
-                {searchQuery ? 'No staff found' : 'No technicians available'}
+                {searchQuery ? 'No staff found' : 'No staff available'}
               </p>
             </div>
           </Card>
         ) : (
-          <div className="space-y-1">
-            {filteredTechnicians.map((tech) => (
+          <div className="space-y-2">
+            {filteredStaff.map((member) => (
               <div
-                key={tech.id}
-                className="bg-white rounded border border-gray-200 p-2"
+                key={member.id}
+                className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow"
               >
-                {/* Technician Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-2 flex-1 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
-                      <User className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-semibold text-gray-900 truncate leading-none">
-                          {tech.full_name}
-                        </p>
-                        {tech.is_active ? (
-                          <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
-                        ) : (
-                          <XCircle className="w-3 h-3 text-red-500 flex-shrink-0" />
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 leading-none mt-0.5">
-                        {tech.is_active ? 'Active' : 'Inactive'}
-                      </p>
-                    </div>
-                  </div>
+                {/* Name & Role */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className="text-sm font-semibold text-gray-900 flex-1">
+                    {member.full_name}
+                  </h3>
+                  <span className={`px-2 py-0.5 text-xs font-medium rounded border ${roleColors[member.role]}`}>
+                    {roleLabels[member.role]}
+                  </span>
                 </div>
 
                 {/* Contact Details */}
-                <div className="mt-1.5 space-y-1 pl-10">
-                  <div className="flex items-center gap-1">
-                    <Mail className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                    <a href={`mailto:${tech.email}`} className="text-xs text-primary-600 hover:underline truncate leading-tight">
-                      {tech.email}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    <a 
+                      href={`mailto:${member.email}`} 
+                      className="text-xs text-primary-600 hover:underline truncate"
+                    >
+                      {member.email}
                     </a>
                   </div>
-                  {tech.phone && (
-                    <div className="flex items-center gap-1">
-                      <Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                  {member.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      <a 
+                        href={`tel:${member.phone}`} 
+                        className="text-xs text-primary-600 hover:underline"
+                      >
+                        {memberclassName="w-3 h-3 text-gray-400 flex-shrink-0" />
                       <a href={`tel:${tech.phone}`} className="text-xs text-primary-600 hover:underline leading-tight">
                         {tech.phone}
                       </a>
