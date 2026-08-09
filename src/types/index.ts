@@ -100,6 +100,7 @@ export interface ConditionalLogic {
 
 export interface ServiceReport {
   id: string;
+  report_code?: string;
   form_id: string;
   technician_id: string;
   company_id: string;
@@ -156,9 +157,11 @@ export interface DashboardStats {
 
 export interface ReportSummary {
   id: string;
+  report_code?: string;
   status: ReportStatus;
   created_at: string;
   submitted_at?: string;
+  deleted_at?: string;
   form_name: string;
   company_name: string;
   technician_name: string;

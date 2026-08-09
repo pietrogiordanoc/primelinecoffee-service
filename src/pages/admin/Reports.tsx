@@ -22,6 +22,8 @@ export default function ReportsPage() {
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [selectedReports, setSelectedReports] = useState<Set<string>>(new Set());
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     loadReports();
@@ -46,50 +48,22 @@ export default function ReportsPage() {
 
   async function handleDelete(reportId: string, companyName: string) {
     const confirmed = await confirm({
-      title: 'Delete Report',
-      message: `Are you sure you want to delete the report from ${companyName}? This action cannot be undone.`,
-      confirmText: 'Delete',
+      title: 'Move to Trash',
+      message: `Move the report from ${companyName} to trash?`,
+      confirmText: 'Move to Trash',
       cancelText: 'Cancel',
       danger: true,
     });
     
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
       setDeleting(reportId);
 
-      // Get report photos to delete from storage
-      const { data: photos } = await supabase
-        .from('report_photos')
-        .select('file_name')
-        .eq('report_id', reportId);
-
-      // Delete photos and thumbnails from storage
-      if (photos && photos.length > 0) {
-        const allFiles: string[] = [];
-        photos.forEach(photo => {
-          allFiles.push(photo.file_name); // Main photo
-          // Add thumbnail (replace .webp with _thumb.webp)
-          const thumbName = photo.file_name.replace('.webp', '_thumb.webp');
-          allFiles.push(thumbName);
-        });
-        
-        // Remove all files from storage
-        const { error: storageError } = await supabase.storage
-          .from('service-photos')
-          .remove(allFiles);
-        
-        if (storageError) {
-          console.error('Error deleting photos from storage:', storageError);
-        }
-      }
-
-      // Delete report (cascade will delete photos records)
+      // Soft delete: set deleted_at timestamp
       const { error } = await supabase
         .from('service_reports')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('id', reportId);
 
       if (error) throw error;
@@ -97,10 +71,62 @@ export default function ReportsPage() {
       await loadReports();
     } catch (error) {
       console.error('Error deleting report:', error);
-      await alert('Error deleting report. Please try again.', 'Error');
+      await alert('Error moving report to trash. Please try again.', 'Error');
     } finally {
       setDeleting(null);
     }
+  }
+
+  async function handleBulkDelete() {
+    if (selectedReports.size === 0) return;
+
+    const confirmed = await confirm({
+      title: 'Move to Trash',
+      message: `Move ${selectedReports.size} report(s) to trash?`,
+      confirmText: 'Move to Trash',
+      cancelText: 'Cancel',
+      danger: true,
+    });
+
+    if (!confirmed) return;
+
+    try {
+      setProcessing(true);
+
+      const { error } = await supabase
+        .from('service_reports')
+        .update({ deleted_at: new Date().toISOString() })
+        .in('id', Array.from(selectedReports));
+
+      if (error) throw error;
+
+      await alert(`${selectedReports.size} report(s) moved to trash`, 'Success');
+      setSelectedReports(new Set());
+      await loadReports();
+    } catch (error) {
+      console.error('Error bulk deleting reports:', error);
+      await alert('Error moving reports to trash. Please try again.', 'Error');
+    } finally {
+      setProcessing(false);
+    }
+  }
+
+  function toggleSelectAll() {
+    if (selectedReports.size === filteredReports.length) {
+      setSelectedReports(new Set());
+    } else {
+      setSelectedReports(new Set(filteredReports.map(r => r.id)));
+    }
+  }
+
+  function toggleSelect(reportId: string) {
+    const newSelected = new Set(selectedReports);
+    if (newSelected.has(reportId)) {
+      newSelected.delete(reportId);
+    } else {
+      newSelected.add(reportId);
+    }
+    setSelectedReports(newSelected);
   }
 
   function handleView(reportId: string) {
@@ -111,7 +137,8 @@ export default function ReportsPage() {
     const matchesSearch =
       report.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.technician_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.form_name.toLowerCase().includes(searchTerm.toLowerCase());
+      report.form_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (report.report_code && report.report_code.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesStatus = !statusFilter || report.status === statusFilter;
 
@@ -263,12 +290,60 @@ export default function ReportsPage() {
         </div>
       </Card>
 
+      {/* Bulk Actions */}
+      {filteredReports.length > 0 && (
+        <Card>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filteredReports.length > 0 && selectedReports.size === filteredReports.length}
+                  onChange={toggleSelectAll}
+                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  Select All
+                </span>
+              </label>
+              {selectedReports.size > 0 && (
+                <span className="text-sm text-gray-600">
+                  {selectedReports.size} selected
+                </span>
+              )}
+            </div>
+
+            {selectedReports.size > 0 && (
+              <Button
+                variant="danger"
+                onClick={handleBulkDelete}
+                disabled={processing}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Move to Trash ({selectedReports.size})
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
+
       {/* Reports Table */}
       <Card>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={filteredReports.length > 0 && selectedReports.size === filteredReports.length}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                  />
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Code
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Company
                 </th>
@@ -298,13 +373,26 @@ export default function ReportsPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredReports.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
                       No reports found
                   </td>
                 </tr>
               ) : (
                 filteredReports.map((report) => (
                   <tr key={report.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={selectedReports.has(report.id)}
+                        onChange={() => toggleSelect(report.id)}
+                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-xs font-mono font-semibold text-primary-600">
+                        {report.report_code || '-'}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {report.company_name}
