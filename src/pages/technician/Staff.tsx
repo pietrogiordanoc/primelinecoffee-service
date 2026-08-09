@@ -34,8 +34,8 @@ export default function Staff() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortBy, setSortBy] = useState<'name' | 'role'>('name');
 
   useEffect(() => {
     loadStaff();
@@ -69,10 +69,6 @@ export default function Staff() {
   // Filter and sort staff
   const filteredStaff = staff
     .filter(member => {
-      // Filter by role
-      if (roleFilter !== 'all' && member.role !== roleFilter) {
-        return false;
-      }
       // Filter by search query
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -85,24 +81,28 @@ export default function Staff() {
       return true;
     })
     .sort((a, b) => {
-      if (sortOrder === 'asc') {
+      if (sortBy === 'role') {
+        // Sort by role first, then by name
+        const roleOrder = ['super_admin', 'admin', 'technician', 'sales_representative'];
+        const roleCompare = roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
+        if (roleCompare !== 0) {
+          return sortOrder === 'asc' ? roleCompare : -roleCompare;
+        }
+        // If same role, sort by name
         return a.full_name.localeCompare(b.full_name);
       } else {
-        return b.full_name.localeCompare(a.full_name);
+        // Sort by name
+        if (sortOrder === 'asc') {
+          return a.full_name.localeCompare(b.full_name);
+        } else {
+          return b.full_name.localeCompare(a.full_name);
+        }
       }
     });
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="pb-6">
-      {/* Search Bar & Filters - FIXED below header */}
+      <div className="fSort - FIXED below header */}
       <div className="fixed top-[52px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2.5">
         <div className="max-w-full md:max-w-[80%] md:mx-auto space-y-2">
           {/* Search Input */}
@@ -116,47 +116,37 @@ export default function Staff() {
               className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm bg-white"
             />
           </div>
-          
-          {/* Role Filters */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-            <button
-              onClick={() => setRoleFilter('all')}
-              className={`px-3 py-1 text-xs font-medium rounded-full border whitespace-nowrap transition-colors ${
-                roleFilter === 'all'
-                  ? 'bg-primary-500 text-white border-primary-500'
-                  : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              All ({staff.length})
-            </button>
-            {Object.entries(roleLabels).map(([role, label]) => {
-              const count = staff.filter(m => m.role === role).length;
-              return (
-                <button
-                  key={role}
-                  onClick={() => setRoleFilter(role as RoleFilter)}
-                  className={`px-3 py-1 text-xs font-medium rounded-full border whitespace-nowrap transition-colors ${
-                    roleFilter === role
-                      ? roleColors[role]
-                      : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {label} ({count})
-                </button>
-              );
-            })}
-          </div>
 
-          {/* Sort & Count */}
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50"
-            >
-              <ArrowUpDown className="w-3.5 h-3.5" />
-              {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
-            </button>
+          {/* Sort Controls & Count */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium border border-gray-300 rounded-lg bg-white hover:bg-gray-50"
+              >
+                <ArrowUpDown className="w-3.5 h-3.5" />
+                {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
+              </button>
+              <button
+                onClick={() => setSortBy(sortBy === 'name' ? 'role' : 'name')}
+                className={`px-2.5 py-1.5 text-xs font-medium border rounded-lg transition-colors ${
+                  sortBy === 'role'
+                    ? 'bg-primary-500 text-white border-primary-500'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                By Role
+              </button>
+            </div>
             <span className="text-xs font-medium text-gray-600">
+              {filteredStaff.length} {filteredStaff.length === 1 ? 'person' : 'people'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Content - Padding for fixed search */}
+      <div className="pt-[110text-xs font-medium text-gray-600">
               {filteredStaff.length} {filteredStaff.length === 1 ? 'person' : 'people'}
             </span>
           </div>
