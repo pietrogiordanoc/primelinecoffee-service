@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { User, Mail, Phone, Calendar, CheckCircle, XCircle, Search, ArrowUpDown } from 'lucide-react';
+import { User, Mail, Phone, CheckCircle, XCircle, Search, ArrowUpDown } from 'lucide-react';
 
 interface Technician {
   id: string;
@@ -11,8 +11,6 @@ interface Technician {
   phone: string | null;
   is_active: boolean;
   created_at: string;
-  last_report_date: string | null;
-  total_reports: number;
 }
 
 export default function Staff() {
@@ -29,41 +27,32 @@ export default function Staff() {
     try {
       setLoading(true);
 
-      // Get all technicians with their stats
-      const { data: techData, error } = await supabase
-        .from('technicians')
-        .select(`
-          id,
-          full_name,
-          email,
-          phone,
-          is_active,
-          created_at
-        `)
+      // Direct query to users table - simple approach
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('id, full_name, email, phone, is_active, created_at, role')
+        .eq('role', 'technician')
         .order('full_name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Query Error:', error);
+        throw error;
+      }
 
-      // Get report count and last report date for each technician
-      const techniciansWithStats = await Promise.all(
-        (techData || []).map(async (tech) => {
-          const { data: reports } = await supabase
-            .from('service_reports')
-            .select('created_at')
-            .eq('technician_id', tech.id)
-            .order('created_at', { ascending: false });
+      // Map to technician format
+      const techniciansFormatted = (userData || []).map((user: any) => ({
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        is_active: user.is_active,
+        created_at: user.created_at,
+      }));
 
-          return {
-            ...tech,
-            total_reports: reports?.length || 0,
-            last_report_date: reports?.[0]?.created_at || null,
-          };
-        })
-      );
-
-      setTechnicians(techniciansWithStats);
-    } catch (error) {
+      setTechnicians(techniciansFormatted);
+    } catch (error: any) {
       console.error('Error loading technicians:', error);
+      alert('Error al cargar el directorio de staff.');
     } finally {
       setLoading(false);
     }
@@ -162,7 +151,7 @@ export default function Staff() {
                         )}
                       </div>
                       <p className="text-xs text-gray-500 leading-none mt-0.5">
-                        {tech.total_reports} reports
+                        {tech.is_active ? 'Active' : 'Inactive'}
                       </p>
                     </div>
                   </div>
@@ -182,17 +171,6 @@ export default function Staff() {
                       <a href={`tel:${tech.phone}`} className="text-xs text-primary-600 hover:underline leading-tight">
                         {tech.phone}
                       </a>
-                    </div>
-                  )}
-                  {tech.last_report_date && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                      <p className="text-xs text-gray-500 leading-tight">
-                        Last report: {new Date(tech.last_report_date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </p>
                     </div>
                   )}
                 </div>
