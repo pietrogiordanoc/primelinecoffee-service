@@ -216,188 +216,150 @@ export default function ViewReport() {
         </div>
       </Card>
 
-      {/* Form Data */}
+      {/* Form Data - Compact View */}
       <Card>
         <div className="p-4">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">Form Data</h2>
-          
-          {/* Two-column layout for desktop */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* General Information Column */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">General Information</h3>
-              
-              {report.form_data.serviceDate && (
-                <div className="border-b border-gray-100 pb-2">
-                  <p className="text-xs text-gray-500 mb-1">Service Date</p>
-                  <p className="text-sm text-gray-900 font-medium">
-                    {formatDate(report.form_data.serviceDate as string, 'PP')}
-                  </p>
-                </div>
-              )}
-
-              {report.form_data.property && (
-                <div className="border-b border-gray-100 pb-2">
-                  <p className="text-xs text-gray-500 mb-1">Property</p>
-                  <p className="text-sm text-gray-900 font-medium">{String(report.form_data.property)}</p>
-                </div>
-              )}
-
-              {report.form_data.serviceType && (
-                <div className="border-b border-gray-100 pb-2">
-                  <p className="text-xs text-gray-500 mb-1">Service Type</p>
-                  <p className="text-sm text-gray-900 font-medium">{String(report.form_data.serviceType)}</p>
-                </div>
-              )}
-
-              {report.form_data.customerName && (
-                <div className="border-b border-gray-100 pb-2">
-                  <p className="text-xs text-gray-500 mb-1">Customer Name</p>
-                  <p className="text-sm text-gray-900 font-medium">{String(report.form_data.customerName)}</p>
-                </div>
-              )}
-
-              {report.form_data.customerEmail && (
-                <div className="border-b border-gray-100 pb-2">
-                  <p className="text-xs text-gray-500 mb-1">Customer Email</p>
-                  <p className="text-sm text-gray-900 font-medium">{String(report.form_data.customerEmail)}</p>
-                </div>
-              )}
-
-              {report.form_data.technicianName && (
-                <div className="border-b border-gray-100 pb-2">
-                  <p className="text-xs text-gray-500 mb-1">Technician Name</p>
-                  <p className="text-sm text-gray-900 font-medium">{String(report.form_data.technicianName)}</p>
-                </div>
-              )}
-
-              {/* Summary Statistics */}
-              {report.form_data.summary && typeof report.form_data.summary === 'object' && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Summary</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    {(report.form_data.summary as any).equipmentCount !== undefined && (
-                      <div className="bg-blue-50 rounded-lg p-3">
-                        <p className="text-xs text-blue-600 mb-1">Equipment</p>
-                        <p className="text-lg font-bold text-blue-900">{(report.form_data.summary as any).equipmentCount}</p>
-                      </div>
-                    )}
-                    {(report.form_data.summary as any).totalHours !== undefined && (
-                      <div className="bg-green-50 rounded-lg p-3">
-                        <p className="text-xs text-green-600 mb-1">Total Hours</p>
-                        <p className="text-lg font-bold text-green-900">{(report.form_data.summary as any).totalHours}</p>
-                      </div>
-                    )}
-                    {(report.form_data.summary as any).totalPartsCost !== undefined && (
-                      <div className="bg-purple-50 rounded-lg p-3">
-                        <p className="text-xs text-purple-600 mb-1">Parts Cost</p>
-                        <p className="text-lg font-bold text-purple-900">${(report.form_data.summary as any).totalPartsCost}</p>
-                      </div>
-                    )}
-                    {(report.form_data.summary as any).totalParts !== undefined && (
-                      <div className="bg-amber-50 rounded-lg p-3">
-                        <p className="text-xs text-amber-600 mb-1">Parts Used</p>
-                        <p className="text-lg font-bold text-amber-900">{(report.form_data.summary as any).totalParts}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Equipment Records Column */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Equipment Records</h3>
-              
-              {report.form_data.equipmentRecords && Array.isArray(report.form_data.equipmentRecords) && 
-                (report.form_data.equipmentRecords as any[]).map((equipment, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-gray-900">Equipment #{index + 1}</h4>
-                      {equipment.photoCount > 0 && (
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
-                          <ImageIcon className="w-3 h-3" />
-                          {equipment.photoCount} {equipment.photoCount === 1 ? 'photo' : 'photos'}
-                        </span>
-                      )}
-                    </div>
-
-                    {equipment.brand && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Brand</p>
-                        <p className="text-sm text-gray-900 font-medium">{equipment.brand}</p>
-                      </div>
-                    )}
-
-                    {equipment.model && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Model</p>
-                        <p className="text-sm text-gray-900 font-medium">{equipment.model}</p>
-                      </div>
-                    )}
-
-                    {equipment.serial && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Serial Number</p>
-                        <p className="text-sm text-gray-900 font-medium font-mono">{equipment.serial}</p>
-                      </div>
-                    )}
-
-                    {equipment.hours !== undefined && equipment.hours !== null && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Labor Hours</p>
-                        <p className="text-sm text-gray-900 font-medium">
-                          {equipment.hours} {equipment.hours === 1 ? 'hour' : 'hours'}
-                        </p>
-                      </div>
-                    )}
-
-                    {equipment.problem && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Problem / Issue</p>
-                        <p className="text-sm text-gray-900 whitespace-pre-wrap">{equipment.problem}</p>
-                      </div>
-                    )}
-
-                    {equipment.work_performed && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Work Performed</p>
-                        <p className="text-sm text-gray-900 whitespace-pre-wrap">{equipment.work_performed}</p>
-                      </div>
-                    )}
-
-                    {equipment.parts_used && Array.isArray(equipment.parts_used) && equipment.parts_used.length > 0 && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Parts Used</p>
-                        <div className="space-y-1">
-                          {equipment.parts_used.map((part: any, partIndex: number) => (
-                            <div key={partIndex} className="text-sm text-gray-900 flex justify-between items-center bg-white rounded px-2 py-1">
-                              <span>{part.name} <span className="text-gray-500">x{part.quantity}</span></span>
-                              <span className="font-medium">${part.cost}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))
-              }
-            </div>
-          </div>
-
-          {/* Additional Notes - Full Width */}
-          {report.form_data.additional_notes && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Additional Notes</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-900 whitespace-pre-wrap">
-                  {String(report.form_data.additional_notes)}
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Service Details</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {report.form_data.serviceDate && (
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Service Date</p>
+                <p className="text-sm text-gray-900 font-medium">
+                  {formatDate(report.form_data.serviceDate as string, 'PP')}
                 </p>
               </div>
+            )}
+
+            {report.form_data.property && (
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Property</p>
+                <p className="text-sm text-gray-900 font-medium truncate">{String(report.form_data.property)}</p>
+              </div>
+            )}
+
+            {report.form_data.serviceType && (
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Service Type</p>
+                <p className="text-sm text-gray-900 font-medium truncate">{String(report.form_data.serviceType)}</p>
+              </div>
+            )}
+
+            {report.form_data.customerName && (
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Customer</p>
+                <p className="text-sm text-gray-900 font-medium truncate">{String(report.form_data.customerName)}</p>
+              </div>
+            )}
+
+            {/* Summary Stats */}
+            {report.form_data.summary && typeof report.form_data.summary === 'object' && (
+              <>
+                {(report.form_data.summary as any).equipmentCount !== undefined && (
+                  <div className="bg-blue-50 rounded-lg p-2">
+                    <p className="text-xs text-blue-600 mb-1">Equipment</p>
+                    <p className="text-lg font-bold text-blue-900">{(report.form_data.summary as any).equipmentCount}</p>
+                  </div>
+                )}
+                {(report.form_data.summary as any).totalHours !== undefined && (
+                  <div className="bg-green-50 rounded-lg p-2">
+                    <p className="text-xs text-green-600 mb-1">Hours</p>
+                    <p className="text-lg font-bold text-green-900">{(report.form_data.summary as any).totalHours}</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Additional Notes - Compact */}
+          {report.form_data.additional_notes && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-xs text-gray-500 mb-1">Notes</p>
+              <p className="text-sm text-gray-700 line-clamp-2">
+                {String(report.form_data.additional_notes)}
+              </p>
             </div>
           )}
         </div>
       </Card>
+
+      {/* Equipment Records */}
+      {report.form_data.equipmentRecords && Array.isArray(report.form_data.equipmentRecords) && 
+        (report.form_data.equipmentRecords as any[]).map((equipment, index) => (
+          <Card key={index}>
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-900">Equipment #{index + 1}</h3>
+                {equipment.photoCount > 0 && (
+                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                    <ImageIcon className="w-3 h-3" />
+                    {equipment.photoCount} {equipment.photoCount === 1 ? 'photo' : 'photos'}
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                {equipment.brand && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Brand</p>
+                    <p className="text-sm text-gray-900 font-medium">{equipment.brand}</p>
+                  </div>
+                )}
+
+                {equipment.model && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Model</p>
+                    <p className="text-sm text-gray-900 font-medium">{equipment.model}</p>
+                  </div>
+                )}
+
+                {equipment.serial && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Serial Number</p>
+                    <p className="text-sm text-gray-900 font-medium font-mono">{equipment.serial}</p>
+                  </div>
+                )}
+
+                {equipment.hours !== undefined && equipment.hours !== null && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Labor Hours</p>
+                    <p className="text-sm text-gray-900 font-medium">
+                      {equipment.hours} {equipment.hours === 1 ? 'hour' : 'hours'}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {equipment.problem && (
+                <div className="mb-3">
+                  <p className="text-xs text-gray-500 mb-1">Problem / Issue</p>
+                  <p className="text-sm text-gray-900 bg-gray-50 rounded p-2">{equipment.problem}</p>
+                </div>
+              )}
+
+              {equipment.work_performed && (
+                <div className="mb-3">
+                  <p className="text-xs text-gray-500 mb-1">Work Performed</p>
+                  <p className="text-sm text-gray-900 bg-gray-50 rounded p-2">{equipment.work_performed}</p>
+                </div>
+              )}
+
+              {equipment.parts_used && Array.isArray(equipment.parts_used) && equipment.parts_used.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500 mb-2">Parts Used</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {equipment.parts_used.map((part: any, partIndex: number) => (
+                      <div key={partIndex} className="text-sm text-gray-900 flex justify-between items-center bg-gray-50 rounded px-3 py-2">
+                        <span>{part.name} <span className="text-gray-500">x{part.quantity}</span></span>
+                        <span className="font-medium">${part.cost}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        ))
+      }
 
       {/* Photos */}
       {report.photos && report.photos.length > 0 && (
