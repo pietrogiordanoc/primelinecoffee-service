@@ -33,7 +33,7 @@ export default function Staff() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [sortBy, setSortBy] = useState<'name' | 'role'>('name');
+  const [sortBy, setSortBy] = useState<'name' | 'role'>('role');
 
   useEffect(() => {
     loadStaff();
@@ -81,7 +81,7 @@ export default function Staff() {
     .sort((a, b) => {
       if (sortBy === 'role') {
         // Sort by role first, then by name
-        const roleOrder = ['super_admin', 'admin', 'technician', 'sales_representative'];
+        const roleOrder = ['technician', 'sales_representative', 'admin', 'super_admin'];
         const roleCompare = roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
         if (roleCompare !== 0) {
           return sortOrder === 'asc' ? roleCompare : -roleCompare;
