@@ -6,6 +6,7 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 interface UpdateTechnicianData {
   user_id: string;
   full_name: string;
+  email?: string;
   phone?: string;
   role?: string;
   specialization?: string;
@@ -27,6 +28,17 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     // Update user record
+    const updateData: any = {
+      full_name: data.full_name,
+      phone: data.phone || null,
+      role: data.role || 'technician',
+    };
+
+    // Only include email if provided (it's an auth-related field)
+    if (data.email) {
+      updateData.email = data.email;
+    }
+
     const userResponse = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${data.user_id}`, {
       method: 'PATCH',
       headers: {
@@ -35,11 +47,7 @@ const handler: Handler = async (event: HandlerEvent) => {
         'apikey': SERVICE_ROLE_KEY,
         'Prefer': 'return=minimal',
       },
-      body: JSON.stringify({
-        full_name: data.full_name,
-        phone: data.phone || null,
-        role: data.role || 'technician',
-      }),
+      body: JSON.stringify(updateData),
     });
 
     if (!userResponse.ok) {

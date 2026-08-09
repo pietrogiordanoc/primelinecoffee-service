@@ -16,8 +16,8 @@ import type { Technician, Company } from '@/types';
 // Schema for edit mode (password optional)
 const editTechnicianSchema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email'),
   phone: z.string().optional(),
-  email: z.string().email('Invalid email').optional(),
   password: z.string().optional(),
   role: z.enum(['super_admin', 'admin', 'technician', 'sales_representative']),
 });
@@ -596,6 +596,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
         console.log('Loading technician data:', technician.user);
         // Set values one by one for edit mode
         setValue('full_name', technician.user.full_name || '');
+        setValue('email', technician.user.email || '');
         setValue('phone', technician.user.phone || '');
         setValue('role', technician.user.role || 'technician');
       } else {
@@ -624,6 +625,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
           body: JSON.stringify({
             user_id: technician.user_id,
             full_name: data.full_name,
+            email: data.email,
             phone: data.phone || null,
             role: data.role,
           }),
@@ -680,24 +682,22 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
           required
         />
 
-        {!technician && (
-          <>
-            <Input
-              {...register('email')}
-              type="email"
-              label="Email"
-              error={errors.email?.message}
-              required
-            />
+        <Input
+          {...register('email')}
+          type="email"
+          label="Email"
+          error={errors.email?.message}
+          required
+        />
 
-            <Input
-              {...register('password')}
-              type="password"
-              label="Password"
-              error={errors.password?.message}
-              required
-            />
-          </>
+        {!technician && (
+          <Input
+            {...register('password')}
+            type="password"
+            label="Password"
+            error={errors.password?.message}
+            required
+          />
         )}
 
         <Input
