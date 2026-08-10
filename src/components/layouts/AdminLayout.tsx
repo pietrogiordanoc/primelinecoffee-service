@@ -67,22 +67,31 @@ export default function AdminLayout() {
             <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
           </div>
 
-          {/* User info */}
+          {/* User info with logout */}
           <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center">
-              <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-                <span className="text-lg font-semibold text-primary-700">
-                  {userProfile?.full_name?.charAt(0).toUpperCase()}
-                </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
+                  <span className="text-lg font-semibold text-primary-700">
+                    {userProfile?.full_name?.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-semibold text-gray-900">
+                    {userProfile?.full_name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {userProfile?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                  </p>
+                </div>
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-semibold text-gray-900">
-                  {userProfile?.full_name}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {userProfile?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
-                </p>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                title="Sign Out"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
@@ -108,43 +117,25 @@ export default function AdminLayout() {
                   <span className="text-xs font-medium text-center">{item.name}</span>
                 </NavLink>
               ))}
+              {secondaryNavigation.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex flex-col items-center justify-center p-4 rounded-xl transition-all',
+                      isActive
+                        ? 'bg-green-50 text-green-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    )
+                  }
+                >
+                  <item.icon className="w-7 h-7 mb-2" strokeWidth={2} />
+                  <span className="text-xs font-medium text-center">{item.name}</span>
+                </NavLink>
+              ))}
             </div>
-
-            {/* Secondary Navigation */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Preview
-              </p>
-              <div className="grid grid-cols-3 gap-4">
-                {secondaryNavigation.map((item) => (
-                  <NavLink
-                    key={item.name}
-                    to={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex flex-col items-center justify-center p-4 rounded-xl transition-all',
-                        isActive
-                          ? 'bg-green-50 text-green-700'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      )
-                    }
-                  >
-                    <item.icon className="w-7 h-7 mb-2" strokeWidth={2} />
-                    <span className="text-xs font-medium text-center">{item.name}</span>
-                  </NavLink>
-                ))}
-              </div>
-            </div>
-
-            {/* Logout button */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center justify-center w-full mt-6 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition"
-            >
-              <LogOut className="w-5 h-5 mr-2" />
-              Sign Out
-            </button>
           </div>
         </div>
       </div>
