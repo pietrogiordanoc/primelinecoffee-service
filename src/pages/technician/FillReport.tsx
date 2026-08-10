@@ -728,16 +728,16 @@ export default function FillReport() {
   return (
     <div className="pb-20">
       <div className="mb-3">
-        <h1 className="text-lg font-bold text-gray-900">{form.name}</h1>
+        <h1 className="text-base md:text-lg font-bold text-gray-900">{form.name}</h1>
         {form.description && (
-          <p className="text-gray-600 text-sm mt-0.5">{form.description}</p>
+          <p className="text-gray-600 text-xs md:text-sm mt-0.5">{form.description}</p>
         )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* General Service Information */}
-        <div className="bg-white border border-gray-200 rounded-lg p-3">
-          <h2 className="text-sm font-semibold text-gray-900 mb-2">Service Information</h2>
+        <div className="bg-white border border-gray-200 rounded-lg p-2.5 md:p-3">
+          <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2">Service Information</h2>
           <div className="space-y-2">
             <Input
               label="Date"
@@ -771,14 +771,14 @@ export default function FillReport() {
               disabled
             />
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Property <span className="text-red-500">*</span>
               </label>
               <select
                 value={property}
                 onChange={(e) => setProperty(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
               >
                 <option value="">Select...</option>
                 <option value="PLD">PLD</option>
@@ -787,14 +787,14 @@ export default function FillReport() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Service Type <span className="text-red-500">*</span>
               </label>
               <select
                 value={serviceType}
                 onChange={(e) => setServiceType(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
               >
                 <option value="">Select...</option>
                 <option value="Delivery">Delivery</option>
@@ -806,13 +806,13 @@ export default function FillReport() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Sales Representative
               </label>
               <select
                 value={salesRepresentativeId}
                 onChange={(e) => setSalesRepresentativeId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
               >
                 <option value="">None</option>
                 {salesReps.map((rep) => (
@@ -831,7 +831,7 @@ export default function FillReport() {
         {/* Equipment Service Records */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-semibold text-gray-900">Equipment Service Records</h2>
+            <h2 className="text-xs md:text-sm font-semibold text-gray-900">Equipment Service Records</h2>
             <Button type="button" onClick={addEquipmentRecord} size="sm" variant="secondary">
               <Plus className="w-4 h-4 mr-1" />
               Add Equipment
@@ -897,23 +897,23 @@ export default function FillReport() {
                     />
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Problem Description</label>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Problem Description</label>
                       <textarea
                         value={equipment.problem}
                         onChange={(e) => updateEquipmentField(equipment.id, 'problem', e.target.value)}
                         placeholder="Describe the problem found"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                        className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
                         rows={2}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Work Performed</label>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Work Performed</label>
                       <textarea
                         value={equipment.work_performed}
                         onChange={(e) => updateEquipmentField(equipment.id, 'work_performed', e.target.value)}
                         placeholder="Describe what work was done"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                        className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
                         rows={2}
                       />
                     </div>
@@ -930,7 +930,7 @@ export default function FillReport() {
                     {/* Parts Used */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="block text-sm font-medium text-gray-700">Parts Used</label>
+                        <label className="block text-xs md:text-sm font-medium text-gray-700">Parts Used</label>
                         <button
                           type="button"
                           onClick={() => addPartToEquipment(equipment.id)}
@@ -980,7 +980,7 @@ export default function FillReport() {
 
                     {/* Photos & Videos */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                         {videosEnabled ? 'Photos & Videos' : 'Photos'}
                       </label>
                       
@@ -1094,9 +1094,9 @@ export default function FillReport() {
         </div>
 
         {/* Summary */}
-        <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
-          <h2 className="text-sm font-semibold text-gray-900 mb-2">Service Summary</h2>
-          <div className="grid grid-cols-2 gap-2 text-sm">
+        <div className="bg-primary-50 border border-primary-200 rounded-lg p-2.5 md:p-3">
+          <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2">Service Summary</h2>
+          <div className="grid grid-cols-2 gap-2 text-xs md:text-sm">
             <div>
               <span className="text-gray-600">Equipment Serviced:</span>
               <span className="font-medium text-gray-900 ml-1">{equipmentRecords.length}</span>
