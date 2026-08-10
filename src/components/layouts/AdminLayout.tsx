@@ -46,24 +46,116 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile sidebar backdrop */}
+      {/* Mobile bottom sheet backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
-      <aside
+      {/* Mobile bottom sheet menu */}
+      <div
         className={cn(
-          'fixed top-0 left-0 z-30 h-screen w-64 bg-white border-r border-gray-200 transition-transform duration-300 lg:translate-x-0',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          'fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl transition-transform duration-300 lg:hidden',
+          sidebarOpen ? 'translate-y-0' : 'translate-y-full'
         )}
+      >
+        <div className="max-h-[80vh] overflow-y-auto">
+          {/* Handle bar */}
+          <div className="flex justify-center py-3">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+          </div>
+
+          {/* User info */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center">
+              <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
+                <span className="text-lg font-semibold text-primary-700">
+                  {userProfile?.full_name?.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-semibold text-gray-900">
+                  {userProfile?.full_name}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {userProfile?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation grid */}
+          <div className="px-4 py-6">
+            <div className="grid grid-cols-3 gap-4">
+              {navigation.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.href}
+                  end={item.href === '/admin'}
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex flex-col items-center justify-center p-4 rounded-xl transition-all',
+                      isActive
+                        ? 'bg-primary-50 text-primary-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    )
+                  }
+                >
+                  <item.icon className="w-7 h-7 mb-2" strokeWidth={2} />
+                  <span className="text-xs font-medium text-center">{item.name}</span>
+                </NavLink>
+              ))}
+            </div>
+
+            {/* Secondary Navigation */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <p className="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Preview
+              </p>
+              <div className="grid grid-cols-3 gap-4">
+                {secondaryNavigation.map((item) => (
+                  <NavLink
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex flex-col items-center justify-center p-4 rounded-xl transition-all',
+                        isActive
+                          ? 'bg-green-50 text-green-700'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      )
+                    }
+                  >
+                    <item.icon className="w-7 h-7 mb-2" strokeWidth={2} />
+                    <span className="text-xs font-medium text-center">{item.name}</span>
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+
+            {/* Logout button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center justify-center w-full mt-6 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition"
+            >
+              <LogOut className="w-5 h-5 mr-2" />
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Sidebar */}
+      <aside
+        className="hidden lg:block fixed top-0 left-0 z-30 h-screen w-64 bg-white border-r border-gray-200"
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center px-6 py-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <img 
                 src="/favicon.jpg" 
@@ -79,12 +171,6 @@ export default function AdminLayout() {
                 className="h-8 w-auto"
               />
             </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
 
           {/* Navigation */}
@@ -292,7 +378,7 @@ export default function AdminLayout() {
           </NavLink>
 
           <NavLink
-            to="/admin/storage"
+            to="/admin/technicians"
             className={({ isActive }) =>
               cn(
                 'flex flex-col items-center justify-center flex-1 h-full transition-all',
@@ -304,7 +390,7 @@ export default function AdminLayout() {
           >
             {({ isActive }) => (
               <>
-                <HardDrive
+                <Users
                   className={cn(
                     'w-6 h-6 mb-1 transition-all',
                     isActive ? 'text-primary-600 scale-110' : 'text-gray-400'
@@ -315,7 +401,7 @@ export default function AdminLayout() {
                   'text-xs font-medium',
                   isActive ? 'text-primary-600' : 'text-gray-500'
                 )}>
-                  Storage
+                  Staff
                 </span>
               </>
             )}
