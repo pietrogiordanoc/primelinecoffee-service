@@ -423,26 +423,26 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 md:space-y-4">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-600">System activity summary</p>
+        <h1 className="text-lg md:text-xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-xs md:text-sm text-gray-600">System activity summary</p>
       </div>
 
-      {/* Stats Grid - Minimal */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Stats Grid - Ultra Minimal */}
+      <div className="grid grid-cols-3 gap-2 md:gap-3">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.name}>
-              <div className="p-3">
-                <div className="flex items-center justify-between">
+              <div className="p-2 md:p-3">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                   <div>
-                    <p className="text-xs font-medium text-gray-600">{stat.name}</p>
-                    <p className="text-xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                    <p className="text-[10px] md:text-xs font-medium text-gray-600">{stat.name}</p>
+                    <p className="text-lg md:text-xl font-bold text-gray-900 mt-0.5">{stat.value}</p>
                   </div>
-                  <div className={`p-2 rounded-lg ${colorMap[stat.color]}`}>
+                  <div className={`hidden md:block p-2 rounded-lg ${colorMap[stat.color]}`}>
                     <Icon className="w-4 h-4" />
                   </div>
                 </div>
@@ -452,33 +452,33 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Storage Monitor - Ultra Compact */}
+      {/* Storage Monitor - Mobile Optimized */}
       {storageMetrics && settings && (
         <Card>
-          <div className="p-3">
+          <div className="p-2 md:p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
-                <HardDrive className="w-4 h-4 text-blue-600" />
-                <h2 className="text-sm font-semibold text-gray-900">Storage</h2>
+                <HardDrive className="w-3.5 md:w-4 h-3.5 md:h-4 text-blue-600" />
+                <h2 className="text-xs md:text-sm font-semibold text-gray-900">Storage</h2>
                 {getStorageLevel() === 'critical' && (
-                  <AlertTriangle className="w-4 h-4 text-red-600" />
+                  <AlertTriangle className="w-3.5 md:w-4 h-3.5 md:h-4 text-red-600" />
                 )}
                 {getStorageLevel() === 'warning' && (
-                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  <AlertTriangle className="w-3.5 md:w-4 h-3.5 md:h-4 text-amber-600" />
                 )}
               </div>
               <button
                 onClick={() => navigate('/admin/storage')}
-                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                className="flex items-center gap-0.5 md:gap-1 text-[10px] md:text-xs text-blue-600 hover:text-blue-800 font-medium"
               >
-                Details
-                <ExternalLink className="w-3 h-3" />
+                <span className="hidden sm:inline">Details</span>
+                <ExternalLink className="w-3 md:w-3.5 h-3 md:h-3.5" />
               </button>
             </div>
 
             {/* Thermometer Bar */}
             <div className="space-y-1 mb-2">
-              <div className="flex justify-between text-xs">
+              <div className="flex justify-between text-[10px] md:text-xs">
                 <span className="font-medium text-gray-700">
                   {formatBytes(storageMetrics.total_size_bytes)}
                 </span>
@@ -487,42 +487,42 @@ export default function Dashboard() {
                 </span>
               </div>
 
-              <div className="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+              <div className="relative w-full h-3 md:h-4 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className={`h-full transition-all duration-500 ${getStorageLevelColor()}`}
                   style={{ width: `${Math.min(getStoragePercentage(), 100)}%` }}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-[10px] font-semibold text-gray-900">
+                  <span className="text-[9px] md:text-[10px] font-semibold text-gray-900">
                     {getStoragePercentage().toFixed(1)}%
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Quick Stats - Horizontal Compact */}
-            <div className="flex items-center justify-around gap-2 pt-2 border-t border-gray-100">
-              <div className="flex items-center gap-1.5">
-                <Image className="w-3.5 h-3.5 text-blue-600" />
-                <div className="flex items-baseline gap-1">
-                  <span className="text-sm font-bold text-blue-900">{storageMetrics.photo_count}</span>
-                  <span className="text-[10px] text-blue-700">Photos</span>
+            {/* Quick Stats - More Compact Mobile */}
+            <div className="flex items-center justify-around gap-1 md:gap-2 pt-2 border-t border-gray-100">
+              <div className="flex flex-col md:flex-row items-center md:gap-1.5">
+                <Image className="w-3 md:w-3.5 h-3 md:h-3.5 text-blue-600" />
+                <div className="flex flex-col md:flex-row items-center md:items-baseline md:gap-1">
+                  <span className="text-xs md:text-sm font-bold text-blue-900">{storageMetrics.photo_count}</span>
+                  <span className="text-[8px] md:text-[10px] text-blue-700">Photos</span>
                 </div>
               </div>
-              <div className="w-px h-4 bg-gray-200"></div>
-              <div className="flex items-center gap-1.5">
-                <Video className="w-3.5 h-3.5 text-purple-600" />
-                <div className="flex items-baseline gap-1">
-                  <span className="text-sm font-bold text-purple-900">{storageMetrics.video_count}</span>
-                  <span className="text-[10px] text-purple-700">Videos</span>
+              <div className="w-px h-6 md:h-4 bg-gray-200"></div>
+              <div className="flex flex-col md:flex-row items-center md:gap-1.5">
+                <Video className="w-3 md:w-3.5 h-3 md:h-3.5 text-purple-600" />
+                <div className="flex flex-col md:flex-row items-center md:items-baseline md:gap-1">
+                  <span className="text-xs md:text-sm font-bold text-purple-900">{storageMetrics.video_count}</span>
+                  <span className="text-[8px] md:text-[10px] text-purple-700">Videos</span>
                 </div>
               </div>
-              <div className="w-px h-4 bg-gray-200"></div>
-              <div className="flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-green-600" />
-                <div className="flex items-baseline gap-1">
-                  <span className="text-sm font-bold text-green-900">{storageMetrics.report_count}</span>
-                  <span className="text-[10px] text-green-700">Reports</span>
+              <div className="w-px h-6 md:h-4 bg-gray-200"></div>
+              <div className="flex flex-col md:flex-row items-center md:gap-1.5">
+                <FileText className="w-3 md:w-3.5 h-3 md:h-3.5 text-green-600" />
+                <div className="flex flex-col md:flex-row items-center md:items-baseline md:gap-1">
+                  <span className="text-xs md:text-sm font-bold text-green-900">{storageMetrics.report_count}</span>
+                  <span className="text-[8px] md:text-[10px] text-green-700">Reports</span>
                 </div>
               </div>
             </div>
@@ -530,43 +530,46 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* Report Statistics - With Tabs */}
+      {/* Report Statistics - Mobile Optimized */}
       <Card>
-        <div className="p-4">
+        <div className="p-2 md:p-4">
           {/* Header with Tabs */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-blue-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Report Statistics</h2>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3 md:mb-4">
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <BarChart3 className="w-4 md:w-5 h-4 md:h-5 text-blue-600" />
+              <h2 className="text-sm md:text-lg font-semibold text-gray-900">Statistics</h2>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5 md:gap-2">
               <button
                 onClick={() => setActiveTab('technicians')}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
+                className={`flex-1 md:flex-none px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium rounded-lg transition ${
                   activeTab === 'technicians'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                By Technician
+                <span className="md:hidden">Techs</span>
+                <span className="hidden md:inline">By Technician</span>
               </button>
               <button
                 onClick={() => setActiveTab('companies')}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
+                className={`flex-1 md:flex-none px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium rounded-lg transition ${
                   activeTab === 'companies'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                By Company
+                <span className="md:hidden">Companies</span>
+                <span className="hidden md:inline">By Company</span>
               </button>
             </div>
           </div>
 
           {/* Technician Statistics */}
           {activeTab === 'technicians' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="space-y-3 md:space-y-6">
+              {/* Charts - Hidden on mobile */}
+              <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Pie Chart - Reports Distribution */}
                 <div>
                   <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -671,8 +674,8 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Detailed Table */}
-              <div className="overflow-x-auto">
+              {/* Desktop Table - Hidden on mobile */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -746,13 +749,53 @@ export default function Dashboard() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-2">
+                {technicianStats.slice(0, 5).map((tech) => (
+                  <div key={tech.technician_id} className="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
+                    <div className="font-semibold text-xs text-gray-900 mb-2">
+                      {tech.technician_name}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-[10px]">
+                      <div>
+                        <div className="text-gray-500">Reports</div>
+                        <div className="font-bold text-gray-900">{tech.report_count}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500">Photos</div>
+                        <div className="font-bold text-blue-600">{tech.photo_count}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500">Videos</div>
+                        <div className="font-bold text-purple-600">{tech.video_count}</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-[10px] mt-2 pt-2 border-t border-gray-200">
+                      <div className="text-center">
+                        <div className="text-green-600 font-semibold">{tech.service_types.service}</div>
+                        <div className="text-gray-500">Service</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-amber-600 font-semibold">{tech.service_types.tuneup}</div>
+                        <div className="text-gray-500">Tune up</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-blue-600 font-semibold">{tech.service_types.delivery}</div>
+                        <div className="text-gray-500">Delivery</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {/* Company Statistics */}
           {activeTab === 'companies' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="space-y-3 md:space-y-6">
+              {/* Charts - Hidden on mobile */}
+              <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Pie Chart - Reports by Company */}
                 <div>
                   <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -857,8 +900,8 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Detailed Table */}
-              <div className="overflow-x-auto">
+              {/* Desktop Table - Hidden on mobile */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -931,6 +974,45 @@ export default function Dashboard() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-2">
+                {companyStats.slice(0, 5).map((company) => (
+                  <div key={company.company_id} className="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
+                    <div className="font-semibold text-xs text-gray-900 mb-2">
+                      {company.company_name}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-[10px]">
+                      <div>
+                        <div className="text-gray-500">Reports</div>
+                        <div className="font-bold text-gray-900">{company.report_count}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500">Photos</div>
+                        <div className="font-bold text-blue-600">{company.photo_count}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500">Videos</div>
+                        <div className="font-bold text-purple-600">{company.video_count}</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-[10px] mt-2 pt-2 border-t border-gray-200">
+                      <div className="text-center">
+                        <div className="text-green-600 font-semibold">{company.service_types.service}</div>
+                        <div className="text-gray-500">Service</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-amber-600 font-semibold">{company.service_types.tuneup}</div>
+                        <div className="text-gray-500">Tune up</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-blue-600 font-semibold">{company.service_types.delivery}</div>
+                        <div className="text-gray-500">Delivery</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
