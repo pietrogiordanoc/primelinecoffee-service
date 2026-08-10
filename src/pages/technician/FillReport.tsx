@@ -778,7 +778,7 @@ export default function FillReport() {
                 value={property}
                 onChange={(e) => setProperty(e.target.value)}
                 required
-                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs"
               >
                 <option value="">Select...</option>
                 <option value="PLD">PLD</option>
@@ -794,7 +794,7 @@ export default function FillReport() {
                 value={serviceType}
                 onChange={(e) => setServiceType(e.target.value)}
                 required
-                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs"
               >
                 <option value="">Select...</option>
                 <option value="Delivery">Delivery</option>
@@ -812,7 +812,7 @@ export default function FillReport() {
               <select
                 value={salesRepresentativeId}
                 onChange={(e) => setSalesRepresentativeId(e.target.value)}
-                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs"
               >
                 <option value="">None</option>
                 {salesReps.map((rep) => (
@@ -902,7 +902,7 @@ export default function FillReport() {
                         value={equipment.problem}
                         onChange={(e) => updateEquipmentField(equipment.id, 'problem', e.target.value)}
                         placeholder="Describe the problem found"
-                        className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                        className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs"
                         rows={2}
                       />
                     </div>
@@ -913,7 +913,7 @@ export default function FillReport() {
                         value={equipment.work_performed}
                         onChange={(e) => updateEquipmentField(equipment.id, 'work_performed', e.target.value)}
                         placeholder="Describe what work was done"
-                        className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                        className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs"
                         rows={2}
                       />
                     </div>

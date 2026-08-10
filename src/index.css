@@ -17,13 +17,6 @@
     -webkit-appearance: none;
     margin: 0;
   }
-
-  /* Compact select options */
-  select option {
-    padding: 0.2rem 0.4rem;
-    font-size: 0.8125rem;
-    line-height: 1.2;
-  }
 }
 
 @layer utilities {
