@@ -8,7 +8,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { FileText, Search, Download, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { FileText, Search, Download, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight } from 'lucide-react';
 import type { ReportSummary } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 
@@ -26,6 +26,9 @@ export default function ReportsPage() {
   const [processing, setProcessing] = useState(false);
   const [sortColumn, setSortColumn] = useState<string>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [expandedReport, setExpandedReport] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
 
   useEffect(() => {
     loadReports();
@@ -240,6 +243,17 @@ export default function ReportsPage() {
     return 0;
   });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedReports = filteredReports.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, dateFilter, sortColumn, sortDirection]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -258,82 +272,99 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <div className="p-3 md:p-4">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4">
-            {/* Search - takes more space */}
-            <div className="md:col-span-5">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 md:w-5 h-4 md:h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by company, technician or form..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm md:text-base"
-                />
-              </div>
-            </div>
-            
-            {/* Status Filter */}
-            <div className="md:col-span-2">
-              <Select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                options={[
-                  { value: '', label: 'All statuses' },
-                  { value: 'draft', label: 'Draft' },
-                  { value: 'submitted', label: 'Submitted' },
-                  { value: 'reviewed', label: 'Reviewed' },
-                  { value: 'completed', label: 'Completed' },
-                ]}
-              />
-            </div>
-            
-            {/* Date Filter */}
-            <div className="md:col-span-2">
-              <select
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value as any)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
+      {/* Filters & Pagination */}
+      <div className="flex flex-wrap items-center gap-1.5 text-xs">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[150px]">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-6 pr-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-primary-500"
+          />
+        </div>
+        
+        {/* Status */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-1.5 py-1 border border-gray-300 rounded bg-white text-xs"
+        >
+          <option value="">Status</option>
+          <option value="draft">Draft</option>
+          <option value="submitted">Submitted</option>
+          <option value="reviewed">Reviewed</option>
+          <option value="completed">Completed</option>
+        </select>
+        
+        {/* Date Filter */}
+        <select
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value as any)}
+          className="px-1.5 py-1 border border-gray-300 rounded bg-white text-xs"
+        >
+          <option value="all">All dates</option>
+          <option value="today">Today</option>
+          <option value="week">Week</option>
+          <option value="month">Month</option>
+        </select>
+        
+        {/* Items per page & count */}
+        <div className="ml-auto flex items-center gap-1.5">
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="px-1.5 py-1 border border-gray-300 rounded bg-white text-xs"
+          >
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+          <span className="text-gray-500">
+            {filteredReports.length} total
+          </span>
+        </div>
+      </div>
+
+      {/* Bulk Actions */}
+      {filteredReports.length > 0 && (
+        <div className="flex items-center gap-2 px-2">
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filteredReports.length > 0 && selectedReports.size === filteredReports.length}
+              onChange={toggleSelectAll}
+              className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+            />
+            <span className="text-xs font-medium text-gray-700">
+              Select All
+            </span>
+          </label>
+          {selectedReports.size > 0 && (
+            <>
+              <span className="text-xs text-gray-600">
+                {selectedReports.size} selected
+              </span>
+              <button
+                onClick={handleBulkDelete}
+                disabled={processing}
+                className="ml-auto flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded disabled:opacity-50"
               >
-                <option value="all">All dates</option>
-                <option value="today">Today</option>
-                <option value="week">Last 7 days</option>
-                <option value="month">Last 30 days</option>
-                <option value="custom">Custom range</option>
-              </select>
-            </div>
-            
-            {/* Custom Date Inputs */}
-            {dateFilter === 'custom' && (
-              <>
-                <div className="md:col-span-1.5">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
-                    placeholder="From"
-                  />
-                </div>
-                <div className="md:col-span-1.5">
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500"
-                    placeholder="To"
-                  />
-                </div>
-              </>
-            )}
-            
-            {/* Clear Button */}
-            {(dateFilter !== 'all' || statusFilter || searchTerm) && (
-              <div className={dateFilter === 'custom' ? 'md:col-span-12' : 'md:col-span-3'}>
-                <button
+                <Trash2 className="w-3 h-3" />
+                Delete
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Reports Table */}
+      <Card>
+        {filteredReports.length === 0 ? (
                   onClick={() => {
                     setDateFilter('all');
                     setStartDate('');
@@ -483,7 +514,7 @@ export default function ReportsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredReports.map((report) => (
+                paginatedReports.map((report) => (
                   <tr 
                     key={report.id} 
                     onClick={() => handleView(report.id)}
@@ -573,102 +604,131 @@ export default function ReportsPage() {
 
         {/* Mobile Cards */}
         <div className="md:hidden divide-y divide-gray-200">
-          {filteredReports.length === 0 ? (
-            <div className="p-8 text-center text-sm text-gray-500">
+          {paginatedReports.length === 0 ? (
+            <div className="p-8 text-center text-xs text-gray-500">
               No reports found
             </div>
           ) : (
-            filteredReports.map((report) => (
-              <div
-                key={report.id}
-                onClick={() => handleView(report.id)}
-                className="p-3 hover:bg-gray-50 transition cursor-pointer"
-              >
-                {/* Header Row: Checkbox + Code + Status */}
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex items-start gap-2 flex-1 min-w-0">
-                    <input
-                      type="checkbox"
-                      checked={selectedReports.has(report.id)}
-                      onChange={() => toggleSelect(report.id)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="mt-0.5 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-mono font-semibold text-primary-600 truncate">
-                        {report.report_code || 'N/A'}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
-                        {formatDate(report.created_at, 'PP')}
+            paginatedReports.map((report) => {
+              const isExpanded = expandedReport === report.id;
+              return (
+                <div key={report.id} className="bg-white">
+                  {/* Report Header */}
+                  <div
+                    className="flex items-center justify-between p-2 cursor-pointer hover:bg-gray-50"
+                    onClick={() => setExpandedReport(isExpanded ? null : report.id)}
+                  >
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={selectedReports.has(report.id)}
+                        onChange={() => toggleSelect(report.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-mono font-semibold text-primary-600 truncate leading-none">
+                          {report.report_code || 'N/A'}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate leading-none mt-0.5">
+                          {formatDate(report.created_at, 'PP')}
+                        </p>
                       </div>
                     </div>
+                    <div className="flex items-center gap-1">
+                      <span
+                        className={`px-1.5 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${\n                          report.status === 'completed'
+                            ? 'bg-green-100 text-green-700'
+                            : report.status === 'reviewed'
+                            ? 'bg-blue-100 text-blue-700'
+                            : report.status === 'submitted'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {report.status.slice(0,3)}
+                      </span>
+                      {isExpanded ? (
+                        <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      ) : (
+                        <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      )}
+                    </div>
                   </div>
-                  <span
-                    className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap flex-shrink-0 ${
-                      report.status === 'completed'
-                        ? 'bg-green-100 text-green-700'
-                        : report.status === 'reviewed'
-                        ? 'bg-blue-100 text-blue-700'
-                        : report.status === 'submitted'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {report.status}
-                  </span>
-                </div>
 
-                {/* Company & Form */}
-                <div className="mb-2">
-                  <div className="text-sm font-semibold text-gray-900 truncate">
-                    {report.company_name}
-                  </div>
-                  <div className="text-xs text-gray-500 truncate">{report.form_name}</div>
-                </div>
+                  {/* Expanded Details */}
+                  {isExpanded && (
+                    <div className="px-2 pb-2 space-y-1 border-t border-gray-100 bg-gray-50">
+                      <div className="pt-1.5">
+                        <p className="text-xs font-semibold text-gray-900 truncate">{report.company_name}</p>
+                        <p className="text-xs text-gray-500 truncate">{report.form_name}</p>
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium">Tech:</span> {report.technician_name}
+                      </div>
+                      {report.sales_rep_name && (
+                        <div className="text-xs text-gray-600">
+                          <span className="font-medium">Sales:</span> {report.sales_rep_name}
+                        </div>
+                      )}
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium">Photos:</span> {report.photo_count || 0}
+                      </div>
 
-                {/* Technician & Sales Rep */}
-                <div className="space-y-1 mb-3 text-xs text-gray-600">
-                  <div className="truncate">
-                    <span className="font-medium">Tech:</span> {report.technician_name}
-                  </div>
-                  {report.sales_rep_name && (
-                    <div className="truncate">
-                      <span className="font-medium">Sales:</span> {report.sales_rep_name}
+                      {/* Actions */}
+                      <div className="flex gap-1.5 pt-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleView(report.id);
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded transition"
+                        >
+                          <Eye className="w-3 h-3" />
+                          View
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(report.id, report.company_name);
+                          }}
+                          disabled={deleting === report.id}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition disabled:opacity-50"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Del
+                        </button>
+                      </div>
                     </div>
                   )}
-                  <div>
-                    <span className="font-medium">Photos:</span> {report.photo_count || 0}
-                  </div>
                 </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleView(report.id);
-                    }}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded transition"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    View
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(report.id, report.company_name);
-                    }}
-                    disabled={deleting === report.id}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition disabled:opacity-50"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="mt-3 flex items-center justify-between px-2 md:px-0">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Prev
+            </button>
+            <span className="text-xs text-gray-600">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </Card>
     </div>
   );

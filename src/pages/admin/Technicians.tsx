@@ -7,7 +7,7 @@ import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
-import { Plus, Edit2, Trash2, UserCheck, UserX, Building2, ArrowUpDown, ArrowUp, ArrowDown, CheckCheck } from 'lucide-react';
+import { Plus, Edit2, Trash2, UserCheck, UserX, Building2, ArrowUpDown, ArrowUp, ArrowDown, CheckCheck, ChevronDown, ChevronRight, Phone as PhoneIcon, Mail } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -44,6 +44,9 @@ export default function TechniciansPage() {
   const [sortField, setSortField] = useState<'name' | 'email' | 'role' | 'phone' | 'status'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [assignmentStatus, setAssignmentStatus] = useState<Record<string, boolean>>({});
+  const [expandedTechnician, setExpandedTechnician] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
 
   useEffect(() => {
     loadTechnicians();
@@ -129,6 +132,18 @@ export default function TechniciansPage() {
       return 0;
     });
   }
+
+  // Pagination
+  const sortedTechnicians = getSortedTechnicians();
+  const totalPages = Math.ceil(sortedTechnicians.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedTechnicians = sortedTechnicians.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filter/sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [roleFilter, sortField, sortDirection]);
 
   function SortIcon({ field }: { field: typeof sortField }) {
     if (sortField !== field) {
@@ -293,75 +308,86 @@ export default function TechniciansPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">STAFF</h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">Manage all system users - Super Admins, Managers, and Technicians</p>
-        </div>
-        <Button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Staff Member
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">STAFF</h1>
+        <Button onClick={() => setIsModalOpen(true)} size="sm" className="w-full sm:w-auto">
+          <Plus className="w-4 h-4 mr-1" />
+          Add
         </Button>
       </div>
 
-      {/* Role Filters */}
-      <Card>
-        <div className="flex gap-2 p-3 md:p-4 overflow-x-auto">
-          <button
-            onClick={() => setRoleFilter('all')}
-            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition whitespace-nowrap ${
-              roleFilter === 'all'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+      {/* Role Filters & Pagination */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <button
+          onClick={() => setRoleFilter('all')}
+          className={`px-2 py-1 rounded text-xs font-medium transition whitespace-nowrap ${
+            roleFilter === 'all'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setRoleFilter('super_admin')}
+          className={`px-2 py-1 rounded text-xs font-medium transition whitespace-nowrap ${
+            roleFilter === 'super_admin'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Super
+        </button>
+        <button
+          onClick={() => setRoleFilter('admin')}
+          className={`px-2 py-1 rounded text-xs font-medium transition whitespace-nowrap ${
+            roleFilter === 'admin'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Managers
+        </button>
+        <button
+          onClick={() => setRoleFilter('technician')}
+          className={`px-2 py-1 rounded text-xs font-medium transition whitespace-nowrap ${
+            roleFilter === 'technician'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Techs
+        </button>
+        <button
+          onClick={() => setRoleFilter('sales_representative')}
+          className={`px-2 py-1 rounded text-xs font-medium transition whitespace-nowrap ${
+            roleFilter === 'sales_representative'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Sales
+        </button>
+        <div className="ml-auto flex items-center gap-1.5">
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="px-1.5 py-1 border border-gray-300 rounded bg-white text-xs"
           >
-            All
-          </button>
-          <button
-            onClick={() => setRoleFilter('super_admin')}
-            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition whitespace-nowrap ${
-              roleFilter === 'super_admin'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Super Admins
-          </button>
-          <button
-            onClick={() => setRoleFilter('admin')}
-            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition whitespace-nowrap ${
-              roleFilter === 'admin'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Managers
-          </button>
-          <button
-            onClick={() => setRoleFilter('technician')}
-            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition whitespace-nowrap ${
-              roleFilter === 'technician'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Technicians
-          </button>
-          <button
-            onClick={() => setRoleFilter('sales_representative')}
-            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition whitespace-nowrap ${
-              roleFilter === 'sales_representative'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Sales Reps
-          </button>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+          <span className="text-xs text-gray-500">
+            {sortedTechnicians.length} total
+          </span>
         </div>
-      </Card>
+      </div>
 
       {/* Staff Table */}
-      {getSortedTechnicians().length === 0 ? (
+      {sortedTechnicians.length === 0 ? (
         <Card>
           <div className="p-8 md:p-12 text-center">
             <p className="text-sm md:text-base text-gray-500">No staff members found</p>
@@ -429,7 +455,7 @@ export default function TechniciansPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {getSortedTechnicians().map((technician) => (
+                {paginatedTechnicians.map((technician) => (
                   <tr key={technician.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
@@ -541,122 +567,171 @@ export default function TechniciansPage() {
 
           {/* Mobile Cards */}
           <div className="md:hidden divide-y divide-gray-200">
-            {getSortedTechnicians().map((technician) => (
-              <div key={technician.id} className="p-3 hover:bg-gray-50 transition">
-                {/* Name & Avatar */}
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-medium">
-                        {technician.user?.full_name?.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
-                        {technician.user?.full_name}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">{technician.user?.email}</p>
-                    </div>
-                  </div>
-                  <span
-                    className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap flex-shrink-0 ${
-                      technician.is_active
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}
+            {paginatedTechnicians.map((technician) => {
+              const isExpanded = expandedTechnician === technician.id;
+              return (
+                <div key={technician.id} className="bg-white">
+                  {/* Staff Header */}
+                  <div
+                    className="flex items-center justify-between p-2 cursor-pointer hover:bg-gray-50"
+                    onClick={() => setExpandedTechnician(isExpanded ? null : technician.id)}
                   >
-                    {technician.is_active ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-
-                {/* Role & Phone */}
-                <div className="space-y-1 mb-3 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 text-xs font-medium rounded border ${
-                      technician.user?.role === 'super_admin' ? 'bg-purple-100 text-purple-700 border-purple-200' :
-                      technician.user?.role === 'admin' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                      technician.user?.role === 'sales_representative' ? 'bg-orange-100 text-orange-700 border-orange-200' :
-                      'bg-green-100 text-green-700 border-green-200'
-                    }`}>
-                      {technician.user?.role === 'super_admin' ? 'Super Admin' :
-                       technician.user?.role === 'admin' ? 'Manager' :
-                       technician.user?.role === 'sales_representative' ? 'Sales Rep' :
-                       'Technician'}
-                    </span>
-                    {technician.user?.phone && (
-                      <span className="text-gray-600">{technician.user.phone}</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex flex-col gap-2 pt-2 border-t border-gray-100">
-                  {/* Company Assignment for Technicians */}
-                  {technician.user?.role === 'technician' && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleToggleAllCompanies(technician)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition ${
-                          assignmentStatus[technician.id]
-                            ? 'text-green-700 bg-green-100 hover:bg-green-200'
-                            : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-medium">
+                          {technician.user?.full_name?.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-900 truncate leading-none">
+                          {technician.user?.full_name}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate leading-none mt-0.5">
+                          {technician.user?.role === 'super_admin' ? 'Super' :
+                           technician.user?.role === 'admin' ? 'Manager' :
+                           technician.user?.role === 'sales_representative' ? 'Sales' :
+                           'Tech'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span
+                        className={`px-1.5 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${\n                          technician.is_active
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
                         }`}
                       >
-                        <CheckCheck className="w-3.5 h-3.5" />
-                        {assignmentStatus[technician.id] ? 'All Assigned' : 'Assign All'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedTechnicianForAssign(technician);
-                          setIsAssignModalOpen(true);
-                        }}
-                        className="px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded transition"
-                      >
-                        <Building2 className="w-3.5 h-3.5 mx-auto" />
-                      </button>
+                        {technician.is_active ? 'On' : 'Off'}
+                      </span>
+                      {isExpanded ? (
+                        <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      ) : (
+                        <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expanded Details */}
+                  {isExpanded && (
+                    <div className="px-2 pb-2 space-y-1.5 border-t border-gray-100 bg-gray-50">
+                      {/* Email & Phone */}
+                      <div className="flex items-center gap-1 pt-1.5">
+                        <Mail className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                        <a href={`mailto:${technician.user?.email}`} className="text-xs text-primary-600 hover:underline truncate">
+                          {technician.user?.email}
+                        </a>
+                      </div>
+                      {technician.user?.phone && (
+                        <div className="flex items-center gap-1">
+                          <PhoneIcon className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                          <a href={`tel:${technician.user.phone}`} className="text-xs text-primary-600 hover:underline">
+                            {technician.user.phone}
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Company Assignment for Technicians */}
+                      {technician.user?.role === 'technician' && (
+                        <div className="flex gap-1.5 pt-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleAllCompanies(technician);
+                            }}
+                            className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded transition ${
+                              assignmentStatus[technician.id]
+                                ? 'text-green-700 bg-green-100 hover:bg-green-200'
+                                : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                            }`}
+                          >
+                            <CheckCheck className="w-3 h-3" />
+                            {assignmentStatus[technician.id] ? 'All' : 'Assign'}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTechnicianForAssign(technician);
+                              setIsAssignModalOpen(true);
+                            }}
+                            className="px-2 py-1.5 text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded transition"
+                          >
+                            <Building2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex gap-1.5 pt-0.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleActive(technician);
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded transition"
+                        >
+                          {technician.is_active ? (
+                            <>
+                              <UserX className="w-3 h-3" />
+                              Off
+                            </>
+                          ) : (
+                            <>
+                              <UserCheck className="w-3 h-3" />
+                              On
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingTechnician(technician);
+                            setIsModalOpen(true);
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(technician);
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Del
+                        </button>
+                      </div>
                     </div>
                   )}
-
-                  {/* Main Actions */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleToggleActive(technician)}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded transition"
-                    >
-                      {technician.is_active ? (
-                        <>
-                          <UserX className="w-3.5 h-3.5" />
-                          Deactivate
-                        </>
-                      ) : (
-                        <>
-                          <UserCheck className="w-3.5 h-3.5" />
-                          Activate
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingTechnician(technician);
-                        setIsModalOpen(true);
-                      }}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(technician)}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Delete
-                    </button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-3 flex items-center justify-between px-2 md:px-0">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Prev
+              </button>
+              <span className="text-xs text-gray-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </Card>
       )}
 

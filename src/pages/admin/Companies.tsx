@@ -8,7 +8,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
-import { Plus, Edit2, Building2, ArrowUpDown, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Building2, ArrowUpDown, Trash2, ChevronDown, ChevronRight, MapPin, Phone, Mail, User } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { companySchema, type CompanyInput } from '@/utils/validationSchemas';
@@ -24,6 +24,12 @@ export default function CompaniesPage() {
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
 
   useEffect(() => {
     loadCompanies();
@@ -44,6 +50,28 @@ export default function CompaniesPage() {
     const modifier = sortDirection === 'asc' ? 1 : -1;
     return aVal.toString().localeCompare(bVal.toString()) * modifier;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(sortedCompanies.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCompanies = sortedCompanies.slice(startIndex, endIndex);
+
+  // Reset to page 1 when sorting changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortField, sortDirection]);
+
+  // Pagination
+  const totalPages = Math.ceil(sortedCompanies.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCompanies = sortedCompanies.slice(startIndex, endIndex);
+
+  // Reset to page 1 when sorting changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortField, sortDirection]);
 
   async function loadCompanies() {
     try {
@@ -103,15 +131,65 @@ export default function CompaniesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Companies</h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">Manage client companies</p>
-        </div>
-        <Button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Company
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Companies</h1>
+        <Button onClick={() => setIsModalOpen(true)} size="sm" className="w-full sm:w-auto">
+          <Plus className="w-4 h-4 mr-1" />
+          Add
         </Button>
+      </div>
+
+      {/* Sort Controls & Pagination */}
+      <div className="flex flex-wrap items-center gap-1.5 text-xs">
+        <button
+          onClick={() => handleSort('name')}
+          className={`flex items-center gap-0.5 px-2 py-1 border rounded transition ${
+            sortField === 'name'
+              ? 'bg-primary-50 border-primary-500 text-primary-700'
+              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          Name
+          {sortField === 'name' && <ArrowUpDown className="w-3 h-3" />}
+        </button>
+        <button
+          onClick={() => handleSort('city')}
+          className={`flex items-center gap-0.5 px-2 py-1 border rounded transition ${
+            sortField === 'city'
+              ? 'bg-primary-50 border-primary-500 text-primary-700'
+              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          City
+          {sortField === 'city' && <ArrowUpDown className="w-3 h-3" />}
+        </button>
+        <button
+          onClick={() => handleSort('contact_name')}
+          className={`flex items-center gap-0.5 px-2 py-1 border rounded transition ${
+            sortField === 'contact_name'
+              ? 'bg-primary-50 border-primary-500 text-primary-700'
+              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          Contact
+          {sortField === 'contact_name' && <ArrowUpDown className="w-3 h-3" />}
+        </button>
+        <div className="ml-auto flex items-center gap-1.5">
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="px-1.5 py-1 border border-gray-300 rounded bg-white text-xs"
+          >
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+          <span className="text-gray-500">
+            {sortedCompanies.length} total
+          </span>
+        </div>
       </div>
 
       {/* Companies Table - Desktop */}
@@ -175,7 +253,7 @@ export default function CompaniesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {sortedCompanies.map((company) => (
+                {paginatedCompanies.map((company) => (
                   <tr key={company.id} className="hover:bg-gray-50">
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
@@ -241,72 +319,134 @@ export default function CompaniesPage() {
 
           {/* Mobile Cards */}
           <div className="md:hidden divide-y divide-gray-200">
-            {sortedCompanies.map((company) => (
-              <div key={company.id} className="p-3 hover:bg-gray-50 transition">
-                {/* Company Name & Status */}
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <div className="w-8 h-8 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="w-4 h-4" />
+            {paginatedCompanies.map((company) => {
+              const isExpanded = expandedCompany === company.id;
+              return (
+                <div key={company.id} className="bg-white">
+                  {/* Company Header */}
+                  <div
+                    className="flex items-center justify-between p-2 cursor-pointer hover:bg-gray-50"
+                    onClick={() => setExpandedCompany(isExpanded ? null : company.id)}
+                  >
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                      <div className="w-7 h-7 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                        <Building2 className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-900 truncate leading-none">
+                          {company.name}
+                        </p>
+                        {company.city && (
+                          <p className="text-xs text-gray-400 truncate leading-none mt-0.5">{company.city}</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
-                        {company.name}
-                      </p>
-                      {company.city && (
-                        <p className="text-xs text-gray-500 truncate">{company.city}</p>
+                    <div className="flex items-center gap-1">
+                      <span
+                        className={`px-1.5 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${
+                          company.is_active
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        {company.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                      {isExpanded ? (
+                        <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                      ) : (
+                        <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
                       )}
                     </div>
                   </div>
-                  <span
-                    className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap flex-shrink-0 ${
-                      company.is_active
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}
-                  >
-                    {company.is_active ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
 
-                {/* Contact Info */}
-                {(company.contact_name || company.contact_phone || company.contact_email) && (
-                  <div className="space-y-1 mb-3 text-xs text-gray-600">
-                    {company.contact_name && (
-                      <div>Contact: {company.contact_name}</div>
-                    )}
-                    {company.contact_phone && (
-                      <div>Phone: {company.contact_phone}</div>
-                    )}
-                    {company.contact_email && (
-                      <div className="truncate">Email: {company.contact_email}</div>
-                    )}
-                  </div>
-                )}
+                  {/* Expanded Details */}
+                  {isExpanded && (
+                    <div className="px-2 pb-2 space-y-1.5 border-t border-gray-100 bg-gray-50">
+                      {/* Contact Info */}
+                      {company.contact_name && (
+                        <div className="flex items-center gap-1 pt-1.5">
+                          <User className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                          <p className="text-xs text-gray-900 truncate">{company.contact_name}</p>
+                        </div>
+                      )}
+                      {company.contact_phone && (
+                        <div className="flex items-center gap-1">
+                          <Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                          <a href={`tel:${company.contact_phone}`} className="text-xs text-primary-600 hover:underline">
+                            {company.contact_phone}
+                          </a>
+                        </div>
+                      )}
+                      {company.contact_email && (
+                        <div className="flex items-center gap-1">
+                          <Mail className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                          <a href={`mailto:${company.contact_email}`} className="text-xs text-primary-600 hover:underline truncate">
+                            {company.contact_email}
+                          </a>
+                        </div>
+                      )}
+                      {company.address && (
+                        <div className="flex items-start gap-1">
+                          <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-gray-600">
+                            {company.address}, {company.city}{company.state && `, ${company.state}`} {company.postal_code}
+                          </p>
+                        </div>
+                      )}
 
-                {/* Actions */}
-                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                  <button
-                    onClick={() => {
-                      setEditingCompany(company);
-                      setIsModalOpen(true);
-                    }}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(company)}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Delete
-                  </button>
+                      {/* Actions */}
+                      <div className="flex items-center gap-1.5 pt-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingCompany(company);
+                            setIsModalOpen(true);
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(company);
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-3 flex items-center justify-between px-2 md:px-0">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Prev
+              </button>
+              <span className="text-xs text-gray-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </Card>
       ) : (
         <Card>

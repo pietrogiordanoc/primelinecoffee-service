@@ -4,7 +4,7 @@ import { useConfirm } from '@/contexts/ConfirmContext';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Button from '@/components/ui/Button';
-import { Trash2, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Trash2, RotateCcw, AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
 import type { ReportSummary } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 
@@ -14,6 +14,9 @@ export default function TrashPage() {
   const [selectedReports, setSelectedReports] = useState<Set<string>>(new Set());
   const [processing, setProcessing] = useState(false);
   const { confirm, alert } = useConfirm();
+  const [expandedReport, setExpandedReport] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
 
   useEffect(() => {
     loadTrashedReports();
@@ -174,6 +177,12 @@ export default function TrashPage() {
   const selectedCount = selectedReports.size;
   const allSelected = trashedReports.length > 0 && selectedReports.size === trashedReports.length;
 
+  // Pagination
+  const totalPages = Math.ceil(trashedReports.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedReports = trashedReports.slice(startIndex, endIndex);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -183,78 +192,74 @@ export default function TrashPage() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6 pb-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Trash2 className="w-5 md:w-6 h-5 md:h-6" />
-          Trash
-        </h1>
-        <p className="mt-1 text-xs md:text-sm text-gray-500">
-          Deleted reports are kept here for 30 days before automatic permanent deletion
-        </p>
+    <div className="space-y-4 pb-6">
+      {/* Header & Pagination */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Trash2 className="w-5 h-5" />
+            Trash
+          </h1>
+          <p className="mt-0.5 text-xs text-gray-500">
+            Auto-deleted after 30 days
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs">
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="px-1.5 py-1 border border-gray-300 rounded bg-white"
+          >
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+          <span className="text-gray-500">
+            {trashedReports.length} total
+          </span>
+        </div>
       </div>
 
       {/* Bulk Actions */}
       {trashedReports.length > 0 && (
-        <Card>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={toggleSelectAll}
-                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  Select All ({trashedReports.length})
-                </span>
-              </label>
-              {selectedCount > 0 && (
-                <span className="text-xs md:text-sm text-gray-600">
-                  {selectedCount} selected
-                </span>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              {selectedCount > 0 && (
-                <>
-                  <Button
-                    variant="secondary"
-                    onClick={() => handleRestore(Array.from(selectedReports))}
-                    disabled={processing}
-                    className="flex-1 sm:flex-none text-xs md:text-sm"
-                  >
-                    <RotateCcw className="w-3.5 md:w-4 h-3.5 md:h-4 mr-1.5 md:mr-2" />
-                    Restore
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => handlePermanentDelete(Array.from(selectedReports))}
-                    disabled={processing}
-                    className="flex-1 sm:flex-none text-xs md:text-sm"
-                  >
-                    <Trash2 className="w-3.5 md:w-4 h-3.5 md:h-4 mr-1.5 md:mr-2" />
-                    Delete
-                  </Button>
-                </>
-              )}
-              {trashedReports.length > 0 && (
-                <Button
-                  variant="danger"
-                  onClick={handleEmptyTrash}
-                  disabled={processing}
-                  className="w-full sm:w-auto text-xs md:text-sm"
-                >
-                  <AlertTriangle className="w-3.5 md:w-4 h-3.5 md:h-4 mr-1.5 md:mr-2" />
-                  Empty Trash
-                </Button>
-              )}
-            </div>
-          </div>
-        </Card>
+        <div className="flex items-center gap-2 px-2">
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={toggleSelectAll}
+              className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+            />
+            <span className="text-xs font-medium text-gray-700">
+              Select All
+            </span>
+          </label>
+          {selectedCount > 0 && (
+            <>
+              <span className="text-xs text-gray-600">
+                {selectedCount} selected
+              </span>
+              <button
+                onClick={() => handleRestore(Array.from(selectedReports))}
+                disabled={processing}
+                className="ml-auto flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded disabled:opacity-50"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Restore
+              </button>
+              <button
+                onClick={() => handlePermanentDelete(Array.from(selectedReports))}
+                disabled={processing}
+                className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded disabled:opacity-50"
+              >
+                <Trash2 className="w-3 h-3" />
+                Delete
+              </button>
+            </>
+          )}
+        </div>
       )}
 
       {/* Trashed Reports Table */}
@@ -300,7 +305,7 @@ export default function TrashPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {trashedReports.map((report) => (
+                {paginatedReports.map((report) => (
                   <tr key={report.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <input
@@ -358,68 +363,107 @@ export default function TrashPage() {
 
           {/* Mobile Cards */}
           <div className="md:hidden divide-y divide-gray-200">
-            {trashedReports.map((report) => (
-              <div key={report.id} className="p-3 hover:bg-gray-50 transition">
-                {/* Header Row: Checkbox + Code */}
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex items-start gap-2 flex-1 min-w-0">
-                    <input
-                      type="checkbox"
-                      checked={selectedReports.has(report.id)}
-                      onChange={() => toggleSelect(report.id)}
-                      className="mt-0.5 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-mono font-semibold text-gray-600 truncate">
-                        {report.report_code || 'N/A'}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
-                        {report.deleted_at ? formatDate(report.deleted_at, 'PPp') : '-'}
+            {paginatedReports.map((report) => {
+              const isExpanded = expandedReport === report.id;
+              return (
+                <div key={report.id} className="bg-white">
+                  {/* Report Header */}
+                  <div
+                    className="flex items-center justify-between p-2 cursor-pointer hover:bg-gray-50"
+                    onClick={() => setExpandedReport(isExpanded ? null : report.id)}
+                  >
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={selectedReports.has(report.id)}
+                        onChange={() => toggleSelect(report.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-mono font-semibold text-gray-600 truncate leading-none">
+                          {report.report_code || 'N/A'}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate leading-none mt-0.5">
+                          {report.deleted_at ? formatDate(report.deleted_at, 'PP') : '-'}
+                        </p>
                       </div>
                     </div>
+                    {isExpanded ? (
+                      <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    ) : (
+                      <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    )}
                   </div>
-                </div>
 
-                {/* Company & Form */}
-                <div className="mb-2">
-                  <div className="text-sm font-semibold text-gray-900 truncate">
-                    {report.company_name}
-                  </div>
-                  <div className="text-xs text-gray-500 truncate">{report.form_name}</div>
-                </div>
+                  {/* Expanded Details */}
+                  {isExpanded && (
+                    <div className="px-2 pb-2 space-y-1 border-t border-gray-100 bg-gray-50">
+                      <div className="pt-1.5">
+                        <p className="text-xs font-semibold text-gray-900 truncate">{report.company_name}</p>
+                        <p className="text-xs text-gray-500 truncate">{report.form_name}</p>
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium">Tech:</span> {report.technician_name}
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium">Photos:</span> {report.photo_count || 0}
+                      </div>
 
-                {/* Details */}
-                <div className="space-y-1 mb-3 text-xs text-gray-600">
-                  <div className="truncate">
-                    <span className="font-medium">Technician:</span> {report.technician_name}
-                  </div>
-                  <div>
-                    <span className="font-medium">Photos:</span> {report.photo_count || 0}
-                  </div>
+                      {/* Actions */}
+                      <div className="flex gap-1.5 pt-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRestore([report.id]);
+                          }}
+                          disabled={processing}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition disabled:opacity-50"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Restore
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePermanentDelete([report.id]);
+                          }}
+                          disabled={processing}
+                          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition disabled:opacity-50"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Del
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                  <button
-                    onClick={() => handleRestore([report.id])}
-                    disabled={processing}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded transition disabled:opacity-50"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    Restore
-                  </button>
-                  <button
-                    onClick={() => handlePermanentDelete([report.id])}
-                    disabled={processing}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition disabled:opacity-50"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-3 flex items-center justify-between px-2 md:px-0">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Prev
+              </button>
+              <span className="text-xs text-gray-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
           </>
         )}
       </Card>
