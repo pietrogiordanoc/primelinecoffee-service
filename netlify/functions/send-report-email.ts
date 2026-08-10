@@ -227,24 +227,20 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
   const photoLinksHtml =
     photoLinks.length > 0
       ? `
-    <div>
-      <h3 style="color: #1f2937; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Photo Downloads</h3>
-      <p style="color: #6b7280; margin: 0 0 12px 0; line-height: 1.5; font-size: 13px;">
-        Photos are available for download (links valid for 7 days):
+    <div style="margin-top: 28px; text-align: center;">
+      <h3 style="color: #1f2937; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">📸 Report Photos</h3>
+      <p style="color: #6b7280; margin: 0 0 16px 0; line-height: 1.5; font-size: 13px;">
+        ${photoLinks.length} ${photoLinks.length === 1 ? 'photo' : 'photos'} attached to this report
       </p>
-      <div style="background-color: #f9fafb; border-radius: 6px; padding: 16px; border: 1px solid #e5e7eb;">
-        ${photoLinks
-          .map(
-            (link, index) => `
-          <div style="margin: 10px 0;">
-            <a href="${link}" target="_blank" rel="noopener noreferrer" style="color: #003f7f; text-decoration: none; font-weight: 500; font-size: 14px; display: inline-block;">
-              📸 Photo ${index + 1} - Download
-            </a>
-          </div>
-        `
-          )
-          .join('')}
-      </div>
+      <a href="${appUrl}/report-photos/${report.id}" 
+         target="_blank" 
+         rel="noopener noreferrer" 
+         style="display: inline-block; background: linear-gradient(135deg, #003f7f 0%, #0056a8 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 6px rgba(0,63,127,0.2); transition: all 0.2s;">
+        🖼️ View All Photos
+      </a>
+      <p style="color: #9ca3af; margin: 16px 0 0 0; font-size: 12px;">
+        Opens in a photo gallery with full-screen view
+      </p>
     </div>
   `
       : '';

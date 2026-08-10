@@ -24,6 +24,7 @@ import FillReport from '@/pages/technician/FillReport';
 import ReportHistory from '@/pages/technician/History';
 import ViewReport from '@/pages/technician/ViewReport';
 import Staff from '@/pages/technician/Staff';
+import ReportPhotos from '@/pages/ReportPhotos';
 
 // Components
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -136,6 +137,7 @@ function App() {
           path="/login"
           element={!user ? <Login /> : <RoleBasedRedirect />}
         />
+        <Route path="/report-photos/:reportId" element={<ReportPhotos />} />
 
         {/* Protected Admin Routes */}
         <Route
