@@ -20,9 +20,9 @@
 
   /* Compact select options */
   select option {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-    line-height: 1.25;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8125rem;
+    line-height: 1.2;
   }
 }
 
