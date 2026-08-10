@@ -183,14 +183,14 @@ export default function TrashPage() {
   }
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-4 md:space-y-6 pb-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Trash2 className="w-6 h-6" />
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <Trash2 className="w-5 md:w-6 h-5 md:h-6" />
           Trash
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-xs md:text-sm text-gray-500">
           Deleted reports are kept here for 30 days before automatic permanent deletion
         </p>
       </div>
@@ -198,8 +198,8 @@ export default function TrashPage() {
       {/* Bulk Actions */}
       {trashedReports.length > 0 && (
         <Card>
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -212,30 +212,32 @@ export default function TrashPage() {
                 </span>
               </label>
               {selectedCount > 0 && (
-                <span className="text-sm text-gray-600">
+                <span className="text-xs md:text-sm text-gray-600">
                   {selectedCount} selected
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               {selectedCount > 0 && (
                 <>
                   <Button
                     variant="secondary"
                     onClick={() => handleRestore(Array.from(selectedReports))}
                     disabled={processing}
+                    className="flex-1 sm:flex-none text-xs md:text-sm"
                   >
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Restore Selected
+                    <RotateCcw className="w-3.5 md:w-4 h-3.5 md:h-4 mr-1.5 md:mr-2" />
+                    Restore
                   </Button>
                   <Button
                     variant="danger"
                     onClick={() => handlePermanentDelete(Array.from(selectedReports))}
                     disabled={processing}
+                    className="flex-1 sm:flex-none text-xs md:text-sm"
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Forever
+                    <Trash2 className="w-3.5 md:w-4 h-3.5 md:h-4 mr-1.5 md:mr-2" />
+                    Delete
                   </Button>
                 </>
               )}
@@ -244,8 +246,9 @@ export default function TrashPage() {
                   variant="danger"
                   onClick={handleEmptyTrash}
                   disabled={processing}
+                  className="w-full sm:w-auto text-xs md:text-sm"
                 >
-                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  <AlertTriangle className="w-3.5 md:w-4 h-3.5 md:h-4 mr-1.5 md:mr-2" />
                   Empty Trash
                 </Button>
               )}
@@ -257,12 +260,14 @@ export default function TrashPage() {
       {/* Trashed Reports Table */}
       <Card>
         {trashedReports.length === 0 ? (
-          <div className="py-12 text-center">
-            <Trash2 className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500">Trash is empty</p>
+          <div className="py-8 md:py-12 text-center">
+            <Trash2 className="w-10 md:w-12 h-10 md:h-12 mx-auto text-gray-400 mb-4" />
+            <p className="text-sm md:text-base text-gray-500">Trash is empty</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -350,6 +355,72 @@ export default function TrashPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden divide-y divide-gray-200">
+            {trashedReports.map((report) => (
+              <div key={report.id} className="p-3 hover:bg-gray-50 transition">
+                {/* Header Row: Checkbox + Code */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-start gap-2 flex-1 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedReports.has(report.id)}
+                      onChange={() => toggleSelect(report.id)}
+                      className="mt-0.5 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-mono font-semibold text-gray-600 truncate">
+                        {report.report_code || 'N/A'}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        {report.deleted_at ? formatDate(report.deleted_at, 'PPp') : '-'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Company & Form */}
+                <div className="mb-2">
+                  <div className="text-sm font-semibold text-gray-900 truncate">
+                    {report.company_name}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">{report.form_name}</div>
+                </div>
+
+                {/* Details */}
+                <div className="space-y-1 mb-3 text-xs text-gray-600">
+                  <div className="truncate">
+                    <span className="font-medium">Technician:</span> {report.technician_name}
+                  </div>
+                  <div>
+                    <span className="font-medium">Photos:</span> {report.photo_count || 0}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <button
+                    onClick={() => handleRestore([report.id])}
+                    disabled={processing}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded transition disabled:opacity-50"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Restore
+                  </button>
+                  <button
+                    onClick={() => handlePermanentDelete([report.id])}
+                    disabled={processing}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition disabled:opacity-50"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </Card>
     </div>

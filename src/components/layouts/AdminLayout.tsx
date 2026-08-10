@@ -192,10 +192,144 @@ export default function AdminLayout() {
         </header>
 
         {/* Page content */}
-        <main className="p-6">
+        <main className="p-3 md:p-6 pb-20 lg:pb-6">
           <Outlet />
         </main>
       </div>
+
+      {/* Bottom navigation - Mobile only, app-style */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg lg:hidden z-40">
+        <div className="flex justify-around items-center h-16">
+          <NavLink
+            to="/admin"
+            end
+            className={({ isActive }) =>
+              cn(
+                'flex flex-col items-center justify-center flex-1 h-full transition-all',
+                isActive
+                  ? 'text-primary-600'
+                  : 'text-gray-400 hover:text-primary-500'
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <LayoutDashboard
+                  className={cn(
+                    'w-6 h-6 mb-1 transition-all',
+                    isActive ? 'text-primary-600 scale-110' : 'text-gray-400'
+                  )}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className={cn(
+                  'text-xs font-medium',
+                  isActive ? 'text-primary-600' : 'text-gray-500'
+                )}>
+                  Home
+                </span>
+              </>
+            )}
+          </NavLink>
+
+          <NavLink
+            to="/admin/companies"
+            className={({ isActive }) =>
+              cn(
+                'flex flex-col items-center justify-center flex-1 h-full transition-all',
+                isActive
+                  ? 'text-primary-600'
+                  : 'text-gray-400 hover:text-primary-500'
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <Building2
+                  className={cn(
+                    'w-6 h-6 mb-1 transition-all',
+                    isActive ? 'text-primary-600 scale-110' : 'text-gray-400'
+                  )}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className={cn(
+                  'text-xs font-medium',
+                  isActive ? 'text-primary-600' : 'text-gray-500'
+                )}>
+                  Companies
+                </span>
+              </>
+            )}
+          </NavLink>
+
+          <NavLink
+            to="/admin/reports"
+            className={({ isActive }) =>
+              cn(
+                'flex flex-col items-center justify-center flex-1 h-full transition-all',
+                isActive
+                  ? 'text-primary-600'
+                  : 'text-gray-400 hover:text-primary-500'
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <ClipboardList
+                  className={cn(
+                    'w-6 h-6 mb-1 transition-all',
+                    isActive ? 'text-primary-600 scale-110' : 'text-gray-400'
+                  )}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className={cn(
+                  'text-xs font-medium',
+                  isActive ? 'text-primary-600' : 'text-gray-500'
+                )}>
+                  Reports
+                </span>
+              </>
+            )}
+          </NavLink>
+
+          <NavLink
+            to="/admin/storage"
+            className={({ isActive }) =>
+              cn(
+                'flex flex-col items-center justify-center flex-1 h-full transition-all',
+                isActive
+                  ? 'text-primary-600'
+                  : 'text-gray-400 hover:text-primary-500'
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <HardDrive
+                  className={cn(
+                    'w-6 h-6 mb-1 transition-all',
+                    isActive ? 'text-primary-600 scale-110' : 'text-gray-400'
+                  )}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className={cn(
+                  'text-xs font-medium',
+                  isActive ? 'text-primary-600' : 'text-gray-500'
+                )}>
+                  Storage
+                </span>
+              </>
+            )}
+          </NavLink>
+
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-primary-500 transition-all"
+          >
+            <Menu className="w-6 h-6 mb-1" strokeWidth={2} />
+            <span className="text-xs font-medium text-gray-500">Menu</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }

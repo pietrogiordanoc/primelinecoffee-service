@@ -249,35 +249,35 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Service Reports</h1>
-          <p className="text-gray-600 mt-1">Review and manage technical reports</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Service Reports</h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1">Review and manage technical reports</p>
         </div>
       </div>
 
       {/* Filters */}
       <Card>
-        <div className="p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="p-3 md:p-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4">
             {/* Search - takes more space */}
-            <div className="lg:col-span-5">
+            <div className="md:col-span-5">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 md:w-5 h-4 md:h-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search by company, technician or form..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm md:text-base"
                 />
               </div>
             </div>
             
             {/* Status Filter */}
-            <div className="lg:col-span-2">
+            <div className="md:col-span-2">
               <Select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -292,7 +292,7 @@ export default function ReportsPage() {
             </div>
             
             {/* Date Filter */}
-            <div className="lg:col-span-2">
+            <div className="md:col-span-2">
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value as any)}
@@ -309,7 +309,7 @@ export default function ReportsPage() {
             {/* Custom Date Inputs */}
             {dateFilter === 'custom' && (
               <>
-                <div className="lg:col-span-1.5">
+                <div className="md:col-span-1.5">
                   <input
                     type="date"
                     value={startDate}
@@ -318,7 +318,7 @@ export default function ReportsPage() {
                     placeholder="From"
                   />
                 </div>
-                <div className="lg:col-span-1.5">
+                <div className="md:col-span-1.5">
                   <input
                     type="date"
                     value={endDate}
@@ -332,7 +332,7 @@ export default function ReportsPage() {
             
             {/* Clear Button */}
             {(dateFilter !== 'all' || statusFilter || searchTerm) && (
-              <div className={dateFilter === 'custom' ? 'lg:col-span-12' : 'lg:col-span-3'}>
+              <div className={dateFilter === 'custom' ? 'md:col-span-12' : 'md:col-span-3'}>
                 <button
                   onClick={() => {
                     setDateFilter('all');
@@ -341,7 +341,7 @@ export default function ReportsPage() {
                     setStatusFilter('');
                     setSearchTerm('');
                   }}
-                  className="w-full lg:w-auto px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                  className="w-full md:w-auto px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
                 >
                   Clear filters
                 </button>
@@ -354,8 +354,8 @@ export default function ReportsPage() {
       {/* Bulk Actions */}
       {filteredReports.length > 0 && (
         <Card>
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -368,7 +368,7 @@ export default function ReportsPage() {
                 </span>
               </label>
               {selectedReports.size > 0 && (
-                <span className="text-sm text-gray-600">
+                <span className="text-xs md:text-sm text-gray-600">
                   {selectedReports.size} selected
                 </span>
               )}
@@ -379,6 +379,7 @@ export default function ReportsPage() {
                 variant="danger"
                 onClick={handleBulkDelete}
                 disabled={processing}
+                className="w-full sm:w-auto"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Move to Trash ({selectedReports.size})
@@ -390,7 +391,8 @@ export default function ReportsPage() {
 
       {/* Reports Table */}
       <Card>
-        <div className="overflow-x-auto">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -567,6 +569,105 @@ export default function ReportsPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden divide-y divide-gray-200">
+          {filteredReports.length === 0 ? (
+            <div className="p-8 text-center text-sm text-gray-500">
+              No reports found
+            </div>
+          ) : (
+            filteredReports.map((report) => (
+              <div
+                key={report.id}
+                onClick={() => handleView(report.id)}
+                className="p-3 hover:bg-gray-50 transition cursor-pointer"
+              >
+                {/* Header Row: Checkbox + Code + Status */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-start gap-2 flex-1 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedReports.has(report.id)}
+                      onChange={() => toggleSelect(report.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-0.5 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-mono font-semibold text-primary-600 truncate">
+                        {report.report_code || 'N/A'}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        {formatDate(report.created_at, 'PP')}
+                      </div>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap flex-shrink-0 ${
+                      report.status === 'completed'
+                        ? 'bg-green-100 text-green-700'
+                        : report.status === 'reviewed'
+                        ? 'bg-blue-100 text-blue-700'
+                        : report.status === 'submitted'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {report.status}
+                  </span>
+                </div>
+
+                {/* Company & Form */}
+                <div className="mb-2">
+                  <div className="text-sm font-semibold text-gray-900 truncate">
+                    {report.company_name}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">{report.form_name}</div>
+                </div>
+
+                {/* Technician & Sales Rep */}
+                <div className="space-y-1 mb-3 text-xs text-gray-600">
+                  <div className="truncate">
+                    <span className="font-medium">Tech:</span> {report.technician_name}
+                  </div>
+                  {report.sales_rep_name && (
+                    <div className="truncate">
+                      <span className="font-medium">Sales:</span> {report.sales_rep_name}
+                    </div>
+                  )}
+                  <div>
+                    <span className="font-medium">Photos:</span> {report.photo_count || 0}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleView(report.id);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded transition"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    View
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(report.id, report.company_name);
+                    }}
+                    disabled={deleting === report.id}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition disabled:opacity-50"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </Card>
     </div>

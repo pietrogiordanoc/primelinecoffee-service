@@ -201,25 +201,25 @@ export default function StorageDashboard() {
   const usedGB = currentMetrics ? currentMetrics.total_size_bytes / (1024 ** 3) : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Storage Dashboard</h1>
-        <p className="text-gray-600 mt-1">Monitor and manage storage usage</p>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Storage Dashboard</h1>
+        <p className="text-sm md:text-base text-gray-600 mt-1">Monitor and manage storage usage</p>
       </div>
 
       {/* Storage Overview */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <HardDrive className="w-6 h-6 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Storage Usage</h2>
+            <HardDrive className="w-5 md:w-6 h-5 md:h-6 text-blue-600" />
+            <h2 className="text-base md:text-lg font-semibold text-gray-900">Storage Usage</h2>
           </div>
           {getStorageLevelIcon()}
         </div>
 
         {/* Thermometer Bar */}
         <div className="space-y-3">
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs md:text-sm">
             <span className="font-medium text-gray-700">
               {formatBytes(currentMetrics?.total_size_bytes || 0)} used
             </span>
@@ -234,7 +234,7 @@ export default function StorageDashboard() {
               style={{ width: `${Math.min(percentage, 100)}%` }}
             />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-sm font-semibold text-gray-900">
+              <span className="text-xs md:text-sm font-semibold text-gray-900">
                 {percentage.toFixed(1)}%
               </span>
             </div>
@@ -250,35 +250,35 @@ export default function StorageDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-900">
+        <div className="grid grid-cols-3 gap-3 md:gap-4 mt-6">
+          <div className="text-center p-3 md:p-4 bg-blue-50 rounded-lg">
+            <div className="text-lg md:text-2xl font-bold text-blue-900">
               {currentMetrics?.photo_count || 0}
             </div>
-            <div className="text-sm text-blue-700">Photos</div>
+            <div className="text-xs md:text-sm text-blue-700">Photos</div>
           </div>
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-900">
+          <div className="text-center p-3 md:p-4 bg-purple-50 rounded-lg">
+            <div className="text-lg md:text-2xl font-bold text-purple-900">
               {currentMetrics?.video_count || 0}
             </div>
-            <div className="text-sm text-purple-700">Videos</div>
+            <div className="text-xs md:text-sm text-purple-700">Videos</div>
           </div>
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-900">
+          <div className="text-center p-3 md:p-4 bg-green-50 rounded-lg">
+            <div className="text-lg md:text-2xl font-bold text-green-900">
               {currentMetrics?.report_count || 0}
             </div>
-            <div className="text-sm text-green-700">Reports</div>
+            <div className="text-xs md:text-sm text-green-700">Reports</div>
           </div>
         </div>
       </div>
 
       {/* Prediction */}
       {prediction && prediction.estimatedFullDate && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-6 h-6 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Storage Forecast</h2>
-            <span className={`text-xs px-2 py-1 rounded-full ${
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <TrendingUp className="w-5 md:w-6 h-5 md:h-6 text-blue-600 flex-shrink-0" />
+            <h2 className="text-base md:text-lg font-semibold text-gray-900">Storage Forecast</h2>
+            <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
               prediction.confidence === 'high' ? 'bg-green-100 text-green-700' :
               prediction.confidence === 'medium' ? 'bg-amber-100 text-amber-700' :
               'bg-gray-100 text-gray-700'
@@ -287,22 +287,22 @@ export default function StorageDashboard() {
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
             <div>
-              <div className="text-sm text-gray-600">Avg Daily Growth</div>
-              <div className="text-xl font-bold text-gray-900">
+              <div className="text-xs md:text-sm text-gray-600">Avg Daily Growth</div>
+              <div className="text-base md:text-xl font-bold text-gray-900">
                 {prediction.avgDailyGrowthMB.toFixed(2)} MB/day
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-600">Days Until Full</div>
-              <div className="text-xl font-bold text-gray-900">
+              <div className="text-xs md:text-sm text-gray-600">Days Until Full</div>
+              <div className="text-base md:text-xl font-bold text-gray-900">
                 {prediction.daysUntilFull > 0 ? prediction.daysUntilFull : '∞'} days
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-600">Estimated Full Date</div>
-              <div className="text-xl font-bold text-gray-900">
+              <div className="text-xs md:text-sm text-gray-600">Estimated Full Date</div>
+              <div className="text-base md:text-xl font-bold text-gray-900">
                 {prediction.estimatedFullDate
                   ? prediction.estimatedFullDate.toLocaleDateString('en-US', {
                       month: 'short',
@@ -317,13 +317,14 @@ export default function StorageDashboard() {
       )}
 
       {/* Technician Stats */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-4 md:p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Users className="w-6 h-6 text-blue-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Storage by Technician</h2>
+          <Users className="w-5 md:w-6 h-5 md:h-6 text-blue-600" />
+          <h2 className="text-base md:text-lg font-semibold text-gray-900">Storage by Technician</h2>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -372,6 +373,48 @@ export default function StorageDashboard() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="md:hidden space-y-3">
+          {technicianStats.length === 0 ? (
+            <div className="p-8 text-center text-sm text-gray-500">
+              No technician data available
+            </div>
+          ) : (
+            technicianStats.map((stat) => (
+              <div key={stat.technician_id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                {/* Name */}
+                <div className="font-semibold text-sm text-gray-900 mb-2">
+                  {stat.technician_name}
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <div className="text-gray-500">Storage Used</div>
+                    <div className="font-semibold text-gray-900">{formatBytes(stat.total_size_bytes)}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">Reports</div>
+                    <div className="font-semibold text-gray-900">{stat.report_count}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">Avg Photos/Report</div>
+                    <div className="font-semibold text-gray-900">{stat.avg_photos_per_report.toFixed(1)}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">Avg Videos/Report</div>
+                    <div className="font-semibold text-gray-900">{stat.avg_videos_per_report.toFixed(1)}</div>
+                  </div>
+                  <div className="col-span-2">
+                    <div className="text-gray-500">Avg Size/Report</div>
+                    <div className="font-semibold text-gray-900">{stat.avg_report_size_mb.toFixed(2)} MB</div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

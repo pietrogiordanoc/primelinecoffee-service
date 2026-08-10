@@ -103,21 +103,21 @@ export default function CompaniesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Companies</h1>
-          <p className="text-gray-600 mt-1">Manage client companies</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Companies</h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1">Manage client companies</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}>
+        <Button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" />
           Add Company
         </Button>
       </div>
 
-      {/* Companies Table */}
+      {/* Companies Table - Desktop */}
       {sortedCompanies.length > 0 ? (
         <Card>
-          <div className="overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[900px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -238,10 +238,79 @@ export default function CompaniesPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden divide-y divide-gray-200">
+            {sortedCompanies.map((company) => (
+              <div key={company.id} className="p-3 hover:bg-gray-50 transition">
+                {/* Company Name & Status */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="w-8 h-8 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {company.name}
+                      </p>
+                      {company.city && (
+                        <p className="text-xs text-gray-500 truncate">{company.city}</p>
+                      )}
+                    </div>
+                  </div>
+                  <span
+                    className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap flex-shrink-0 ${
+                      company.is_active
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}
+                  >
+                    {company.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+
+                {/* Contact Info */}
+                {(company.contact_name || company.contact_phone || company.contact_email) && (
+                  <div className="space-y-1 mb-3 text-xs text-gray-600">
+                    {company.contact_name && (
+                      <div>Contact: {company.contact_name}</div>
+                    )}
+                    {company.contact_phone && (
+                      <div>Phone: {company.contact_phone}</div>
+                    )}
+                    {company.contact_email && (
+                      <div className="truncate">Email: {company.contact_email}</div>
+                    )}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <button
+                    onClick={() => {
+                      setEditingCompany(company);
+                      setIsModalOpen(true);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(company)}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </Card>
       ) : (
         <Card>
-          <div className="p-12 text-center">
+          <div className="p-8 md:p-12 text-center">
             <Building2 className="w-12 h-12 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-500 mb-4">No companies registered</p>
             <Button onClick={() => setIsModalOpen(true)}>
