@@ -265,7 +265,7 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
     
     <!-- Header with Logo -->
     <div style="background: linear-gradient(135deg, #003f7f 0%, #0056a8 100%); padding: 32px 40px; text-align: center;">
-      <img src="${appUrl}/logo.png" alt="Prime Line Coffee Service" style="height: 45px; width: auto; margin-bottom: 12px;" />
+      <img src="${appUrl}/logo-white.png" alt="Prime Line Coffee Service" style="height: 45px; width: auto; margin-bottom: 12px;" />
       <p style="color: #ffffff; margin: 0; font-size: 14px; font-weight: 500; opacity: 0.95;">
         Technical Service Report
       </p>
