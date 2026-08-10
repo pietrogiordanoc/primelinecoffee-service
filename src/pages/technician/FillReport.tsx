@@ -817,7 +817,7 @@ export default function FillReport() {
                 <option value="">None</option>
                 {salesReps.map((rep) => (
                   <option key={rep.id} value={rep.id}>
-                    {rep.full_name} ({rep.email})
+                    {rep.full_name}
                   </option>
                 ))}
               </select>
