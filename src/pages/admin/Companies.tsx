@@ -27,9 +27,6 @@ export default function CompaniesPage() {
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
-  const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
 
   useEffect(() => {
     loadCompanies();
@@ -50,17 +47,6 @@ export default function CompaniesPage() {
     const modifier = sortDirection === 'asc' ? 1 : -1;
     return aVal.toString().localeCompare(bVal.toString()) * modifier;
   });
-
-  // Pagination
-  const totalPages = Math.ceil(sortedCompanies.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedCompanies = sortedCompanies.slice(startIndex, endIndex);
-
-  // Reset to page 1 when sorting changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [sortField, sortDirection]);
 
   // Pagination
   const totalPages = Math.ceil(sortedCompanies.length / itemsPerPage);

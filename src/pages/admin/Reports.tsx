@@ -365,66 +365,14 @@ export default function ReportsPage() {
       {/* Reports Table */}
       <Card>
         {filteredReports.length === 0 ? (
-                  onClick={() => {
-                    setDateFilter('all');
-                    setStartDate('');
-                    setEndDate('');
-                    setStatusFilter('');
-                    setSearchTerm('');
-                  }}
-                  className="w-full md:w-auto px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
-                >
-                  Clear filters
-                </button>
-              </div>
-            )}
+          <div className="p-8 text-center text-xs text-gray-500">
+            No reports found
           </div>
-        </div>
-      </Card>
-
-      {/* Bulk Actions */}
-      {filteredReports.length > 0 && (
-        <Card>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={filteredReports.length > 0 && selectedReports.size === filteredReports.length}
-                  onChange={toggleSelectAll}
-                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  Select All
-                </span>
-              </label>
-              {selectedReports.size > 0 && (
-                <span className="text-xs md:text-sm text-gray-600">
-                  {selectedReports.size} selected
-                </span>
-              )}
-            </div>
-
-            {selectedReports.size > 0 && (
-              <Button
-                variant="danger"
-                onClick={handleBulkDelete}
-                disabled={processing}
-                className="w-full sm:w-auto"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Move to Trash ({selectedReports.size})
-              </Button>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {/* Reports Table */}
-      <Card>
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+        ) : (
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left">
@@ -637,7 +585,8 @@ export default function ReportsPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <span
-                        className={`px-1.5 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${\n                          report.status === 'completed'
+                        className={`px-1.5 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${
+                          report.status === 'completed'
                             ? 'bg-green-100 text-green-700'
                             : report.status === 'reviewed'
                             ? 'bg-blue-100 text-blue-700'
@@ -728,6 +677,8 @@ export default function ReportsPage() {
               Next
             </button>
           </div>
+        )}
+          </>
         )}
       </Card>
     </div>
