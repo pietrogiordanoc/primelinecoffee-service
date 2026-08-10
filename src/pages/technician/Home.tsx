@@ -23,6 +23,7 @@ export default function TechnicianHome() {
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
+  const [isServiceTypeModalOpen, setIsServiceTypeModalOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -216,7 +217,8 @@ export default function TechnicianHome() {
                     className="flex items-center justify-between p-2 cursor-pointer"
                     onClick={() => {
                       setSelectedCompany(company);
-                      setExpandedCompany(isExpanded ? null : company.id);
+                      setIsServiceTypeModalOpen(true);
+                      setExpandedCompany(null); // Close expanded view
                     }}
                   >
                     <div className="flex items-center gap-1.5 flex-1 min-w-0">
@@ -241,11 +243,23 @@ export default function TechnicianHome() {
                         )}
                       </div>
                     </div>
-                    {isExpanded ? (
-                      <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                    ) : (
+                    <div className="flex items-center gap-1">
+                      {/* Info button to expand details */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedCompany(isExpanded ? null : company.id);
+                        }}
+                        className="p-1 hover:bg-gray-100 rounded transition-colors"
+                      >
+                        {isExpanded ? (
+                          <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5 text-gray-300" />
+                        )}
+                      </button>
                       <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                    )}
+                    </div>
                   </div>
 
                   {/* Company Details - Expandable */}
@@ -331,50 +345,88 @@ export default function TechnicianHome() {
           </>
         )}
       </div>
+      </div> {/* End pt-[100px] wrapper */}
 
-      {/* Select Form */}
-      {selectedCompany && (
-        <div className="mt-2">
-          <h2 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
-            Service Type
-          </h2>
-          <div className="space-y-1">
-            {forms.length === 0 ? (
-              <Card>
-                <div className="p-4 text-center text-sm text-gray-500">
-                  No forms available
+      {/* Service Type Modal - Bottom Sheet */}
+      {isServiceTypeModalOpen && selectedCompany && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setIsServiceTypeModalOpen(false)}
+          />
+          
+          {/* Bottom Sheet */}
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[75vh] overflow-y-auto animate-slide-up">
+            {/* Handle bar */}
+            <div className="flex justify-center py-3 border-b border-gray-200">
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+            </div>
+
+            {/* Selected Company Info */}
+            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+              <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Service for:</p>
+              <p className="text-base font-bold text-gray-900 mt-1">{selectedCompany.name}</p>
+              {selectedCompany.address && (
+                <div className="flex items-start gap-1 mt-1">
+                  <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-gray-600">{selectedCompany.address}, {selectedCompany.city}</p>
                 </div>
-              </Card>
-            ) : (
-              forms.map((form) => (
-                <button
-                  key={form.id}
-                  onClick={() => handleStartReport(form.id)}
-                  className="w-full text-left p-2 rounded border border-gray-200 bg-white hover:border-primary-500 hover:bg-primary-50 transition-all"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center flex-1 min-w-0 gap-1.5">
-                      <div className="w-6 h-6 rounded bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-3.5 h-3.5" />
+              )}
+            </div>
+
+            {/* Service Types List */}
+            <div className="p-4">
+              <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">
+                Select Service Type
+              </h3>
+              {forms.length === 0 ? (
+                <div className="p-8 text-center text-sm text-gray-500">
+                  No service types available
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  {forms.map((form) => (
+                    <button
+                      key={form.id}
+                      onClick={() => {
+                        handleStartReport(form.id);
+                        setIsServiceTypeModalOpen(false);
+                      }}
+                      className="w-full text-left p-3 rounded-lg border-2 border-gray-200 bg-white hover:border-primary-500 hover:bg-primary-50 transition-all active:scale-98"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center flex-1 min-w-0 gap-2">
+                          <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">
+                              {form.name}
+                            </p>
+                            {form.category && (
+                              <p className="text-xs text-gray-500 truncate mt-0.5">{form.category}</p>
+                            )}
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-900 truncate leading-none">
-                          {form.name}
-                        </p>
-                        {form.category && (
-                          <p className="text-xs text-gray-500 truncate leading-none mt-0.5">{form.category}</p>
-                        )}
-                      </div>
-                    </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                  </div>
-                </button>
-              ))
-            )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Cancel Button */}
+              <button
+                onClick={() => setIsServiceTypeModalOpen(false)}
+                className="w-full mt-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        </div>
+        </>
       )}
-      </div> {/* End pt-12 wrapper */}
 
       {/* Add Company Modal */}
       <AddCompanyModal

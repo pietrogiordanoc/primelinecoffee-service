@@ -28,4 +28,21 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .active\:scale-98:active {
+    transform: scale(0.98);
+  }
 }
