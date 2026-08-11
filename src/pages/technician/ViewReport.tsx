@@ -255,15 +255,29 @@ export default function ViewReport() {
       // Generate PDF document
       const blob = await pdf(<ReportPDF report={reportForPDF} />).toBlob();
       
-      // Create download link
+      console.log('✓ PDF generated successfully:', Math.round(blob.size / 1024), 'KB');
+      
+      // Open PDF in new tab instead of downloading
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${report.report_code || 'report'}_${report.company?.name?.replace(/[^a-z0-9]/gi, '_')}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const newWindow = window.open(url, '_blank');
+      
+      if (!newWindow) {
+        // If popup blocked, fallback to download
+        console.warn('Popup blocked, falling back to download');
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${report.report_code || 'report'}_${report.company?.name?.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      
+      // Don't revoke URL immediately - let browser load it first
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 60000); // Revoke after 1 minute
+      
+      console.log('PDF opened in new tab');
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
