@@ -5,7 +5,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate } from '@/utils/dateUtils';
-import { ArrowLeft, Building2, User, Calendar, FileText, Image as ImageIcon, MessageSquare, Send } from 'lucide-react';
+import { ArrowLeft, Building2, User, Calendar, FileText, Image as ImageIcon, MessageSquare, Send, Share2, Check } from 'lucide-react';
 import type { ServiceReport, AdminComment } from '@/types';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -18,6 +18,7 @@ export default function ViewReport() {
   const [comments, setComments] = useState<AdminComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   
   // Detect if we're in admin or technician view
   const isAdminView = window.location.pathname.includes('/admin/');
@@ -119,6 +120,17 @@ export default function ViewReport() {
     }
   }
 
+  function copyPublicLink() {
+    const publicUrl = `${window.location.origin}/report-photos/${reportId}`;
+    navigator.clipboard.writeText(publicUrl).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }).catch(err => {
+      console.error('Error copying link:', err);
+      alert('Failed to copy link');
+    });
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -158,6 +170,19 @@ export default function ViewReport() {
           <h1 className="text-xl font-bold text-gray-900">Report Details</h1>
           <p className="text-sm text-gray-500">{report.form?.name}</p>
         </div>
+        <Button
+          onClick={copyPublicLink}
+          variant="outline"
+          size="sm"
+          className="mr-2"
+        >
+          {linkCopied ? (
+            <Check className="w-4 h-4 mr-2 text-green-600" />
+          ) : (
+            <Share2 className="w-4 h-4 mr-2" />
+          )}
+          {linkCopied ? 'Link Copied!' : 'Share Public Link'}
+        </Button>
         <span
           className={`px-3 py-1 text-xs font-medium rounded-full ${
             report.status === 'completed'

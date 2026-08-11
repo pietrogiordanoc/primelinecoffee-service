@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate } from '@/utils/dateUtils';
-import { X, ChevronLeft, ChevronRight, Download, Calendar, Building2, User, FileText, Image as ImageIcon } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Download, Calendar, Building2, User, FileText, Image as ImageIcon, Play } from 'lucide-react';
 import type { ServiceReport } from '@/types';
 
 export default function ReportPhotos() {
@@ -95,6 +95,10 @@ export default function ReportPhotos() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+
+  function isVideo(mimeType?: string): boolean {
+    return mimeType ? mimeType.startsWith('video/') : false;
   }
 
   // Keyboard navigation
@@ -366,29 +370,54 @@ export default function ReportPhotos() {
                 </h2>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {report.photos.map((photo, index) => (
-                  <div 
-                    key={photo.id} 
-                    className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() => openLightbox(index)}
-                  >
-                    <img
-                      src={photo.thumbnail_url || photo.file_url}
-                      alt={photo.file_name}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                    {/* Expand indicator */}
-                    <div className="absolute top-2 right-2 bg-black bg-opacity-60 rounded-full p-1.5">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-                      </svg>
+                {report.photos.map((photo, index) => {
+                  const isVideoFile = isVideo(photo.mime_type);
+                  return (
+                    <div 
+                      key={photo.id} 
+                      className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => openLightbox(index)}
+                    >
+                      {isVideoFile ? (
+                        /* Video thumbnail with play icon */
+                        <div className="relative w-full h-full bg-gray-900">
+                          {photo.thumbnail_url ? (
+                            <img
+                              src={photo.thumbnail_url}
+                              alt={photo.file_name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <video
+                              src={photo.file_url}
+                              className="w-full h-full object-cover"
+                              preload="metadata"
+                            />
+                          )}
+                          {/* Play icon overlay */}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                            <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
+                              <Play className="w-8 h-8 text-gray-900 ml-1" fill="currentColor" />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Image thumbnail */
+                        <img
+                          src={photo.thumbnail_url || photo.file_url}
+                          alt={photo.file_name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      )}
+                      {/* Counter badge */}
+                      <div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+                        {index + 1}
+                      </div>
                     </div>
-                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
-                      {index + 1}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </Card>
@@ -460,18 +489,27 @@ export default function ReportPhotos() {
             </button>
           )}
 
-          {/* Photo */}
+          {/* Media Content - Photo or Video */}
           <div className="max-w-7xl max-h-screen p-4">
-            <img
-              src={report.photos[selectedPhoto].file_url}
-              alt={report.photos[selectedPhoto].file_name}
-              className="max-w-full max-h-screen object-contain"
-            />
+            {isVideo(report.photos[selectedPhoto].mime_type) ? (
+              <video
+                src={report.photos[selectedPhoto].file_url}
+                controls
+                autoPlay
+                className="max-w-full max-h-screen object-contain"
+              />
+            ) : (
+              <img
+                src={report.photos[selectedPhoto].file_url}
+                alt={report.photos[selectedPhoto].file_name}
+                className="max-w-full max-h-screen object-contain"
+              />
+            )}
           </div>
 
-          {/* Photo Info */}
+          {/* Media Info */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black bg-opacity-60 text-white px-4 py-2 rounded-lg">
-            Photo {selectedPhoto + 1} of {report.photos.length}
+            {isVideo(report.photos[selectedPhoto].mime_type) ? 'Video' : 'Photo'} {selectedPhoto + 1} of {report.photos.length}
           </div>
         </div>
       )}
