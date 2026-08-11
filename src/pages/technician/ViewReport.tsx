@@ -186,63 +186,52 @@ export default function ViewReport() {
     try {
       setGeneratingPDF(true);
       
-      // Convert images to base64 for PDF rendering (most reliable method)
-      const photosWithBase64 = await Promise.all(
-        (report.photos || []).slice(0, 9).map(async (photo) => {
-          try {
-            let path = photo.file_name || photo.file_url;
-            
-            // Clean the path - remove any bucket prefix and query params
-            if (path.includes('service-photos/')) {
-              const parts = path.split('service-photos/');
-              path = parts[parts.length - 1];
-            }
-            // Remove query parameters
-            path = path.split('?')[0];
-            
-            // Download image as blob
-            const { data: blob, error } = await supabase.storage
-              .from('service-photos')
-              .download(path);
-            
-            if (error) {
-              console.error('Error downloading photo:', error);
-              return null;
-            }
-            
-            // Convert blob to base64
-            const base64 = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            });
-            
-            console.log('Photo converted to base64:', path, '- Size:', Math.round(base64.length / 1024), 'KB');
-            
-            return {
-              ...photo,
-              file_url: base64,
-            };
-          } catch (err) {
-            console.error('Error converting photo to base64:', err);
-            return null;
+      console.log('Starting PDF export with', report.photos?.length || 0, 'photos');
+      
+      // Use direct public URLs from Supabase (most reliable for @react-pdf/renderer)
+      const photosForPDF = (report.photos || []).slice(0, 6).map((photo) => {
+        try {
+          let filename = photo.file_name;
+          
+          // Clean filename - remove any bucket prefix
+          if (filename.includes('service-photos/')) {
+            const parts = filename.split('service-photos/');
+            filename = parts[parts.length - 1];
           }
-        })
-      );
+          // Remove query parameters
+          filename = filename.split('?')[0];
+          
+          // Get the Supabase project URL from existing photo URL
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          
+          // Construct proper public URL
+          const publicUrl = `${supabaseUrl}/storage/v1/object/public/service-photos/${filename}`;
+          
+          console.log('Photo for PDF:', filename, '->', publicUrl);
+          
+          return {
+            ...photo,
+            file_url: publicUrl,
+          };
+        } catch (err) {
+          console.error('Error preparing photo URL:', err);
+          return photo;
+        }
+      });
       
-      // Filter out failed conversions
-      const validPhotos = photosWithBase64.filter(p => p !== null);
-      console.log('Photos converted for PDF:', validPhotos.length, 'of', report.photos?.length || 0);
+      console.log('Photos prepared for PDF:', photosForPDF.length);
       
-      // Create report copy with base64 images
-      const reportWithBase64Photos = {
+      // Create report copy with public URLs
+      const reportForPDF = {
         ...report,
-        photos: validPhotos,
+        photos: photosForPDF,
       };
       
+      // Add small delay to ensure URLs are ready
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Generate PDF document
-      const blob = await pdf(<ReportPDF report={reportWithBase64Photos} />).toBlob();
+      const blob = await pdf(<ReportPDF report={reportForPDF} />).toBlob();
       
       // Create download link
       const url = URL.createObjectURL(blob);

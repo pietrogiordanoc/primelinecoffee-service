@@ -130,20 +130,20 @@ const styles = StyleSheet.create({
   photoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 12,
     marginTop: 8,
   },
   photoItem: {
-    width: '31%',
+    width: '48%',
     marginBottom: 10,
   },
   photoThumb: {
     width: '100%',
-    height: 160,
+    height: 120,
     objectFit: 'cover',
-    borderRadius: 4,
-    border: 1,
-    borderColor: '#e5e7eb',
+    borderRadius: 3,
+    border: 0.5,
+    borderColor: '#d1d5db',
   },
   photoCaption: {
     fontSize: 7,
@@ -364,25 +364,19 @@ export default function ReportPDF({ report }: ReportPDFProps) {
           <View style={styles.section} wrap={false}>
             <Text style={styles.sectionTitle}>Photos ({report.photos.length})</Text>
             <View style={styles.photoGrid}>
-              {report.photos.slice(0, 9).map((photo, index) => {
-                // Use file_url which should be a public URL at this point
-                const imageUrl = photo.file_url;
-                
-                return (
-                  <View key={photo.id || index} style={styles.photoItem}>
-                    <Image 
-                      src={imageUrl}
-                      style={styles.photoThumb}
-                      cache={false}
-                    />
-                    <Text style={styles.photoCaption}>Photo {index + 1}</Text>
-                  </View>
-                );
-              })}
+              {report.photos.map((photo, index) => (
+                <View key={photo.id || index} style={styles.photoItem}>
+                  <Image 
+                    src={photo.file_url}
+                    style={styles.photoThumb}
+                  />
+                  <Text style={styles.photoCaption}>Photo {index + 1}</Text>
+                </View>
+              ))}
             </View>
-            {report.photos.length > 9 && (
+            {report.photos.length > 6 && (
               <Text style={styles.value}>
-                +{report.photos.length - 9} more photos available online
+                View all {report.photos.length} photos in the online report
               </Text>
             )}
           </View>
