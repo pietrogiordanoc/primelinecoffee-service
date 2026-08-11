@@ -1,135 +1,161 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import type { ServiceReport } from '@/types';
 
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#ffffff',
-    padding: 40,
+    padding: 30,
     fontFamily: 'Helvetica',
+    fontSize: 9,
   },
   header: {
-    marginBottom: 30,
-    paddingBottom: 20,
-    borderBottom: 3,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+    paddingBottom: 10,
+    borderBottom: 2,
     borderBottomColor: '#003f7f',
   },
+  headerLeft: {
+    flex: 1,
+  },
   logo: {
-    width: 150,
-    height: 40,
-    marginBottom: 10,
+    width: 80,
+    height: 80,
+    objectFit: 'contain',
   },
   title: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#003f7f',
-    marginBottom: 5,
+    marginBottom: 3,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 9,
     color: '#6b7280',
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#1f2937',
-    marginBottom: 10,
-    paddingBottom: 5,
-    borderBottom: 2,
+    marginBottom: 6,
+    paddingBottom: 3,
+    borderBottom: 1,
     borderBottomColor: '#e5e7eb',
   },
   row: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   twoColumnRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
+    marginBottom: 8,
   },
   column: {
     width: '48%',
   },
   label: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#6b7280',
     fontWeight: 'bold',
-    marginBottom: 3,
+    marginBottom: 2,
   },
   value: {
-    fontSize: 12,
+    fontSize: 9,
     color: '#1f2937',
-    marginBottom: 5,
+    marginBottom: 3,
   },
   valueStrong: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#1f2937',
     fontWeight: 'bold',
   },
   infoBox: {
     backgroundColor: '#f9fafb',
-    padding: 15,
-    borderRadius: 8,
-    borderLeft: 4,
+    padding: 8,
+    borderRadius: 4,
+    borderLeft: 3,
     borderLeftColor: '#003f7f',
-    marginBottom: 15,
+    marginBottom: 8,
   },
   equipmentBox: {
     backgroundColor: '#f9fafb',
-    padding: 12,
-    borderRadius: 6,
-    marginBottom: 10,
+    padding: 8,
+    borderRadius: 4,
+    marginBottom: 8,
   },
   equipmentTitle: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#1f2937',
-    marginBottom: 8,
+    marginBottom: 5,
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottom: 1,
+    borderBottom: 0.5,
     borderBottomColor: '#e5e7eb',
-    paddingVertical: 8,
+    paddingVertical: 4,
   },
   tableLabel: {
     width: '35%',
-    fontSize: 10,
+    fontSize: 8,
     color: '#374151',
     fontWeight: 'bold',
   },
   tableValue: {
     width: '65%',
-    fontSize: 11,
+    fontSize: 9,
     color: '#1f2937',
   },
   footer: {
     position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
+    bottom: 20,
+    left: 30,
+    right: 30,
     textAlign: 'center',
-    fontSize: 9,
+    fontSize: 7,
     color: '#9ca3af',
-    paddingTop: 10,
-    borderTop: 1,
+    paddingTop: 6,
+    borderTop: 0.5,
     borderTopColor: '#e5e7eb',
   },
-  photoList: {
-    fontSize: 11,
-    color: '#4b5563',
-    marginBottom: 5,
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  photoItem: {
+    width: '23%',
+    marginBottom: 8,
+  },
+  photoThumb: {
+    width: '100%',
+    height: 80,
+    objectFit: 'cover',
+    borderRadius: 4,
+    border: 1,
+    borderColor: '#e5e7eb',
+  },
+  photoCaption: {
+    fontSize: 7,
+    color: '#6b7280',
+    marginTop: 2,
+    textAlign: 'center',
   },
   badge: {
     backgroundColor: '#003f7f',
     color: '#ffffff',
-    fontSize: 9,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    fontSize: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 3,
     alignSelf: 'flex-start',
   },
 });
@@ -148,6 +174,20 @@ export default function ReportPDF({ report }: ReportPDFProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.title}>Service Report</Text>
+            <Text style={styles.subtitle}>{report.form?.name}</Text>
+            <Text style={styles.subtitle}>Report Code: {report.report_code || 'N/A'}</Text>
+          </View>
+          <Image 
+            src="https://primelinecoffee-service.netlify.app/logo.png" 
+            style={styles.logo}
+          />
+        </View>
+
+        {/* Report Overview */}
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Service Report</Text>
@@ -314,14 +354,26 @@ export default function ReportPDF({ report }: ReportPDFProps) {
             </View>
           ))}
 
-        {/* Photos Summary */}
+        {/* Photos with Thumbnails */}
         {report.photos && report.photos.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Photos Attached</Text>
-            <Text style={styles.value}>{report.photos.length} photo{report.photos.length !== 1 ? 's' : ''} attached to this report</Text>
-            <Text style={styles.photoList}>
-              View all photos online at: https://primelinecoffee-service.netlify.app/report-photos/{report.id}
-            </Text>
+          <View style={styles.section} wrap={false}>
+            <Text style={styles.sectionTitle}>Photos ({report.photos.length})</Text>
+            <View style={styles.photoGrid}>
+              {report.photos.slice(0, 12).map((photo, index) => (
+                <View key={photo.id} style={styles.photoItem}>
+                  <Image 
+                    src={photo.thumbnail_url || photo.file_url} 
+                    style={styles.photoThumb}
+                  />
+                  <Text style={styles.photoCaption}>Photo {index + 1}</Text>
+                </View>
+              ))}
+            </View>
+            {report.photos.length > 12 && (
+              <Text style={styles.value}>
+                +{report.photos.length - 12} more photos available online
+              </Text>
+            )}
           </View>
         )}
 
