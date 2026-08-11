@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 15,
     paddingBottom: 10,
     borderBottom: 2,
@@ -23,8 +23,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   logo: {
-    width: 200,
-    height: 200,
+    width: 130,
+    height: 130,
     objectFit: 'contain',
     marginRight: 20,
   },

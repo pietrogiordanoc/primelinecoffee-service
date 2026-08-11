@@ -140,53 +140,44 @@ export default function ViewReport() {
     try {
       setGeneratingPDF(true);
       
-      // Get signed URLs for all photos
-      const photosWithSignedUrls = await Promise.all(
-        (report.photos || []).map(async (photo) => {
-          try {
-            // Extract path from the storage URL
-            let path = photo.file_url;
-            
-            // If it's a full URL, extract just the path after service-photos/
-            if (path.includes('service-photos/')) {
-              const parts = path.split('service-photos/');
-              path = parts[parts.length - 1].split('?')[0]; // Remove query params if any
-            }
-            
-            console.log('Getting signed URL for path:', path);
-            
-            const { data, error } = await supabase.storage
-              .from('service-photos')
-              .createSignedUrl(path, 7200); // 2 hours expiry
-            
-            if (error) {
-              console.error('Error getting signed URL for', path, ':', error);
-              return photo; // Return original if error
-            }
-            
-            console.log('Got signed URL:', data.signedUrl);
-            
-            return {
-              ...photo,
-              file_url: data.signedUrl,
-            };
-          } catch (err) {
-            console.error('Error processing photo:', err);
-            return photo;
+      // Convert storage URLs to public URLs for PDF rendering
+      const photosWithPublicUrls = (report.photos || []).map((photo) => {
+        try {
+          let path = photo.file_url;
+          
+          // If it's a full URL, extract just the path after service-photos/
+          if (path.includes('service-photos/')) {
+            const parts = path.split('service-photos/');
+            path = parts[parts.length - 1].split('?')[0]; // Remove query params if any
           }
-        })
-      );
+          
+          // Get public URL directly from storage
+          const { data } = supabase.storage
+            .from('service-photos')
+            .getPublicUrl(path);
+          
+          console.log('Public URL for', path, ':', data.publicUrl);
+          
+          return {
+            ...photo,
+            file_url: data.publicUrl,
+          };
+        } catch (err) {
+          console.error('Error getting public URL:', err);
+          return photo;
+        }
+      });
       
-      console.log('Photos with signed URLs:', photosWithSignedUrls.length);
+      console.log('Photos with public URLs:', photosWithPublicUrls.length);
       
-      // Create report copy with signed URLs
-      const reportWithSignedUrls = {
+      // Create report copy with public URLs
+      const reportWithPublicUrls = {
         ...report,
-        photos: photosWithSignedUrls,
+        photos: photosWithPublicUrls,
       };
       
       // Generate PDF document
-      const blob = await pdf(<ReportPDF report={reportWithSignedUrls} />).toBlob();
+      const blob = await pdf(<ReportPDF report={reportWithPublicUrls} />).toBlob();
       
       // Create download link
       const url = URL.createObjectURL(blob);
