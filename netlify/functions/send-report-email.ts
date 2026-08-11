@@ -322,17 +322,20 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
       </table>
     </div>
 
-    <!-- Call to Action Button -->
+    <!-- Call to Action Buttons -->
     <div style="margin: 24px 40px; text-align: center;">
+      <a href="${appUrl}/report-photos/${report.id}" 
+         target="_blank" 
+         rel="noopener noreferrer"
+         style="display: inline-block; background-color: #003f7f; color: #ffffff; text-decoration: none; padding: 14px 24px; border-radius: 6px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 4px rgba(0, 63, 127, 0.2); margin: 0 8px;">
+        Preview Report
+      </a>
       <a href="${reportsUrl}" 
          target="_blank" 
          rel="noopener noreferrer"
-         style="display: inline-block; background-color: #003f7f; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 4px rgba(0, 63, 127, 0.2);">
-        View Full Report →
+         style="display: inline-block; background-color: #0056a8; color: #ffffff; text-decoration: none; padding: 14px 24px; border-radius: 6px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 4px rgba(0, 86, 168, 0.2); margin: 0 8px;">
+        Go to the App/Admin
       </a>
-      <p style="color: #6b7280; margin: 10px 0 0 0; font-size: 12px;">
-        Access complete report details in the management system
-      </p>
     </div>
 
     <!-- Service Information -->
