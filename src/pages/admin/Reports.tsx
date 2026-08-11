@@ -8,9 +8,10 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { FileText, Search, Download, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight } from 'lucide-react';
+import { FileText, Search, Download, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight, FileSpreadsheet } from 'lucide-react';
 import type { ReportSummary } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
+import { exportReportsToFile, getUniqueFilterValues } from '@/utils/exportUtils';
 
 export default function ReportsPage() {
   const { reportSummaries, setReportSummaries, loading, setLoading } = useReportStore();
@@ -18,8 +19,13 @@ export default function ReportsPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [companyFilter, setCompanyFilter] = useState('');
+  const [technicianFilter, setTechnicianFilter] = useState('');
+  const [salesRepFilter, setSalesRepFilter] = useState('');
+  const [formFilter, setFormFilter] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedReports, setSelectedReports] = useState<Set<string>>(new Set());
@@ -33,6 +39,21 @@ export default function ReportsPage() {
   useEffect(() => {
     loadReports();
   }, []);
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+      if (showExportMenu && !target.closest('.export-menu-container')) {
+        setShowExportMenu(false);
+      }
+    }
+    
+    if (showExportMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showExportMenu]);
 
   async function loadReports() {
     try {
@@ -164,6 +185,10 @@ export default function ReportsPage() {
       (report.report_code && report.report_code.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesStatus = !statusFilter || report.status === statusFilter;
+    const matchesCompany = !companyFilter || report.company_name === companyFilter;
+    const matchesTechnician = !technicianFilter || report.technician_name === technicianFilter;
+    const matchesSalesRep = !salesRepFilter || report.sales_rep_name === salesRepFilter;
+    const matchesForm = !formFilter || report.form_name === formFilter;
 
     // Date filter
     let matchesDate = true;
@@ -199,7 +224,7 @@ export default function ReportsPage() {
       }
     }
 
-    return matchesSearch && matchesStatus && matchesDate;
+    return matchesSearch && matchesStatus && matchesCompany && matchesTechnician && matchesSalesRep && matchesForm && matchesDate;
   })
   .sort((a, b) => {
     let aValue: any;
@@ -252,7 +277,31 @@ export default function ReportsPage() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, dateFilter, sortColumn, sortDirection]);
+  }, [searchTerm, statusFilter, companyFilter, technicianFilter, salesRepFilter, formFilter, dateFilter, sortColumn, sortDirection]);
+
+  // Get unique values for filter dropdowns
+  const filterOptions = getUniqueFilterValues(reportSummaries);
+
+  // Export handlers
+  function handleExportExcel() {
+    try {
+      exportReportsToFile(filteredReports, { format: 'xlsx' });
+      setShowExportMenu(false);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export reports', 'Error');
+    }
+  }
+
+  function handleExportCSV() {
+    try {
+      exportReportsToFile(filteredReports, { format: 'csv' });
+      setShowExportMenu(false);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export reports', 'Error');
+    }
+  }
 
   if (loading) {
     return (
@@ -310,6 +359,85 @@ export default function ReportsPage() {
           <option value="week">Week</option>
           <option value="month">Month</option>
         </select>
+        
+        {/* Company Filter */}
+        <select
+          value={companyFilter}
+          onChange={(e) => setCompanyFilter(e.target.value)}
+          className="px-1.5 py-1 border border-gray-300 rounded bg-white text-xs"
+        >
+          <option value="">All Companies</option>
+          {filterOptions.companies.map((company) => (
+            <option key={company} value={company}>{company}</option>
+          ))}
+        </select>
+        
+        {/* Technician Filter */}
+        <select
+          value={technicianFilter}
+          onChange={(e) => setTechnicianFilter(e.target.value)}
+          className="px-1.5 py-1 border border-gray-300 rounded bg-white text-xs"
+        >
+          <option value="">All Technicians</option>
+          {filterOptions.technicians.map((tech) => (
+            <option key={tech} value={tech}>{tech}</option>
+          ))}
+        </select>
+        
+        {/* Sales Rep Filter */}
+        <select
+          value={salesRepFilter}
+          onChange={(e) => setSalesRepFilter(e.target.value)}
+          className="px-1.5 py-1 border border-gray-300 rounded bg-white text-xs"
+        >
+          <option value="">All Sales Reps</option>
+          {filterOptions.salesReps.map((rep) => (
+            <option key={rep} value={rep}>{rep}</option>
+          ))}
+        </select>
+        
+        {/* Form Filter */}
+        <select
+          value={formFilter}
+          onChange={(e) => setFormFilter(e.target.value)}
+          className="px-1.5 py-1 border border-gray-300 rounded bg-white text-xs"
+        >
+          <option value="">All Forms</option>
+          {filterOptions.forms.map((form) => (
+            <option key={form} value={form}>{form}</option>
+          ))}
+        </select>
+        
+        {/* Export Button with Dropdown */}
+        <div className="relative export-menu-container">
+          <button
+            onClick={() => setShowExportMenu(!showExportMenu)}
+            disabled={filteredReports.length === 0}
+            className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-xs font-medium"
+          >
+            <FileSpreadsheet className="w-3 h-3" />
+            Export
+          </button>
+          
+          {showExportMenu && (
+            <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+              <button
+                onClick={handleExportExcel}
+                className="w-full px-3 py-2 text-left text-xs hover:bg-gray-100 flex items-center gap-2"
+              >
+                <FileSpreadsheet className="w-3 h-3" />
+                Excel (.xlsx)
+              </button>
+              <button
+                onClick={handleExportCSV}
+                className="w-full px-3 py-2 text-left text-xs hover:bg-gray-100 flex items-center gap-2 border-t"
+              >
+                <FileText className="w-3 h-3" />
+                CSV (.csv)
+              </button>
+            </div>
+          )}
+        </div>
         
         {/* Items per page & count */}
         <div className="ml-auto flex items-center gap-1.5">
