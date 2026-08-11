@@ -1,7 +1,7 @@
 {
   "name": "Prime Line Coffee Service",
   "short_name": "Prime Line",
-  "description": "Sistema de Reportes de Servicio Técnico",
+  "description": "Technical Service Report System",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
