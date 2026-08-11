@@ -1,23 +1,12 @@
-import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import type { ServiceReport } from '@/types';
-import { formatDate } from '@/utils/dateUtils';
-
-// Register fonts (optional - you can use system fonts)
-Font.register({
-  family: 'Inter',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2', fontWeight: 600 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hiA.woff2', fontWeight: 700 },
-  ]
-});
 
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#ffffff',
     padding: 40,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
   },
   header: {
     marginBottom: 30,
@@ -32,7 +21,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 700,
+    fontWeight: 'bold',
     color: '#003f7f',
     marginBottom: 5,
   },
@@ -45,7 +34,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: 700,
+    fontWeight: 'bold',
     color: '#1f2937',
     marginBottom: 10,
     paddingBottom: 5,
@@ -67,8 +56,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 10,
     color: '#6b7280',
-    fontWeight: 600,
-    textTransform: 'uppercase',
+    fontWeight: 'bold',
     marginBottom: 3,
   },
   value: {
@@ -79,7 +67,7 @@ const styles = StyleSheet.create({
   valueStrong: {
     fontSize: 12,
     color: '#1f2937',
-    fontWeight: 600,
+    fontWeight: 'bold',
   },
   infoBox: {
     backgroundColor: '#f9fafb',
@@ -97,7 +85,7 @@ const styles = StyleSheet.create({
   },
   equipmentTitle: {
     fontSize: 13,
-    fontWeight: 600,
+    fontWeight: 'bold',
     color: '#1f2937',
     marginBottom: 8,
   },
@@ -111,7 +99,7 @@ const styles = StyleSheet.create({
     width: '35%',
     fontSize: 10,
     color: '#374151',
-    fontWeight: 600,
+    fontWeight: 'bold',
   },
   tableValue: {
     width: '65%',
@@ -201,14 +189,22 @@ export default function ReportPDF({ report }: ReportPDFProps) {
                 <View style={styles.row}>
                   <Text style={styles.label}>Technician</Text>
                 </View>
-                <Text style={styles.valueStrong}>{report.technician?.user?.full_name}</Text>
+                <Text style={styles.valueStrong}>
+                  {report.technician?.user?.full_name || 'N/A'}
+                </Text>
                 
                 <View style={styles.row}>
                   <Text style={styles.label}>Submitted</Text>
                 </View>
                 <Text style={styles.value}>
                   {report.submitted_at 
-                    ? formatDate(report.submitted_at, 'PPp')
+                    ? new Date(report.submitted_at).toLocaleString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
                     : 'Not submitted yet'}
                 </Text>
               </View>
@@ -324,7 +320,7 @@ export default function ReportPDF({ report }: ReportPDFProps) {
             <Text style={styles.sectionTitle}>Photos Attached</Text>
             <Text style={styles.value}>{report.photos.length} photo{report.photos.length !== 1 ? 's' : ''} attached to this report</Text>
             <Text style={styles.photoList}>
-              View all photos online at: {window.location.origin}/report-photos/{report.id}
+              View all photos online at: https://primelinecoffee-service.netlify.app/report-photos/{report.id}
             </Text>
           </View>
         )}
