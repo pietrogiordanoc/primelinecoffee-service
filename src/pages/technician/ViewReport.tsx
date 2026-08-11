@@ -361,17 +361,17 @@ export default function ViewReport() {
         </div>
       </div>
 
-      {/* Company & Technician Info */}
+      {/* Company & Technician Info - Compacto para mobile */}
       <Card>
-        <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-start gap-3">
-              <Building2 className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+        <div className="p-2 md:p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
+            <div className="flex items-start gap-2">
+              <Building2 className="w-4 h-4 md:w-5 md:h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500">Company</p>
-                <p className="font-medium text-gray-900 truncate">{report.company?.name}</p>
+                <p className="text-[10px] md:text-xs text-gray-500">Company</p>
+                <p className="text-sm md:text-base font-medium text-gray-900 truncate">{report.company?.name}</p>
                 {report.company?.address && (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-[11px] md:text-sm text-gray-600 truncate md:whitespace-normal">
                     {report.company.address}
                     {report.company.city && `, ${report.company.city}`}
                     {report.company.state && `, ${report.company.state}`}
@@ -380,20 +380,20 @@ export default function ViewReport() {
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
-              <User className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <div className="flex items-start gap-2">
+              <User className="w-4 h-4 md:w-5 md:h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500">Technician</p>
-                <p className="font-medium text-gray-900 truncate">{report.technician?.user?.full_name}</p>
-                <p className="text-sm text-gray-600 truncate">{report.technician?.user?.email}</p>
+                <p className="text-[10px] md:text-xs text-gray-500">Technician</p>
+                <p className="text-sm md:text-base font-medium text-gray-900 truncate">{report.technician?.user?.full_name}</p>
+                <p className="text-[11px] md:text-sm text-gray-600 truncate">{report.technician?.user?.email}</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
-              <Calendar className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <div className="flex items-start gap-2">
+              <Calendar className="w-4 h-4 md:w-5 md:h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500">Submitted</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-[10px] md:text-xs text-gray-500">Submitted</p>
+                <p className="text-sm md:text-base font-medium text-gray-900">
                   {report.submitted_at
                     ? formatDate(report.submitted_at, 'PPp')
                     : 'Not submitted yet'}
@@ -406,13 +406,13 @@ export default function ViewReport() {
 
       {/* Form Data - Compact View */}
       <Card>
-        <div className="p-4">
-          <h2 className="text-sm font-semibold text-gray-900 mb-3">Service Details</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <div className="p-2 md:p-4">
+          <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2 md:mb-3">Service Details</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
             {report.form_data.serviceDate && (
               <div>
-                <p className="text-xs text-gray-500 mb-1">Service Date</p>
-                <p className="text-sm text-gray-900 font-medium">
+                <p className="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1">Service Date</p>
+                <p className="text-xs md:text-sm text-gray-900 font-medium">
                   {formatDate(report.form_data.serviceDate as string, 'PP')}
                 </p>
               </div>
@@ -420,22 +420,22 @@ export default function ViewReport() {
 
             {report.form_data.property && (
               <div>
-                <p className="text-xs text-gray-500 mb-1">Property</p>
-                <p className="text-sm text-gray-900 font-medium truncate">{String(report.form_data.property)}</p>
+                <p className="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1">Property</p>
+                <p className="text-xs md:text-sm text-gray-900 font-medium truncate">{String(report.form_data.property)}</p>
               </div>
             )}
 
             {report.form_data.serviceType && (
               <div>
-                <p className="text-xs text-gray-500 mb-1">Service Type</p>
-                <p className="text-sm text-gray-900 font-medium truncate">{String(report.form_data.serviceType)}</p>
+                <p className="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1">Service Type</p>
+                <p className="text-xs md:text-sm text-gray-900 font-medium truncate">{String(report.form_data.serviceType)}</p>
               </div>
             )}
 
             {report.form_data.customerName && (
               <div>
-                <p className="text-xs text-gray-500 mb-1">Customer</p>
-                <p className="text-sm text-gray-900 font-medium truncate">{String(report.form_data.customerName)}</p>
+                <p className="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1">Customer</p>
+                <p className="text-xs md:text-sm text-gray-900 font-medium truncate">{String(report.form_data.customerName)}</p>
               </div>
             )}
 
@@ -443,15 +443,15 @@ export default function ViewReport() {
             {report.form_data.summary && typeof report.form_data.summary === 'object' && (
               <>
                 {(report.form_data.summary as any).equipmentCount !== undefined && (
-                  <div className="bg-blue-50 rounded-lg p-2">
-                    <p className="text-xs text-blue-600 mb-1">Equipment</p>
-                    <p className="text-lg font-bold text-blue-900">{(report.form_data.summary as any).equipmentCount}</p>
+                  <div className="bg-blue-50 rounded-lg p-1.5 md:p-2">
+                    <p className="text-[10px] md:text-xs text-blue-600 mb-0.5 md:mb-1">Equipment</p>
+                    <p className="text-base md:text-lg font-bold text-blue-900">{(report.form_data.summary as any).equipmentCount}</p>
                   </div>
                 )}
                 {(report.form_data.summary as any).totalHours !== undefined && (
-                  <div className="bg-green-50 rounded-lg p-2">
-                    <p className="text-xs text-green-600 mb-1">Hours</p>
-                    <p className="text-lg font-bold text-green-900">{(report.form_data.summary as any).totalHours}</p>
+                  <div className="bg-green-50 rounded-lg p-1.5 md:p-2">
+                    <p className="text-[10px] md:text-xs text-green-600 mb-0.5 md:mb-1">Hours</p>
+                    <p className="text-base md:text-lg font-bold text-green-900">{(report.form_data.summary as any).totalHours}</p>
                   </div>
                 )}
               </>
@@ -460,9 +460,9 @@ export default function ViewReport() {
 
           {/* Additional Notes - Compact */}
           {report.form_data.additional_notes && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <p className="text-xs text-gray-500 mb-1">Notes</p>
-              <p className="text-sm text-gray-700 line-clamp-2">
+            <div className="mt-2 md:mt-3 pt-2 md:pt-3 border-t border-gray-200">
+              <p className="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1">Notes</p>
+              <p className="text-xs md:text-sm text-gray-700 line-clamp-2">
                 {String(report.form_data.additional_notes)}
               </p>
             </div>
@@ -474,43 +474,43 @@ export default function ViewReport() {
       {report.form_data.equipmentRecords && Array.isArray(report.form_data.equipmentRecords) && 
         (report.form_data.equipmentRecords as any[]).map((equipment, index) => (
           <Card key={index}>
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-gray-900">Equipment #{index + 1}</h3>
+            <div className="p-2 md:p-4">
+              <div className="flex items-center justify-between mb-2 md:mb-3">
+                <h3 className="text-xs md:text-sm font-semibold text-gray-900">Equipment #{index + 1}</h3>
                 {equipment.photoCount > 0 && (
-                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <span className="text-[10px] md:text-xs text-gray-500 flex items-center gap-1">
                     <ImageIcon className="w-3 h-3" />
                     {equipment.photoCount} {equipment.photoCount === 1 ? 'photo' : 'photos'}
                   </span>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-2 md:mb-3">
                 {equipment.brand && (
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Brand</p>
-                    <p className="text-sm text-gray-900 font-medium">{equipment.brand}</p>
+                    <p className="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1">Brand</p>
+                    <p className="text-xs md:text-sm text-gray-900 font-medium">{equipment.brand}</p>
                   </div>
                 )}
 
                 {equipment.model && (
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Model</p>
-                    <p className="text-sm text-gray-900 font-medium">{equipment.model}</p>
+                    <p className="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1">Model</p>
+                    <p className="text-xs md:text-sm text-gray-900 font-medium">{equipment.model}</p>
                   </div>
                 )}
 
                 {equipment.serial && (
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Serial Number</p>
-                    <p className="text-sm text-gray-900 font-medium font-mono">{equipment.serial}</p>
+                    <p className="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1">Serial Number</p>
+                    <p className="text-xs md:text-sm text-gray-900 font-medium font-mono">{equipment.serial}</p>
                   </div>
                 )}
 
                 {equipment.hours !== undefined && equipment.hours !== null && (
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Labor Hours</p>
-                    <p className="text-sm text-gray-900 font-medium">
+                    <p className="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1">Labor Hours</p>
+                    <p className="text-xs md:text-sm text-gray-900 font-medium">
                       {equipment.hours} {equipment.hours === 1 ? 'hour' : 'hours'}
                     </p>
                   </div>
@@ -518,25 +518,25 @@ export default function ViewReport() {
               </div>
 
               {equipment.problem && (
-                <div className="mb-3">
-                  <p className="text-xs text-gray-500 mb-1">Problem / Issue</p>
-                  <p className="text-sm text-gray-900 bg-gray-50 rounded p-2">{equipment.problem}</p>
+                <div className="mb-2 md:mb-3">
+                  <p className="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1">Problem / Issue</p>
+                  <p className="text-xs md:text-sm text-gray-900 bg-gray-50 rounded p-1.5 md:p-2">{equipment.problem}</p>
                 </div>
               )}
 
               {equipment.work_performed && (
-                <div className="mb-3">
-                  <p className="text-xs text-gray-500 mb-1">Work Performed</p>
-                  <p className="text-sm text-gray-900 bg-gray-50 rounded p-2">{equipment.work_performed}</p>
+                <div className="mb-2 md:mb-3">
+                  <p className="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1">Work Performed</p>
+                  <p className="text-xs md:text-sm text-gray-900 bg-gray-50 rounded p-1.5 md:p-2">{equipment.work_performed}</p>
                 </div>
               )}
 
               {equipment.parts_used && Array.isArray(equipment.parts_used) && equipment.parts_used.length > 0 && (
                 <div>
-                  <p className="text-xs text-gray-500 mb-2">Parts Used</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <p className="text-[10px] md:text-xs text-gray-500 mb-1.5 md:mb-2">Parts Used</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 md:gap-2">
                     {equipment.parts_used.map((part: any, partIndex: number) => (
-                      <div key={partIndex} className="text-sm text-gray-900 flex justify-between items-center bg-gray-50 rounded px-3 py-2">
+                      <div key={partIndex} className="text-xs md:text-sm text-gray-900 flex justify-between items-center bg-gray-50 rounded px-2 md:px-3 py-1.5 md:py-2">
                         <span>{part.name} <span className="text-gray-500">x{part.quantity}</span></span>
                         <span className="font-medium">${part.cost}</span>
                       </div>
@@ -552,14 +552,14 @@ export default function ViewReport() {
       {/* Photos */}
       {report.photos && report.photos.length > 0 && (
         <Card>
-          <div className="p-4">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="p-2 md:p-4">
+            <div className="flex items-center gap-2 mb-2 md:mb-3">
               <ImageIcon className="w-4 h-4 text-gray-600" />
-              <h2 className="text-sm font-semibold text-gray-900">
+              <h2 className="text-xs md:text-sm font-semibold text-gray-900">
                 Photos ({report.photos.length})
               </h2>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
               {report.photos.map((photo) => (
                 <div 
                   key={photo.id} 
@@ -592,9 +592,9 @@ export default function ViewReport() {
       {/* Signature */}
       {report.signature_url && (
         <Card>
-          <div className="p-4">
-            <h2 className="text-sm font-semibold text-gray-900 mb-3">Signature</h2>
-            <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+          <div className="p-2 md:p-4">
+            <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2 md:mb-3">Signature</h2>
+            <div className="border border-gray-200 rounded-lg p-2 md:p-3 bg-gray-50">
               <img
                 src={report.signature_url}
                 alt="Signature"
@@ -608,9 +608,9 @@ export default function ViewReport() {
       {/* Notes */}
       {report.notes && (
         <Card>
-          <div className="p-4">
-            <h2 className="text-sm font-semibold text-gray-900 mb-2">Notes</h2>
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{report.notes}</p>
+          <div className="p-2 md:p-4">
+            <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-1.5 md:mb-2">Notes</h2>
+            <p className="text-xs md:text-sm text-gray-700 whitespace-pre-wrap">{report.notes}</p>
           </div>
         </Card>
       )}
@@ -618,30 +618,31 @@ export default function ViewReport() {
       {/* Admin Comments Section - Only visible to admins */}
       {isAdmin && (
         <Card>
-          <div className="p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <MessageSquare className="w-5 h-5 text-primary-600" />
-              <h2 className="text-sm font-semibold text-gray-900">Admin Comments</h2>
-              <span className="text-xs text-gray-500">({comments.length})</span>
+          <div className="p-2 md:p-4">
+            <div className="flex items-center gap-2 mb-3 md:mb-4">
+              <MessageSquare className="w-4 h-4 md:w-5 md:h-5 text-primary-600" />
+              <h2 className="text-xs md:text-sm font-semibold text-gray-900">Admin Comments</h2>
+              <span className="text-[10px] md:text-xs text-gray-500">({comments.length})</span>
             </div>
 
             {/* New Comment Input */}
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Add an internal note or comment..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none text-sm"
+                className="w-full px-2 md:px-3 py-1.5 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none text-xs md:text-sm"
               />
-              <div className="flex justify-between items-center mt-2">
-                <p className="text-xs text-gray-500">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mt-2">
+                <p className="text-[10px] md:text-xs text-gray-500">
                   Only visible to admins. Your name and timestamp will be recorded.
                 </p>
                 <Button
                   onClick={addComment}
                   disabled={!newComment.trim() || submittingComment}
                   size="sm"
+                  className="w-full sm:w-auto"
                 >
                   <Send className="w-4 h-4 mr-2" />
                   {submittingComment ? 'Adding...' : 'Add Comment'}
@@ -650,26 +651,26 @@ export default function ViewReport() {
             </div>
 
             {/* Comments List */}
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {comments.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 text-sm">
+                <div className="text-center py-6 md:py-8 text-gray-500 text-xs md:text-sm">
                   No comments yet. Add the first one above.
                 </div>
               ) : (
                 comments.map((comment) => (
-                  <div key={comment.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-gray-900">
+                  <div key={comment.id} className="bg-gray-50 rounded-lg p-2 md:p-3 border border-gray-200">
+                    <div className="flex items-start justify-between gap-2 md:gap-3 mb-1.5 md:mb-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs md:text-sm font-semibold text-gray-900 truncate">
                           {comment.user?.full_name || 'Unknown Admin'}
                         </p>
-                        <p className="text-xs text-gray-500">{comment.user?.email}</p>
+                        <p className="text-[10px] md:text-xs text-gray-500 truncate">{comment.user?.email}</p>
                       </div>
-                      <p className="text-xs text-gray-500 whitespace-nowrap">
+                      <p className="text-[10px] md:text-xs text-gray-500 whitespace-nowrap flex-shrink-0">
                         {formatDate(comment.created_at, 'PPp')}
                       </p>
                     </div>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                    <p className="text-xs md:text-sm text-gray-700 whitespace-pre-wrap">
                       {comment.comment}
                     </p>
                   </div>
