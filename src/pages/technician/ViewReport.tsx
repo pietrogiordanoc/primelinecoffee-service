@@ -140,8 +140,43 @@ export default function ViewReport() {
     try {
       setGeneratingPDF(true);
       
+      // Get signed URLs for all photos
+      const photosWithSignedUrls = await Promise.all(
+        (report.photos || []).map(async (photo) => {
+          try {
+            // Extract path from full URL or use as is
+            const path = photo.file_url.includes('service-photos/') 
+              ? photo.file_url.split('service-photos/')[1]
+              : photo.file_url;
+            
+            const { data, error } = await supabase.storage
+              .from('service-photos')
+              .createSignedUrl(path, 3600); // 1 hour expiry
+            
+            if (error) {
+              console.error('Error getting signed URL:', error);
+              return photo; // Return original if error
+            }
+            
+            return {
+              ...photo,
+              file_url: data.signedUrl,
+            };
+          } catch (err) {
+            console.error('Error processing photo:', err);
+            return photo;
+          }
+        })
+      );
+      
+      // Create report copy with signed URLs
+      const reportWithSignedUrls = {
+        ...report,
+        photos: photosWithSignedUrls,
+      };
+      
       // Generate PDF document
-      const blob = await pdf(<ReportPDF report={report} />).toBlob();
+      const blob = await pdf(<ReportPDF report={reportWithSignedUrls} />).toBlob();
       
       // Create download link
       const url = URL.createObjectURL(blob);

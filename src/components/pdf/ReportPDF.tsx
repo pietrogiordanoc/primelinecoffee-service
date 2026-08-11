@@ -364,7 +364,6 @@ export default function ReportPDF({ report }: ReportPDFProps) {
                   <Image 
                     src={photo.file_url}
                     style={styles.photoThumb}
-                    cache={false}
                   />
                   <Text style={styles.photoCaption}>Photo {index + 1}</Text>
                 </View>
