@@ -227,6 +227,17 @@ export default function ReportPDF({ report }: ReportPDFProps) {
                   {report.technician?.user?.full_name || 'N/A'}
                 </Text>
                 
+                {report.sales_representative && (
+                  <>
+                    <View style={styles.row}>
+                      <Text style={styles.label}>Sales Rep</Text>
+                    </View>
+                    <Text style={styles.valueStrong}>
+                      {report.sales_representative.full_name}
+                    </Text>
+                  </>
+                )}
+                
                 <View style={styles.row}>
                   <Text style={styles.label}>Submitted</Text>
                 </View>

@@ -53,6 +53,7 @@ export default function ViewReport() {
           technician:technicians!inner(
             user:users(full_name, email)
           ),
+          sales_representative:users!sales_representative_id(full_name, email),
           photos:report_photos(*)
         `)
         .eq('id', reportId)
@@ -66,6 +67,7 @@ export default function ViewReport() {
         form: reportData.form,
         company: reportData.company,
         technician: reportData.technician,
+        sales_representative: reportData.sales_representative,
         photos: reportData.photos || [],
       };
 
@@ -364,7 +366,7 @@ export default function ViewReport() {
       {/* Company & Technician Info - Compacto para mobile */}
       <Card>
         <div className="p-2 md:p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
             <div className="flex items-start gap-2">
               <Building2 className="w-4 h-4 md:w-5 md:h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
@@ -388,6 +390,17 @@ export default function ViewReport() {
                 <p className="text-[11px] md:text-sm text-gray-600 truncate">{report.technician?.user?.email}</p>
               </div>
             </div>
+
+            {report.sales_representative && (
+              <div className="flex items-start gap-2">
+                <User className="w-4 h-4 md:w-5 md:h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] md:text-xs text-gray-500">Sales Rep</p>
+                  <p className="text-sm md:text-base font-medium text-gray-900 truncate">{report.sales_representative.full_name}</p>
+                  <p className="text-[11px] md:text-sm text-gray-600 truncate">{report.sales_representative.email}</p>
+                </div>
+              </div>
+            )}
 
             <div className="flex items-start gap-2">
               <Calendar className="w-4 h-4 md:w-5 md:h-5 text-gray-400 mt-0.5 flex-shrink-0" />
