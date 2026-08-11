@@ -22,8 +22,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logo: {
-    width: 80,
-    height: 80,
+    width: 128,
+    height: 128,
     objectFit: 'contain',
   },
   title: {
@@ -128,16 +128,16 @@ const styles = StyleSheet.create({
   photoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
     marginTop: 8,
   },
   photoItem: {
-    width: '23%',
-    marginBottom: 8,
+    width: '31%',
+    marginBottom: 10,
   },
   photoThumb: {
     width: '100%',
-    height: 80,
+    height: 160,
     objectFit: 'cover',
     borderRadius: 4,
     border: 1,
@@ -359,19 +359,20 @@ export default function ReportPDF({ report }: ReportPDFProps) {
           <View style={styles.section} wrap={false}>
             <Text style={styles.sectionTitle}>Photos ({report.photos.length})</Text>
             <View style={styles.photoGrid}>
-              {report.photos.slice(0, 12).map((photo, index) => (
-                <View key={photo.id} style={styles.photoItem}>
+              {report.photos.slice(0, 9).map((photo, index) => (
+                <View key={photo.id || index} style={styles.photoItem}>
                   <Image 
-                    src={photo.thumbnail_url || photo.file_url} 
+                    src={photo.file_url}
                     style={styles.photoThumb}
+                    cache={false}
                   />
                   <Text style={styles.photoCaption}>Photo {index + 1}</Text>
                 </View>
               ))}
             </View>
-            {report.photos.length > 12 && (
+            {report.photos.length > 9 && (
               <Text style={styles.value}>
-                +{report.photos.length - 12} more photos available online
+                +{report.photos.length - 9} more photos available online
               </Text>
             )}
           </View>
