@@ -187,34 +187,42 @@ export default function ViewReport() {
       setGeneratingPDF(true);
       
       // Convert storage URLs to public URLs for PDF rendering
-      const photosWithPublicUrls = (report.photos || []).map((photo) => {
-        try {
-          let path = photo.file_url;
-          
-          // If it's a full URL, extract just the path after service-photos/
-          if (path.includes('service-photos/')) {
-            const parts = path.split('service-photos/');
-            path = parts[parts.length - 1].split('?')[0]; // Remove query params if any
+      const photosWithPublicUrls = await Promise.all(
+        (report.photos || []).map(async (photo) => {
+          try {
+            let path = photo.file_name || photo.file_url;
+            
+            // Clean the path - remove any bucket prefix and query params
+            if (path.includes('service-photos/')) {
+              const parts = path.split('service-photos/');
+              path = parts[parts.length - 1];
+            }
+            // Remove query parameters
+            path = path.split('?')[0];
+            
+            // Get public URL directly from storage
+            const { data } = supabase.storage
+              .from('service-photos')
+              .getPublicUrl(path);
+            
+            // Use public URL with cache busting
+            const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
+            
+            console.log('PDF Photo URL:', path, '->', publicUrl);
+            
+            return {
+              ...photo,
+              file_url: publicUrl,
+            };
+          } catch (err) {
+            console.error('Error getting public URL for photo:', err);
+            // Return original if conversion fails
+            return photo;
           }
-          
-          // Get public URL directly from storage
-          const { data } = supabase.storage
-            .from('service-photos')
-            .getPublicUrl(path);
-          
-          console.log('Public URL for', path, ':', data.publicUrl);
-          
-          return {
-            ...photo,
-            file_url: data.publicUrl,
-          };
-        } catch (err) {
-          console.error('Error getting public URL:', err);
-          return photo;
-        }
-      });
+        })
+      );
       
-      console.log('Photos with public URLs:', photosWithPublicUrls.length);
+      console.log('Photos prepared for PDF:', photosWithPublicUrls.length);
       
       // Create report copy with public URLs
       const reportWithPublicUrls = {

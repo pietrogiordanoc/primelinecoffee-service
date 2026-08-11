@@ -364,15 +364,21 @@ export default function ReportPDF({ report }: ReportPDFProps) {
           <View style={styles.section} wrap={false}>
             <Text style={styles.sectionTitle}>Photos ({report.photos.length})</Text>
             <View style={styles.photoGrid}>
-              {report.photos.slice(0, 9).map((photo, index) => (
-                <View key={photo.id || index} style={styles.photoItem}>
-                  <Image 
-                    src={photo.file_url}
-                    style={styles.photoThumb}
-                  />
-                  <Text style={styles.photoCaption}>Photo {index + 1}</Text>
-                </View>
-              ))}
+              {report.photos.slice(0, 9).map((photo, index) => {
+                // Use file_url which should be a public URL at this point
+                const imageUrl = photo.file_url;
+                
+                return (
+                  <View key={photo.id || index} style={styles.photoItem}>
+                    <Image 
+                      src={imageUrl}
+                      style={styles.photoThumb}
+                      cache={false}
+                    />
+                    <Text style={styles.photoCaption}>Photo {index + 1}</Text>
+                  </View>
+                );
+              })}
             </View>
             {report.photos.length > 9 && (
               <Text style={styles.value}>
