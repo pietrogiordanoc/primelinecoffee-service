@@ -186,9 +186,9 @@ export default function ViewReport() {
     try {
       setGeneratingPDF(true);
       
-      // Convert storage URLs to public URLs for PDF rendering
-      const photosWithPublicUrls = await Promise.all(
-        (report.photos || []).map(async (photo) => {
+      // Convert images to base64 for PDF rendering (most reliable method)
+      const photosWithBase64 = await Promise.all(
+        (report.photos || []).slice(0, 9).map(async (photo) => {
           try {
             let path = photo.file_name || photo.file_url;
             
@@ -200,38 +200,49 @@ export default function ViewReport() {
             // Remove query parameters
             path = path.split('?')[0];
             
-            // Get public URL directly from storage
-            const { data } = supabase.storage
+            // Download image as blob
+            const { data: blob, error } = await supabase.storage
               .from('service-photos')
-              .getPublicUrl(path);
+              .download(path);
             
-            // Use public URL with cache busting
-            const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
+            if (error) {
+              console.error('Error downloading photo:', error);
+              return null;
+            }
             
-            console.log('PDF Photo URL:', path, '->', publicUrl);
+            // Convert blob to base64
+            const base64 = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            
+            console.log('Photo converted to base64:', path, '- Size:', Math.round(base64.length / 1024), 'KB');
             
             return {
               ...photo,
-              file_url: publicUrl,
+              file_url: base64,
             };
           } catch (err) {
-            console.error('Error getting public URL for photo:', err);
-            // Return original if conversion fails
-            return photo;
+            console.error('Error converting photo to base64:', err);
+            return null;
           }
         })
       );
       
-      console.log('Photos prepared for PDF:', photosWithPublicUrls.length);
+      // Filter out failed conversions
+      const validPhotos = photosWithBase64.filter(p => p !== null);
+      console.log('Photos converted for PDF:', validPhotos.length, 'of', report.photos?.length || 0);
       
-      // Create report copy with public URLs
-      const reportWithPublicUrls = {
+      // Create report copy with base64 images
+      const reportWithBase64Photos = {
         ...report,
-        photos: photosWithPublicUrls,
+        photos: validPhotos,
       };
       
       // Generate PDF document
-      const blob = await pdf(<ReportPDF report={reportWithPublicUrls} />).toBlob();
+      const blob = await pdf(<ReportPDF report={reportWithBase64Photos} />).toBlob();
       
       // Create download link
       const url = URL.createObjectURL(blob);
