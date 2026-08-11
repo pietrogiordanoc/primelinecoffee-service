@@ -5,9 +5,11 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate } from '@/utils/dateUtils';
-import { ArrowLeft, Building2, User, Calendar, FileText, Image as ImageIcon, MessageSquare, Send, Share2, Check } from 'lucide-react';
+import { ArrowLeft, Building2, User, Calendar, FileText, Image as ImageIcon, MessageSquare, Send, Share2, Check, Download } from 'lucide-react';
 import type { ServiceReport, AdminComment } from '@/types';
 import { useAuthStore } from '@/stores/authStore';
+import { pdf } from '@react-pdf/renderer';
+import ReportPDF from '@/components/pdf/ReportPDF';
 
 export default function ViewReport() {
   const { reportId } = useParams<{ reportId: string }>();
@@ -19,6 +21,7 @@ export default function ViewReport() {
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
   
   // Detect if we're in admin or technician view
   const isAdminView = window.location.pathname.includes('/admin/');
@@ -131,6 +134,32 @@ export default function ViewReport() {
     });
   }
 
+  async function exportToPDF() {
+    if (!report) return;
+    
+    try {
+      setGeneratingPDF(true);
+      
+      // Generate PDF document
+      const blob = await pdf(<ReportPDF report={report} />).toBlob();
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${report.report_code || 'report'}_${report.company?.name?.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setGeneratingPDF(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -182,6 +211,16 @@ export default function ViewReport() {
             <Share2 className="w-4 h-4 mr-2" />
           )}
           {linkCopied ? 'Link Copied!' : 'Share Public Link'}
+        </Button>
+        <Button
+          onClick={exportToPDF}
+          variant="secondary"
+          size="sm"
+          className="mr-2"
+          disabled={generatingPDF}
+        >
+          <Download className="w-4 h-4 mr-2" />
+          {generatingPDF ? 'Generating...' : 'Export PDF'}
         </Button>
         <span
           className={`px-3 py-1 text-xs font-medium rounded-full ${
