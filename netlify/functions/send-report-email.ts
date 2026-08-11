@@ -270,28 +270,56 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
     <!-- Report Summary Card -->
     <div style="margin: 32px 40px 24px 40px;">
       <h2 style="margin: 0 0 20px 0; color: #1f2937; font-size: 18px; font-weight: 600;">
-        Report Details
+        Report Overview
       </h2>
       
-      <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; border-left: 4px solid #003f7f;">
-        <div style="margin-bottom: 14px;">
-          <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Company</p>
-          <p style="margin: 0; color: #1f2937; font-size: 15px; font-weight: 600;">${report.company.name}</p>
-        </div>
-        <div style="margin-bottom: 14px;">
-          <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Technician</p>
-          <p style="margin: 0; color: #1f2937; font-size: 15px;">${report.technician.user.full_name}</p>
-        </div>
-        <div style="margin-bottom: 14px;">
-          <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Form Type</p>
-          <p style="margin: 0; color: #1f2937; font-size: 15px;">${report.form.name}</p>
-        </div>
-        <div>
-          <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Submitted</p>
-          <p style="margin: 0; color: #1f2937; font-size: 15px;">${report.form_data?.technicianLocalTime || new Date(report.submitted_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'long' })}</p>
-          ${report.form_data?.technicianTimeZone ? `<p style="margin: 4px 0 0 0; color: #6b7280; font-size: 12px;">(${report.form_data.technicianTimeZone})</p>` : ''}
-        </div>
-      </div>
+      <!-- Two Column Layout -->
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <!-- Left Column - Report Details -->
+          <td style="width: 50%; vertical-align: top; padding-right: 10px;">
+            <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; border-left: 4px solid #003f7f; height: 100%;">
+              <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 14px; font-weight: 600;">Report Details</h3>
+              <div style="margin-bottom: 14px;">
+                <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Company</p>
+                <p style="margin: 0; color: #1f2937; font-size: 15px; font-weight: 600;">${report.company.name}</p>
+              </div>
+              <div style="margin-bottom: 14px;">
+                <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Technician</p>
+                <p style="margin: 0; color: #1f2937; font-size: 15px;">${report.technician.user.full_name}</p>
+              </div>
+              <div style="margin-bottom: 14px;">
+                <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Form Type</p>
+                <p style="margin: 0; color: #1f2937; font-size: 15px;">${report.form.name}</p>
+              </div>
+              <div>
+                <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Submitted</p>
+                <p style="margin: 0; color: #1f2937; font-size: 15px;">${report.form_data?.technicianLocalTime || new Date(report.submitted_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'long' })}</p>
+                ${report.form_data?.technicianTimeZone ? `<p style="margin: 4px 0 0 0; color: #6b7280; font-size: 12px;">(${report.form_data.technicianTimeZone})</p>` : ''}
+              </div>
+            </div>
+          </td>
+          
+          <!-- Right Column - Company Information -->
+          <td style="width: 50%; vertical-align: top; padding-left: 10px;">
+            <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; border-left: 4px solid #0056a8; height: 100%;">
+              <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 14px; font-weight: 600;">Company Information</h3>
+              <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
+                <strong style="color: #374151; font-weight: 600;">Contact:</strong> ${report.company.contact_name || 'N/A'}
+              </p>
+              <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
+                <strong style="color: #374151; font-weight: 600;">Email:</strong> <a href="mailto:${report.company.contact_email}" style="color: #0056a8; text-decoration: none;">${report.company.contact_email || 'N/A'}</a>
+              </p>
+              <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
+                <strong style="color: #374151; font-weight: 600;">Phone:</strong> ${report.company.contact_phone || 'N/A'}
+              </p>
+              <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
+                <strong style="color: #374151; font-weight: 600;">Address:</strong> ${report.company.address || 'N/A'} ${report.company.city ? report.company.city : ''}
+              </p>
+            </div>
+          </td>
+        </tr>
+      </table>
     </div>
 
     <!-- Call to Action Button -->
@@ -305,25 +333,6 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
       <p style="color: #6b7280; margin: 10px 0 0 0; font-size: 12px;">
         Access complete report details in the management system
       </p>
-    </div>
-
-    <!-- Company Details -->
-    <div style="margin: 24px 40px;">
-      <h3 style="color: #1f2937; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Company Information</h3>
-      <div style="padding: 16px; background-color: #f9fafb; border-radius: 6px;">
-        <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
-          <strong style="color: #374151; font-weight: 600;">Contact:</strong> ${report.company.contact_name || 'N/A'}
-        </p>
-        <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
-          <strong style="color: #374151; font-weight: 600;">Email:</strong> ${report.company.contact_email || 'N/A'}
-        </p>
-        <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
-          <strong style="color: #374151; font-weight: 600;">Phone:</strong> ${report.company.contact_phone || 'N/A'}
-        </p>
-        <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
-          <strong style="color: #374151; font-weight: 600;">Address:</strong> ${report.company.address || 'N/A'}
-        </p>
-      </div>
     </div>
 
     <!-- Service Information -->
