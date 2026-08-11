@@ -209,6 +209,20 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
   // Build reports URL from provided app URL
   const reportsUrl = `${appUrl}/admin/reports`;
   
+  // Helper function to format values (handle objects, arrays, etc.)
+  const formatValue = (value: any): string => {
+    if (value === null || value === undefined) {
+      return 'N/A';
+    }
+    if (typeof value === 'object') {
+      if (Array.isArray(value)) {
+        return value.length > 0 ? JSON.stringify(value, null, 2) : 'N/A';
+      }
+      return JSON.stringify(value, null, 2);
+    }
+    return String(value);
+  };
+  
   const formDataHtml = Object.entries(report.form_data)
     .map(
       ([key, value]) => `
@@ -216,8 +230,8 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
         <td style="padding: 12px 14px; border-bottom: 1px solid #e5e7eb; background-color: #f9fafb; font-weight: 600; color: #374151; width: 35%; font-size: 13px;">
           ${key}
         </td>
-        <td style="padding: 12px 14px; border-bottom: 1px solid #e5e7eb; color: #1f2937; font-size: 14px;">
-          ${value}
+        <td style="padding: 12px 14px; border-bottom: 1px solid #e5e7eb; color: #1f2937; font-size: 14px; white-space: pre-wrap;">
+          ${formatValue(value)}
         </td>
       </tr>
     `
