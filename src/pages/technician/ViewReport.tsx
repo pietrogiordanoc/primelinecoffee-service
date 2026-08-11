@@ -266,81 +266,99 @@ export default function ViewReport() {
   }
 
   return (
-    <div className="p-4 space-y-4 pb-24 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          onClick={() => navigate(backPath)}
-          className="p-2 hover:bg-gray-100 rounded-lg transition"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
-        </button>
-        
-        {/* Navigation Arrows */}
-        {reportIds.length > 0 && (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={navigateToPrevious}
-              disabled={currentIndex <= 0}
-              className="p-2 hover:bg-gray-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
-              title="Previous report"
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
-            </button>
-            <span className="text-xs text-gray-500 px-2">
-              {currentIndex + 1} / {reportIds.length}
-            </span>
-            <button
-              onClick={navigateToNext}
-              disabled={currentIndex >= reportIds.length - 1}
-              className="p-2 hover:bg-gray-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
-              title="Next report"
-            >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-        )}
-        
-        <div className="flex-1">
-          <h1 className="text-xl font-bold text-gray-900">Report Details</h1>
-          <p className="text-sm text-gray-500">{report.form?.name}</p>
-        </div>
-        <Button
-          onClick={copyPublicLink}
-          variant="secondary"
-          size="sm"
-          className="mr-2"
-        >
-          {linkCopied ? (
-            <Check className="w-4 h-4 mr-2 text-green-600" />
-          ) : (
-            <Share2 className="w-4 h-4 mr-2" />
+    <div className="p-3 md:p-4 space-y-3 md:space-y-4 pb-24 max-w-6xl mx-auto">
+      {/* Header - Optimizado para mobile */}
+      <div className="space-y-2">
+        {/* Primera fila: Back + Navigation + Actions */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(backPath)}
+            className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition flex-shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          </button>
+          
+          {/* Navigation Arrows */}
+          {reportIds.length > 0 && (
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              <button
+                onClick={navigateToPrevious}
+                disabled={currentIndex <= 0}
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Previous report"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+              </button>
+              <span className="text-xs text-gray-500 px-1 hidden sm:inline">
+                {currentIndex + 1}/{reportIds.length}
+              </span>
+              <button
+                onClick={navigateToNext}
+                disabled={currentIndex >= reportIds.length - 1}
+                className="p-1.5 hover:bg-gray-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Next report"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
           )}
-          {linkCopied ? 'Link Copied!' : 'Share Public Link'}
-        </Button>
-        <Button
-          onClick={exportToPDF}
-          variant="secondary"
-          size="sm"
-          className="mr-2"
-          disabled={generatingPDF}
-        >
-          <Download className="w-4 h-4 mr-2" />
-          {generatingPDF ? 'Generating...' : 'Export PDF'}
-        </Button>
-        <span
-          className={`px-3 py-1 text-xs font-medium rounded-full ${
-            report.status === 'completed'
-              ? 'bg-green-100 text-green-700'
-              : report.status === 'reviewed'
-              ? 'bg-blue-100 text-blue-700'
-              : report.status === 'submitted'
-              ? 'bg-yellow-100 text-yellow-700'
-              : 'bg-gray-100 text-gray-700'
-          }`}
-        >
-          {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
-        </span>
+          
+          {/* Spacer */}
+          <div className="flex-1" />
+          
+          {/* Actions - Solo iconos en mobile */}
+          <Button
+            onClick={copyPublicLink}
+            variant="secondary"
+            size="sm"
+            className="p-2"
+            title={linkCopied ? 'Link Copied!' : 'Share Public Link'}
+          >
+            {linkCopied ? (
+              <Check className="w-4 h-4 text-green-600" />
+            ) : (
+              <Share2 className="w-4 h-4" />
+            )}
+            <span className="ml-2 hidden md:inline">
+              {linkCopied ? 'Copied!' : 'Share'}
+            </span>
+          </Button>
+          <Button
+            onClick={exportToPDF}
+            variant="secondary"
+            size="sm"
+            className="p-2"
+            disabled={generatingPDF}
+            title={generatingPDF ? 'Generating...' : 'Export PDF'}
+          >
+            <Download className="w-4 h-4" />
+            <span className="ml-2 hidden md:inline">
+              {generatingPDF ? 'Generating...' : 'PDF'}
+            </span>
+          </Button>
+          <span
+            className={`px-2 md:px-3 py-1 text-xs font-medium rounded-full hidden sm:inline ${
+              report.status === 'completed'
+                ? 'bg-green-100 text-green-700'
+                : report.status === 'reviewed'
+                ? 'bg-blue-100 text-blue-700'
+                : report.status === 'submitted'
+                ? 'bg-yellow-100 text-yellow-700'
+                : 'bg-gray-100 text-gray-700'
+            }`}
+          >
+            {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+          </span>
+        </div>
+        
+        {/* Segunda fila: Title compacto - TODO en una línea en mobile */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <h1 className="text-base md:text-xl font-bold text-gray-900">Report Details</h1>
+          <span className="text-gray-400">·</span>
+          <span className="text-sm md:text-base font-semibold text-primary-600">{report.report_code || 'N/A'}</span>
+          <span className="text-gray-400 hidden sm:inline">·</span>
+          <p className="text-xs md:text-sm text-gray-500 truncate">{report.form?.name}</p>
+        </div>
       </div>
 
       {/* Company & Technician Info */}
