@@ -30,6 +30,7 @@ import ReportPhotos from '@/pages/ReportPhotos';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import SplashScreen from '@/components/ui/SplashScreen';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt';
 
 function RoleBasedRedirect() {
   const { user, userProfile, setUserProfile } = useAuthStore();
@@ -131,6 +132,7 @@ function App() {
 
   return (
     <ConfirmProvider>
+      <PWAInstallPrompt />
       <Routes>
         {/* Public Routes */}
         <Route
