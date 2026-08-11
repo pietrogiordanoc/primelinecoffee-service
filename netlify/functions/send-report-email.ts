@@ -216,9 +216,22 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
     }
     if (typeof value === 'object') {
       if (Array.isArray(value)) {
-        return value.length > 0 ? JSON.stringify(value, null, 2) : 'N/A';
+        if (value.length === 0) return 'N/A';
+        // Format array of objects as readable list
+        return value.map((item, index) => {
+          if (typeof item === 'object') {
+            const entries = Object.entries(item)
+              .map(([k, v]) => `${k}: ${v}`)
+              .join(', ');
+            return `[${index + 1}] ${entries}`;
+          }
+          return `• ${item}`;
+        }).join('\n');
       }
-      return JSON.stringify(value, null, 2);
+      // Format object as key-value pairs
+      return Object.entries(value)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('\n');
     }
     return String(value);
   };
@@ -237,27 +250,6 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
     `
     )
     .join('');
-
-  const photoLinksHtml =
-    photoLinks.length > 0
-      ? `
-    <div style="margin-top: 28px; text-align: center;">
-      <h3 style="color: #1f2937; margin: 0 0 12px 0; font-size: 16px; font-weight: 600;">📸 Report Photos</h3>
-      <p style="color: #6b7280; margin: 0 0 16px 0; line-height: 1.5; font-size: 13px;">
-        ${photoLinks.length} ${photoLinks.length === 1 ? 'photo' : 'photos'} attached to this report
-      </p>
-      <a href="${appUrl}/report-photos/${report.id}" 
-         target="_blank" 
-         rel="noopener noreferrer" 
-         style="display: inline-block; background: linear-gradient(135deg, #003f7f 0%, #0056a8 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 6px rgba(0,63,127,0.2); transition: all 0.2s;">
-        🖼️ View All Photos
-      </a>
-      <p style="color: #9ca3af; margin: 16px 0 0 0; font-size: 12px;">
-        Opens in a photo gallery with full-screen view
-      </p>
-    </div>
-  `
-      : '';
 
   return `
 <!DOCTYPE html>
@@ -336,6 +328,14 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
       </table>
     </div>
 
+    <!-- Service Information -->
+    <div style="margin: 24px 40px;">
+      <h3 style="color: #1f2937; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Service Details</h3>
+      <table style="width: 100%; border-collapse: collapse; border-radius: 6px; overflow: hidden; border: 1px solid #e5e7eb;">
+        ${formDataHtml}
+      </table>
+    </div>
+
     <!-- Call to Action Buttons -->
     <div style="margin: 24px 40px; text-align: center;">
       <a href="${appUrl}/report-photos/${report.id}" 
@@ -351,16 +351,6 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
         Go to the App/Admin
       </a>
     </div>
-
-    <!-- Service Information -->
-    <div style="margin: 24px 40px;">
-      <h3 style="color: #1f2937; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Service Details</h3>
-      <table style="width: 100%; border-collapse: collapse; border-radius: 6px; overflow: hidden; border: 1px solid #e5e7eb;">
-        ${formDataHtml}
-      </table>
-    </div>
-
-    ${photoLinksHtml ? `<div style="margin: 24px 40px;">${photoLinksHtml}</div>` : ''}
 
     ${
       report.notes
