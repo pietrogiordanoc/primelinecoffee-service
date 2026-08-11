@@ -222,10 +222,20 @@ export default function ViewReport() {
               
               img.onload = () => {
                 try {
-                  // Create canvas
+                  // Calculate dimensions (max 800px width, maintain aspect ratio)
+                  let width = img.width;
+                  let height = img.height;
+                  const maxWidth = 800;
+                  
+                  if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                  }
+                  
+                  // Create canvas with resized dimensions
                   const canvas = document.createElement('canvas');
-                  canvas.width = img.width;
-                  canvas.height = img.height;
+                  canvas.width = width;
+                  canvas.height = height;
                   
                   const ctx = canvas.getContext('2d');
                   if (!ctx) {
@@ -233,8 +243,8 @@ export default function ViewReport() {
                     return;
                   }
                   
-                  // Draw image on canvas
-                  ctx.drawImage(img, 0, 0);
+                  // Draw image on canvas (resized)
+                  ctx.drawImage(img, 0, 0, width, height);
                   
                   // Convert to JPEG base64 (quality 0.85)
                   const jpegBase64 = canvas.toDataURL('image/jpeg', 0.85);
