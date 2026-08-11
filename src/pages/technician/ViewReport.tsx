@@ -172,7 +172,7 @@ export default function ViewReport() {
         </div>
         <Button
           onClick={copyPublicLink}
-          variant="outline"
+          variant="secondary"
           size="sm"
           className="mr-2"
         >

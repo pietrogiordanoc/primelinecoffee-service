@@ -463,7 +463,7 @@ export default function ReportPhotos() {
 
           {/* Download Button */}
           <button
-            onClick={() => downloadPhoto(report.photos[selectedPhoto].file_url, report.photos[selectedPhoto].file_name)}
+            onClick={() => report.photos?.[selectedPhoto] && downloadPhoto(report.photos[selectedPhoto].file_url, report.photos[selectedPhoto].file_name)}
             className="absolute top-4 right-20 w-12 h-12 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-full flex items-center justify-center text-white transition-all z-10"
           >
             <Download className="w-6 h-6" />
