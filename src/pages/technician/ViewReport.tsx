@@ -188,7 +188,7 @@ export default function ViewReport() {
       
       console.log('Starting PDF export with', report.photos?.length || 0, 'photos');
       
-      // Pre-load and convert images to base64 (only way that works reliably with @react-pdf/renderer)
+      // Convert images to JPEG base64 (WebP not supported by @react-pdf/renderer)
       const photosWithBase64 = await Promise.all(
         (report.photos || []).slice(0, 6).map(async (photo) => {
           try {
@@ -207,7 +207,7 @@ export default function ViewReport() {
             
             console.log('Loading image:', filename);
             
-            // Fetch image and convert to base64
+            // Fetch image
             const response = await fetch(publicUrl);
             if (!response.ok) {
               throw new Error(`Failed to load image: ${response.status}`);
@@ -215,22 +215,49 @@ export default function ViewReport() {
             
             const blob = await response.blob();
             
-            // Convert to base64
-            const base64 = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
+            // Convert WebP/PNG to JPEG using Canvas (for @react-pdf/renderer compatibility)
+            const imageBase64 = await new Promise<string>((resolve, reject) => {
+              const img = new Image();
+              img.crossOrigin = 'anonymous';
+              
+              img.onload = () => {
+                try {
+                  // Create canvas
+                  const canvas = document.createElement('canvas');
+                  canvas.width = img.width;
+                  canvas.height = img.height;
+                  
+                  const ctx = canvas.getContext('2d');
+                  if (!ctx) {
+                    reject(new Error('Failed to get canvas context'));
+                    return;
+                  }
+                  
+                  // Draw image on canvas
+                  ctx.drawImage(img, 0, 0);
+                  
+                  // Convert to JPEG base64 (quality 0.85)
+                  const jpegBase64 = canvas.toDataURL('image/jpeg', 0.85);
+                  resolve(jpegBase64);
+                } catch (err) {
+                  reject(err);
+                }
+              };
+              
+              img.onerror = () => reject(new Error('Failed to load image'));
+              
+              // Load image from blob
+              img.src = URL.createObjectURL(blob);
             });
             
-            console.log('✓ Image loaded:', filename, '-', Math.round(blob.size / 1024), 'KB');
+            console.log('✓ Image converted:', filename, '-', Math.round(blob.size / 1024), 'KB -> JPEG');
             
             return {
               ...photo,
-              file_url: base64,
+              file_url: imageBase64,
             };
           } catch (err) {
-            console.error('✗ Failed to load image:', photo.file_name, err);
+            console.error('✗ Failed to convert image:', photo.file_name, err);
             return null;
           }
         })
@@ -241,10 +268,10 @@ export default function ViewReport() {
       console.log('Photos ready for PDF:', validPhotos.length, 'of', report.photos?.length || 0);
       
       if (validPhotos.length === 0 && report.photos && report.photos.length > 0) {
-        console.warn('WARNING: No photos could be loaded for PDF');
+        console.warn('WARNING: No photos could be converted for PDF');
       }
       
-      // Create report copy with base64 images
+      // Create report copy with JPEG base64 images
       const reportForPDF = {
         ...report,
         photos: validPhotos,
