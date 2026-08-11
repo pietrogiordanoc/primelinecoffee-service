@@ -12,19 +12,21 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 15,
     paddingBottom: 10,
     borderBottom: 2,
     borderBottomColor: '#003f7f',
   },
-  headerLeft: {
+  headerRight: {
     flex: 1,
+    alignItems: 'flex-end',
   },
   logo: {
-    width: 128,
-    height: 128,
+    width: 100,
+    height: 100,
     objectFit: 'contain',
+    marginRight: 20,
   },
   title: {
     fontSize: 18,
@@ -176,23 +178,15 @@ export default function ReportPDF({ report }: ReportPDFProps) {
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.title}>Service Report</Text>
-            <Text style={styles.subtitle}>{report.form?.name}</Text>
-            <Text style={styles.subtitle}>Report Code: {report.report_code || 'N/A'}</Text>
-          </View>
           <Image 
             src="https://primelinecoffee-service.netlify.app/logo.png" 
             style={styles.logo}
           />
-        </View>
-
-        {/* Report Overview */}
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Service Report</Text>
-          <Text style={styles.subtitle}>{report.form?.name}</Text>
-          <Text style={styles.subtitle}>Report Code: {report.report_code || 'N/A'}</Text>
+          <View style={styles.headerRight}>
+            <Text style={styles.title}>Service Report</Text>
+            <Text style={styles.subtitle}>{report.form?.name}</Text>
+            <Text style={styles.subtitle}>Report Code: {report.report_code || 'N/A'}</Text>
+          </View>
         </View>
 
         {/* Report Overview */}

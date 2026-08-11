@@ -144,19 +144,27 @@ export default function ViewReport() {
       const photosWithSignedUrls = await Promise.all(
         (report.photos || []).map(async (photo) => {
           try {
-            // Extract path from full URL or use as is
-            const path = photo.file_url.includes('service-photos/') 
-              ? photo.file_url.split('service-photos/')[1]
-              : photo.file_url;
+            // Extract path from the storage URL
+            let path = photo.file_url;
+            
+            // If it's a full URL, extract just the path after service-photos/
+            if (path.includes('service-photos/')) {
+              const parts = path.split('service-photos/');
+              path = parts[parts.length - 1].split('?')[0]; // Remove query params if any
+            }
+            
+            console.log('Getting signed URL for path:', path);
             
             const { data, error } = await supabase.storage
               .from('service-photos')
-              .createSignedUrl(path, 3600); // 1 hour expiry
+              .createSignedUrl(path, 7200); // 2 hours expiry
             
             if (error) {
-              console.error('Error getting signed URL:', error);
+              console.error('Error getting signed URL for', path, ':', error);
               return photo; // Return original if error
             }
+            
+            console.log('Got signed URL:', data.signedUrl);
             
             return {
               ...photo,
@@ -168,6 +176,8 @@ export default function ViewReport() {
           }
         })
       );
+      
+      console.log('Photos with signed URLs:', photosWithSignedUrls.length);
       
       // Create report copy with signed URLs
       const reportWithSignedUrls = {
