@@ -188,47 +188,69 @@ export default function ViewReport() {
       
       console.log('Starting PDF export with', report.photos?.length || 0, 'photos');
       
-      // Use direct public URLs from Supabase (most reliable for @react-pdf/renderer)
-      const photosForPDF = (report.photos || []).slice(0, 6).map((photo) => {
-        try {
-          let filename = photo.file_name;
-          
-          // Clean filename - remove any bucket prefix
-          if (filename.includes('service-photos/')) {
-            const parts = filename.split('service-photos/');
-            filename = parts[parts.length - 1];
+      // Pre-load and convert images to base64 (only way that works reliably with @react-pdf/renderer)
+      const photosWithBase64 = await Promise.all(
+        (report.photos || []).slice(0, 6).map(async (photo) => {
+          try {
+            let filename = photo.file_name;
+            
+            // Clean filename
+            if (filename.includes('service-photos/')) {
+              const parts = filename.split('service-photos/');
+              filename = parts[parts.length - 1];
+            }
+            filename = filename.split('?')[0];
+            
+            // Construct public URL
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            const publicUrl = `${supabaseUrl}/storage/v1/object/public/service-photos/${filename}`;
+            
+            console.log('Loading image:', filename);
+            
+            // Fetch image and convert to base64
+            const response = await fetch(publicUrl);
+            if (!response.ok) {
+              throw new Error(`Failed to load image: ${response.status}`);
+            }
+            
+            const blob = await response.blob();
+            
+            // Convert to base64
+            const base64 = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            
+            console.log('✓ Image loaded:', filename, '-', Math.round(blob.size / 1024), 'KB');
+            
+            return {
+              ...photo,
+              file_url: base64,
+            };
+          } catch (err) {
+            console.error('✗ Failed to load image:', photo.file_name, err);
+            return null;
           }
-          // Remove query parameters
-          filename = filename.split('?')[0];
-          
-          // Get the Supabase project URL from existing photo URL
-          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-          
-          // Construct proper public URL
-          const publicUrl = `${supabaseUrl}/storage/v1/object/public/service-photos/${filename}`;
-          
-          console.log('Photo for PDF:', filename, '->', publicUrl);
-          
-          return {
-            ...photo,
-            file_url: publicUrl,
-          };
-        } catch (err) {
-          console.error('Error preparing photo URL:', err);
-          return photo;
-        }
-      });
+        })
+      );
       
-      console.log('Photos prepared for PDF:', photosForPDF.length);
+      // Filter out failed conversions
+      const validPhotos = photosWithBase64.filter(p => p !== null);
+      console.log('Photos ready for PDF:', validPhotos.length, 'of', report.photos?.length || 0);
       
-      // Create report copy with public URLs
+      if (validPhotos.length === 0 && report.photos && report.photos.length > 0) {
+        console.warn('WARNING: No photos could be loaded for PDF');
+      }
+      
+      // Create report copy with base64 images
       const reportForPDF = {
         ...report,
-        photos: photosForPDF,
+        photos: validPhotos,
       };
       
-      // Add small delay to ensure URLs are ready
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('Generating PDF document...');
       
       // Generate PDF document
       const blob = await pdf(<ReportPDF report={reportForPDF} />).toBlob();
