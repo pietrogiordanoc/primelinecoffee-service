@@ -5,7 +5,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate } from '@/utils/dateUtils';
-import { ArrowLeft, Building2, User, Calendar, FileText, Image as ImageIcon, MessageSquare, Send, Share2, Check, Download } from 'lucide-react';
+import { ArrowLeft, Building2, User, Calendar, FileText, Image as ImageIcon, MessageSquare, Send, Share2, Check, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ServiceReport, AdminComment } from '@/types';
 import { useAuthStore } from '@/stores/authStore';
 import { pdf } from '@react-pdf/renderer';
@@ -22,6 +22,8 @@ export default function ViewReport() {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [reportIds, setReportIds] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
   
   // Detect if we're in admin or technician view
   const isAdminView = window.location.pathname.includes('/admin/');
@@ -31,6 +33,7 @@ export default function ViewReport() {
   useEffect(() => {
     if (reportId) {
       loadReport();
+      loadReportIds();
       if (isAdmin) {
         loadComments();
       }
@@ -74,6 +77,33 @@ export default function ViewReport() {
     }
   }
 
+  async function loadReportIds() {
+    try {
+      let query = supabase
+        .from('report_summary')
+        .select('id')
+        .order('created_at', { ascending: false });
+      
+      // Filter by technician if in technician view
+      if (!isAdminView && userProfile?.email) {
+        query = query.eq('technician_email', userProfile.email);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      
+      const ids = (data || []).map(r => r.id);
+      setReportIds(ids);
+      
+      // Find current index
+      const index = ids.indexOf(reportId!);
+      setCurrentIndex(index);
+    } catch (error) {
+      console.error('Error loading report IDs:', error);
+    }
+  }
+
   async function loadComments() {
     try {
       const { data, error } = await supabase
@@ -89,6 +119,20 @@ export default function ViewReport() {
       setComments(data || []);
     } catch (error) {
       console.error('Error loading comments:', error);
+    }
+  }
+
+  function navigateToPrevious() {
+    if (currentIndex > 0 && reportIds.length > 0) {
+      const prevId = reportIds[currentIndex - 1];
+      navigate(isAdminView ? `/admin/reports/${prevId}` : `/technician/reports/${prevId}`);
+    }
+  }
+
+  function navigateToNext() {
+    if (currentIndex < reportIds.length - 1 && reportIds.length > 0) {
+      const nextId = reportIds[currentIndex + 1];
+      navigate(isAdminView ? `/admin/reports/${nextId}` : `/technician/reports/${nextId}`);
     }
   }
 
@@ -231,6 +275,32 @@ export default function ViewReport() {
         >
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </button>
+        
+        {/* Navigation Arrows */}
+        {reportIds.length > 0 && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={navigateToPrevious}
+              disabled={currentIndex <= 0}
+              className="p-2 hover:bg-gray-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Previous report"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <span className="text-xs text-gray-500 px-2">
+              {currentIndex + 1} / {reportIds.length}
+            </span>
+            <button
+              onClick={navigateToNext}
+              disabled={currentIndex >= reportIds.length - 1}
+              className="p-2 hover:bg-gray-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Next report"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+        )}
+        
         <div className="flex-1">
           <h1 className="text-xl font-bold text-gray-900">Report Details</h1>
           <p className="text-sm text-gray-500">{report.form?.name}</p>
