@@ -64,6 +64,15 @@ export default function FillReport() {
   // Sales representatives list
   const [salesReps, setSalesReps] = useState<Array<{id: string, full_name: string, email: string}>>([]);
   
+  // Company information
+  const [companyInfo, setCompanyInfo] = useState<{
+    name: string;
+    contact_name: string;
+    contact_email: string;
+    address?: string;
+    phone?: string;
+  } | null>(null);
+  
   // Equipment records
   const [equipmentRecords, setEquipmentRecords] = useState<EquipmentRecord[]>([
     {
@@ -153,6 +162,16 @@ export default function FillReport() {
           .single();
 
         if (companyData) {
+          // Store full company info for display
+          setCompanyInfo({
+            name: companyData.name || '',
+            contact_name: companyData.contact_name || '',
+            contact_email: companyData.contact_email || '',
+            address: companyData.address || '',
+            phone: companyData.phone || '',
+          });
+          
+          // Auto-fill form fields
           setCustomerName(companyData.contact_name || companyData.name || '');
           setCustomerEmail(companyData.contact_email || '');
         }
@@ -733,6 +752,44 @@ export default function FillReport() {
           <p className="text-gray-600 text-xs md:text-sm mt-0.5">{form.description}</p>
         )}
       </div>
+
+      {/* Company Information Display */}
+      {companyInfo && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4 mb-4">
+          <h2 className="text-sm md:text-base font-semibold text-blue-900 mb-2 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            Company Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs font-medium text-gray-600 mb-0.5">Company Name</p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">{companyInfo.name}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-600 mb-0.5">Contact Person</p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">{companyInfo.contact_name}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-600 mb-0.5">Contact Email</p>
+              <p className="text-sm md:text-base text-gray-900">{companyInfo.contact_email}</p>
+            </div>
+            {companyInfo.phone && (
+              <div>
+                <p className="text-xs font-medium text-gray-600 mb-0.5">Phone</p>
+                <p className="text-sm md:text-base text-gray-900">{companyInfo.phone}</p>
+              </div>
+            )}
+            {companyInfo.address && (
+              <div className="md:col-span-2">
+                <p className="text-xs font-medium text-gray-600 mb-0.5">Address</p>
+                <p className="text-sm md:text-base text-gray-900">{companyInfo.address}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* General Service Information */}
