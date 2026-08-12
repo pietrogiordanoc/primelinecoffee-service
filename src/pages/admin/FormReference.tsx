@@ -26,6 +26,8 @@ const FORMS_REFERENCE = [
       { label: '--- FINAL SECTION ---', type: 'section' },
       { label: 'Additional Notes / Recommendations', type: 'textarea', required: false },
       { label: 'Technician Signature', type: 'text', required: true, note: 'Type full name to sign' },
+      { label: 'Customer Signature', type: 'text', required: true, note: 'Customer signature' },
+      { label: 'Print Name', type: 'text', required: true, note: 'Customer printed name below signature' },
       { label: 'Service Summary', type: 'summary', note: 'Auto-calculated: total hours, parts cost, equipment count' },
     ],
   },

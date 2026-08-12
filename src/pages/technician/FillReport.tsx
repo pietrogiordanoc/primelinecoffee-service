@@ -92,6 +92,8 @@ export default function FillReport() {
   // Additional fields
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [technicianSignature, setTechnicianSignature] = useState('');
+  const [customerSignature, setCustomerSignature] = useState('');
+  const [customerPrintName, setCustomerPrintName] = useState('');
   
   // Camera modal state
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
@@ -630,6 +632,8 @@ export default function FillReport() {
         serviceType,
         additionalNotes,
         technicianSignature,
+        customerSignature,
+        customerPrintName,
         technicianLocalTime: localTimeString,
         technicianTimeZone: timeZone,
         equipmentRecords: equipmentRecords.map(r => ({
@@ -1170,6 +1174,35 @@ export default function FillReport() {
           />
           <p className="text-xs text-gray-500 mt-1">
             By signing, you confirm the accuracy of this service report
+          </p>
+        </div>
+
+        {/* Customer Signature */}
+        <div className="bg-white border border-gray-200 rounded-lg p-2.5 md:p-3">
+          <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2">
+            Customer Signature <span className="text-red-500">*</span>
+          </h2>
+          <input
+            type="text"
+            value={customerSignature}
+            onChange={(e) => setCustomerSignature(e.target.value)}
+            placeholder="Customer signature"
+            required
+            className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs md:text-sm mb-2"
+          />
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Print Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={customerPrintName}
+            onChange={(e) => setCustomerPrintName(e.target.value)}
+            placeholder="Print customer name"
+            required
+            className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs md:text-sm"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Customer acknowledges services performed
           </p>
         </div>
 
