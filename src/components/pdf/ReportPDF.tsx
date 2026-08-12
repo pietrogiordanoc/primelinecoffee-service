@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
   photoThumb: {
     width: '100%',
-    height: 120,
+    height: 240,
     objectFit: 'contain',
     borderRadius: 3,
     border: 0.5,
