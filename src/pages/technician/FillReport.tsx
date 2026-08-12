@@ -792,50 +792,35 @@ export default function FillReport() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* General Service Information */}
-        <div className="bg-white border border-gray-200 rounded-lg p-2.5 md:p-3">
-          <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2">Service Information</h2>
-          <div className="space-y-2">
-            <Input
-              label="Date"
-              type="date"
-              value={serviceDate}
-              onChange={(e) => setServiceDate(e.target.value)}
-              required
-            />
-            <Input
-              label="Technician Name"
-              value={technicianName}
-              onChange={(e) => setTechnicianName(e.target.value)}
-              placeholder="Technician name"
-              required
-              disabled
-            />
-            <Input
-              label="Customer Name"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Customer name"
-              required
-              disabled
-            />
-            <Input
-              label="Customer Email"
-              type="email"
-              value={customerEmail}
-              onChange={(e) => setCustomerEmail(e.target.value)}
-              placeholder="customer@email.com"
-              disabled
-            />
+        {/* Service Details */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 md:p-4 mb-4">
+          <h2 className="text-sm md:text-base font-semibold text-green-900 mb-3 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            Service Details
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Non-editable fields */}
             <div>
-              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+              <p className="text-xs font-medium text-gray-600 mb-0.5">Date</p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">{serviceDate}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-600 mb-0.5">Technician</p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">{technicianName}</p>
+            </div>
+            
+            {/* Editable fields */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Property <span className="text-red-500">*</span>
               </label>
               <select
                 value={property}
                 onChange={(e) => setProperty(e.target.value)}
                 required
-                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs"
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-xs md:text-sm"
               >
                 <option value="">Select...</option>
                 <option value="PLD">PLD</option>
@@ -844,14 +829,14 @@ export default function FillReport() {
               </select>
             </div>
             <div>
-              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Service Type <span className="text-red-500">*</span>
               </label>
               <select
                 value={serviceType}
                 onChange={(e) => setServiceType(e.target.value)}
                 required
-                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs"
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-xs md:text-sm"
               >
                 <option value="">Select...</option>
                 <option value="Delivery">Delivery</option>
@@ -862,14 +847,14 @@ export default function FillReport() {
                 <option value="Other">Other</option>
               </select>
             </div>
-            <div>
-              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Sales Representative
               </label>
               <select
                 value={salesRepresentativeId}
                 onChange={(e) => setSalesRepresentativeId(e.target.value)}
-                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs"
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-xs md:text-sm"
               >
                 <option value="">None</option>
                 {salesReps.map((rep) => (
