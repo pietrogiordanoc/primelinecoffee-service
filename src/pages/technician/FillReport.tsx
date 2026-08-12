@@ -89,6 +89,10 @@ export default function FillReport() {
     },
   ]);
   
+  // Additional fields
+  const [additionalNotes, setAdditionalNotes] = useState('');
+  const [technicianSignature, setTechnicianSignature] = useState('');
+  
   // Camera modal state
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
@@ -624,6 +628,8 @@ export default function FillReport() {
         customerEmail,
         property,
         serviceType,
+        additionalNotes,
+        technicianSignature,
         technicianLocalTime: localTimeString,
         technicianTimeZone: timeZone,
         equipmentRecords: equipmentRecords.map(r => ({
@@ -961,12 +967,14 @@ export default function FillReport() {
                     </div>
 
                     <Input
-                      label="Hours Spent"
+                      label="Labor Hours"
                       type="number"
-                      step="0.5"
+                      step="0.25"
+                      min="0"
                       value={equipment.hours}
                       onChange={(e) => updateEquipmentField(equipment.id, 'hours', parseFloat(e.target.value) || 0)}
                       placeholder="0.0"
+                      helperText="Enter hours in increments of 0.25 (e.g., 1.5, 2.25)"
                     />
 
                     {/* Parts Used */}
@@ -1133,6 +1141,36 @@ export default function FillReport() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Additional Notes */}
+        <div className="bg-white border border-gray-200 rounded-lg p-2.5 md:p-3">
+          <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2">Additional Notes / Recommendations</h2>
+          <textarea
+            value={additionalNotes}
+            onChange={(e) => setAdditionalNotes(e.target.value)}
+            placeholder="Include any recommendations for future service, customer instructions, or additional observations"
+            className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs md:text-sm"
+            rows={4}
+          />
+        </div>
+
+        {/* Technician Signature */}
+        <div className="bg-white border border-gray-200 rounded-lg p-2.5 md:p-3">
+          <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2">
+            Technician Signature <span className="text-red-500">*</span>
+          </h2>
+          <input
+            type="text"
+            value={technicianSignature}
+            onChange={(e) => setTechnicianSignature(e.target.value)}
+            placeholder="Type your full name to sign"
+            required
+            className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs md:text-sm"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            By signing, you confirm the accuracy of this service report
+          </p>
         </div>
 
         {/* Summary */}

@@ -13,7 +13,7 @@ import Login from '@/pages/auth/Login';
 import Dashboard from '@/pages/admin/Dashboard';
 import TechniciansPage from '@/pages/admin/Technicians';
 import CompaniesPage from '@/pages/admin/Companies';
-import FormBuilderPage from '@/pages/admin/FormBuilder';
+import FormReference from '@/pages/admin/FormReference';
 import ReportsPage from '@/pages/admin/Reports';
 import TrashPage from '@/pages/admin/Trash';
 import SettingsPage from '@/pages/admin/Settings';
@@ -153,7 +153,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="technicians" element={<TechniciansPage />} />
           <Route path="companies" element={<CompaniesPage />} />
-          <Route path="forms" element={<FormBuilderPage />} />
+          <Route path="forms" element={<FormReference />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="reports/:reportId" element={<ViewReport />} />
           <Route path="trash" element={<TrashPage />} />
