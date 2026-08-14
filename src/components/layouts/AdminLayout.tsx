@@ -44,14 +44,6 @@ export default function AdminLayout() {
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
-  const secondaryNavigation = [
-    { 
-      name: isTechMode ? 'Admin Mode' : 'Tech Mode', 
-      href: isTechMode ? '/admin' : '/admin/tech-mode', 
-      icon: isTechMode ? Home : Smartphone 
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile bottom sheet backdrop */}
@@ -125,24 +117,28 @@ export default function AdminLayout() {
                   <span className="text-xs font-medium text-center">{item.name}</span>
                 </NavLink>
               ))}
-              {secondaryNavigation.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex flex-col items-center justify-center p-4 rounded-xl transition-all',
-                      isActive
-                        ? 'bg-green-50 text-green-700'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    )
-                  }
-                >
-                  <item.icon className="w-7 h-7 mb-2" strokeWidth={2} />
-                  <span className="text-xs font-medium text-center">{item.name}</span>
-                </NavLink>
-              ))}
+              <NavLink
+                to={isTechMode ? '/admin' : '/admin/tech-mode'}
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  'flex flex-col items-center justify-center p-4 rounded-xl transition-all',
+                  isTechMode
+                    ? 'bg-green-50 text-green-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                )}
+              >
+                {isTechMode ? (
+                  <>
+                    <Home className="w-7 h-7 mb-2" strokeWidth={2} />
+                    <span className="text-xs font-medium text-center">Version Admin</span>
+                  </>
+                ) : (
+                  <>
+                    <Smartphone className="w-7 h-7 mb-2" strokeWidth={2} />
+                    <span className="text-xs font-medium text-center">Version Tech</span>
+                  </>
+                )}
+              </NavLink>
             </div>
           </div>
         </div>
@@ -172,6 +168,31 @@ export default function AdminLayout() {
             </div>
           </div>
 
+          {/* Version Switcher */}
+          <div className="px-4 py-3 border-b border-gray-200">
+            <NavLink
+              to={isTechMode ? '/admin' : '/admin/tech-mode'}
+              className={cn(
+                'flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors',
+                isTechMode
+                  ? 'bg-green-50 text-green-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+              )}
+            >
+              {isTechMode ? (
+                <>
+                  <Home className="w-5 h-5 mr-3" />
+                  Version Admin
+                </>
+              ) : (
+                <>
+                  <Smartphone className="w-5 h-5 mr-3" />
+                  Version Tech
+                </>
+              )}
+            </NavLink>
+          </div>
+
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {navigation.map((item) => (
@@ -192,33 +213,6 @@ export default function AdminLayout() {
                 {item.name}
               </NavLink>
             ))}
-            
-            {/* Separator */}
-            <div className="border-t border-gray-200 my-4"></div>
-            
-            {/* Secondary Navigation */}
-            <div className="space-y-1">
-              <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Preview
-              </p>
-              {secondaryNavigation.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                      isActive
-                        ? 'bg-green-50 text-green-700'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    )
-                  }
-                >
-                  <item.icon className="w-5 h-5 mr-3" />
-                  {item.name}
-                </NavLink>
-              ))}
-            </div>
           </nav>
 
           {/* User section */}
