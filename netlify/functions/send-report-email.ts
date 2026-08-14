@@ -237,6 +237,7 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
   };
   
   const formDataHtml = Object.entries(report.form_data)
+    .filter(([key]) => key !== 'customerSignature' && key !== 'customerPrintName') // Exclude signature data from table
     .map(
       ([key, value]) => {
         // Replace newlines with <br> for better Outlook compatibility
