@@ -82,7 +82,6 @@ export default function FillReport() {
       serial: '',
       problem: '',
       work_performed: '',
-      hours: 0,
       parts_used: [],
       files: [], // Changed from photos to files
       collapsed: false,
