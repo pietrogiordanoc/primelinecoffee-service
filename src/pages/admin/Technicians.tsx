@@ -170,13 +170,6 @@ export default function TechniciansPage() {
         return;
       }
 
-      console.log('📊 Staff data loaded:', staffData);
-      console.log('📊 Total records:', staffData?.length);
-      console.log('📊 Roles breakdown:', staffData?.reduce((acc: any, s: any) => {
-        acc[s.role] = (acc[s.role] || 0) + 1;
-        return acc;
-      }, {}));
-
       // Map the data to the expected format
       const techniciansWithData = (staffData || []).map((staff: any) => ({
         id: staff.id,
