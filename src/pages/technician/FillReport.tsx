@@ -91,7 +91,6 @@ export default function FillReport() {
   
   // Additional fields
   const [additionalNotes, setAdditionalNotes] = useState('');
-  const [technicianSignature, setTechnicianSignature] = useState('');
   const [customerSignature, setCustomerSignature] = useState('');
   const [customerPrintName, setCustomerPrintName] = useState('');
   
@@ -631,7 +630,6 @@ export default function FillReport() {
         property,
         serviceType,
         additionalNotes,
-        technicianSignature,
         customerSignature,
         customerPrintName,
         technicianLocalTime: localTimeString,
@@ -970,16 +968,46 @@ export default function FillReport() {
                       />
                     </div>
 
-                    <Input
-                      label="Labor Hours"
-                      type="number"
-                      step="0.25"
-                      min="0"
-                      value={equipment.hours}
-                      onChange={(e) => updateEquipmentField(equipment.id, 'hours', parseFloat(e.target.value) || 0)}
-                      placeholder="0.0"
-                      helperText="Enter hours in increments of 0.25 (e.g., 1.5, 2.25)"
-                    />
+                    {/* Labor Hours Selector */}
+                    <div>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                        Labor Hours <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={equipment.hours}
+                        onChange={(e) => updateEquipmentField(equipment.id, 'hours', parseFloat(e.target.value))}
+                        className="w-full px-2.5 py-1.5 md:px-3 md:py-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition bg-white"
+                        required
+                      >
+                        <option value={0}>0 hours</option>
+                        <option value={0.25}>0.25 hours (15 min)</option>
+                        <option value={0.5}>0.5 hours (30 min)</option>
+                        <option value={0.75}>0.75 hours (45 min)</option>
+                        <option value={1}>1 hour</option>
+                        <option value={1.25}>1.25 hours</option>
+                        <option value={1.5}>1.5 hours</option>
+                        <option value={1.75}>1.75 hours</option>
+                        <option value={2}>2 hours</option>
+                        <option value={2.25}>2.25 hours</option>
+                        <option value={2.5}>2.5 hours</option>
+                        <option value={2.75}>2.75 hours</option>
+                        <option value={3}>3 hours</option>
+                        <option value={3.5}>3.5 hours</option>
+                        <option value={4}>4 hours</option>
+                        <option value={4.5}>4.5 hours</option>
+                        <option value={5}>5 hours</option>
+                        <option value={5.5}>5.5 hours</option>
+                        <option value={6}>6 hours</option>
+                        <option value={6.5}>6.5 hours</option>
+                        <option value={7}>7 hours</option>
+                        <option value={7.5}>7.5 hours</option>
+                        <option value={8}>8 hours</option>
+                        <option value={9}>9 hours</option>
+                        <option value={10}>10 hours</option>
+                        <option value={12}>12 hours</option>
+                      </select>
+                      <p className="mt-1 text-xs text-gray-500">Select the hours worked on this equipment</p>
+                    </div>
 
                     {/* Parts Used */}
                     <div>
@@ -1157,24 +1185,6 @@ export default function FillReport() {
             className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs md:text-sm"
             rows={4}
           />
-        </div>
-
-        {/* Technician Signature */}
-        <div className="bg-white border border-gray-200 rounded-lg p-2.5 md:p-3">
-          <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2">
-            Technician Signature <span className="text-red-500">*</span>
-          </h2>
-          <input
-            type="text"
-            value={technicianSignature}
-            onChange={(e) => setTechnicianSignature(e.target.value)}
-            placeholder="Type your full name to sign"
-            required
-            className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs md:text-sm"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            By signing, you confirm the accuracy of this service report
-          </p>
         </div>
 
         {/* Customer Signature */}

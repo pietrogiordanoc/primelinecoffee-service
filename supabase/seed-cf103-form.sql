@@ -250,24 +250,40 @@ INSERT INTO public.form_fields (
   'Include any recommendations for future service or customer instructions'
 );
 
--- 17. Technician Signature
+-- 17. Customer Signature
 INSERT INTO public.form_fields (
   form_id, field_name, field_label, field_type, 
-  is_required, order_index, help_text
+  placeholder, is_required, order_index, help_text
 ) VALUES (
   '00000000-0000-0000-0000-000000000103'::uuid,
-  'technician_signature',
-  'Technician Signature',
+  'customer_signature',
+  'Customer Signature',
   'signature',
+  'Customer signature',
   true,
   17,
-  'Sign to confirm work completion'
+  'Customer acknowledges services performed'
+);
+
+-- 18. Customer Print Name
+INSERT INTO public.form_fields (
+  form_id, field_name, field_label, field_type, 
+  placeholder, is_required, order_index, help_text
+) VALUES (
+  '00000000-0000-0000-0000-000000000103'::uuid,
+  'customer_print_name',
+  'Print Name',
+  'text',
+  'Print customer name',
+  true,
+  18,
+  'Customer printed name below signature'
 );
 
 -- =====================================================
 -- COMPLETION MESSAGE
 -- =====================================================
--- The CF103 form has been created with 17 fields covering:
+-- The CF103 form has been created with 18 fields covering:
 -- - General service information (date, names, emails)
 -- - Service details (property, type)
 -- - Equipment details (brand, model, serial)
