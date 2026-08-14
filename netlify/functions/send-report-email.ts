@@ -48,12 +48,13 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     // Fetch report details
+    // Note: technician can be NULL for admin-created reports
     const { data: report, error: reportError } = await supabase
       .from('service_reports')
       .select(`
         *,
         form:dynamic_forms(*),
-        technician:technicians(
+        technician:technicians!left(
           *,
           user:users(*)
         ),
@@ -98,8 +99,8 @@ const handler: Handler = async (event: HandlerEvent) => {
       recipientEmails.push(...adminEmails);
     }
 
-    // Add technician if enabled
-    if (settings.notify_technician) {
+    // Add technician if enabled (only if technician exists)
+    if (settings.notify_technician && report.technician?.user?.email) {
       const technicianEmail = report.technician.user.email;
       if (technicianEmail && !recipientEmails.includes(technicianEmail)) {
         recipientEmails.push(technicianEmail);
@@ -159,7 +160,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     const formattedDate = `${String(reportDate.getMonth() + 1).padStart(2, '0')}/${String(reportDate.getDate()).padStart(2, '0')}/${reportDate.getFullYear()}`;
     
     // Build simple subject line with just code, date, company, and technician
-    const technicianName = report.technician?.user?.full_name || report.technician?.user?.email || 'Unknown';
+    const technicianName = report.technician?.user?.full_name || report.technician?.user?.email || report.form_data?.technicianName || 'Admin User';
     const emailSubject = `${report.form.name} ${formattedDate} ${report.company.name} by ${technicianName}`;
     
     const { data: emailData, error: emailError } = await resend.emails.send({
@@ -319,7 +320,7 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
                                   <tr>
                                     <td style="padding-bottom: 12px;">
                                       <p style="margin: 0 0 3px 0; color: #6b7280; font-size: 11px; font-weight: bold; font-family: Arial, sans-serif;">TECHNICIAN</p>
-                                      <p style="margin: 0; color: #1f2937; font-size: 14px; font-family: Arial, sans-serif;">${report.technician.user.full_name}</p>
+                                      <p style="margin: 0; color: #1f2937; font-size: 14px; font-family: Arial, sans-serif;">${report.technician?.user?.full_name || report.form_data?.technicianName || 'Admin User'}</p>
                                     </td>
                                   </tr>
                                   <tr>
