@@ -687,13 +687,19 @@ export default function ViewReport() {
       {report.signature_url && (
         <Card>
           <div className="p-2 md:p-4">
-            <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2 md:mb-3">Signature</h2>
+            <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2 md:mb-3">Customer Signature</h2>
             <div className="border border-gray-200 rounded-lg p-2 md:p-3 bg-gray-50">
               <img
                 src={report.signature_url}
-                alt="Signature"
+                alt="Customer Signature"
                 className="max-w-full h-auto"
               />
+              {report.form_data.customerPrintName && (
+                <div className="mt-2 pt-2 border-t border-gray-300">
+                  <p className="text-[10px] md:text-xs text-gray-500">Print Name:</p>
+                  <p className="text-xs md:text-sm text-gray-900 font-medium">{String(report.form_data.customerPrintName)}</p>
+                </div>
+              )}
             </div>
           </div>
         </Card>

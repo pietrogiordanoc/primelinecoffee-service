@@ -7,6 +7,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import SignaturePad from '@/components/ui/SignaturePad';
 import { Camera, X, Check, Plus, Trash2, ChevronDown, ChevronUp, Image, Video, Upload } from 'lucide-react';
 import { compressVideo, validateVideo, getVideoDuration, generateVideoThumbnail } from '@/utils/videoCompression';
 import { optimizeImages } from '@/utils/imageOptimization';
@@ -33,7 +34,6 @@ interface EquipmentRecord {
   serial: string;
   problem: string;
   work_performed: string;
-  hours: number;
   parts_used: Array<{ name: string; quantity: number; cost: number }>;
   files: UploadedFile[]; // Changed from photos to files (includes photos and videos)
   collapsed: boolean;
@@ -234,7 +234,6 @@ export default function FillReport() {
       serial: '',
       problem: '',
       work_performed: '',
-      hours: 0,
       parts_used: [],
       files: [],
       collapsed: false,
@@ -596,7 +595,6 @@ export default function FillReport() {
   }
 
   // Calculate totals
-  const totalHours = equipmentRecords.reduce((sum, r) => sum + (r.hours || 0), 0);
   const totalPartsCost = equipmentRecords.reduce(
     (sum, r) => sum + r.parts_used.reduce((pSum, p) => pSum + (p.quantity * p.cost || 0), 0),
     0
@@ -608,6 +606,11 @@ export default function FillReport() {
 
     if (!companyId) {
       await alert('No company selected.', 'Error');
+      return;
+    }
+
+    if (!customerSignature) {
+      await alert('Customer signature is required.', 'Error');
       return;
     }
 
@@ -640,14 +643,12 @@ export default function FillReport() {
           serial: r.serial,
           problem: r.problem,
           work_performed: r.work_performed,
-          hours: r.hours,
           parts_used: r.parts_used,
           fileCount: r.files.length,
           photoCount: r.files.filter(f => f.type === 'photo').length,
           videoCount: r.files.filter(f => f.type === 'video').length,
         })),
         summary: {
-          totalHours,
           totalPartsCost,
           totalParts,
           equipmentCount: equipmentRecords.length,
@@ -663,6 +664,39 @@ export default function FillReport() {
 
       if (!techData) throw new Error('Technician not found');
 
+      // Upload customer signature to storage
+      let signatureUrl = '';
+      if (customerSignature) {
+        try {
+          // Convert base64 to blob
+          const base64Response = await fetch(customerSignature);
+          const blob = await base64Response.blob();
+          
+          const timestamp = Date.now();
+          const signatureFileName = `signature_${timestamp}_${techData.id}.png`;
+          const signaturePath = `signatures/${signatureFileName}`;
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('service-reports')
+            .upload(signaturePath, blob, {
+              contentType: 'image/png',
+              cacheControl: '3600',
+              upsert: false,
+            });
+
+          if (uploadError) {
+            console.error('Error uploading signature:', uploadError);
+          } else if (uploadData) {
+            const { data: urlData } = supabase.storage
+              .from('service-reports')
+              .getPublicUrl(signaturePath);
+            signatureUrl = urlData.publicUrl;
+          }
+        } catch (error) {
+          console.error('Error processing signature:', error);
+        }
+      }
+
       // Create service report first
       const { data: reportData2, error: reportError } = await supabase
         .from('service_reports')
@@ -673,6 +707,7 @@ export default function FillReport() {
           sales_representative_id: salesRepresentativeId || null,
           status: 'submitted',
           form_data: reportData,
+          signature_url: signatureUrl || null,
           submitted_at: new Date().toISOString(),
         })
         .select('id')
@@ -968,47 +1003,6 @@ export default function FillReport() {
                       />
                     </div>
 
-                    {/* Labor Hours Selector */}
-                    <div>
-                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                        Labor Hours <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={equipment.hours}
-                        onChange={(e) => updateEquipmentField(equipment.id, 'hours', parseFloat(e.target.value))}
-                        className="w-full px-2.5 py-1.5 md:px-3 md:py-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition bg-white"
-                        required
-                      >
-                        <option value={0}>0 hours</option>
-                        <option value={0.25}>0.25 hours (15 min)</option>
-                        <option value={0.5}>0.5 hours (30 min)</option>
-                        <option value={0.75}>0.75 hours (45 min)</option>
-                        <option value={1}>1 hour</option>
-                        <option value={1.25}>1.25 hours</option>
-                        <option value={1.5}>1.5 hours</option>
-                        <option value={1.75}>1.75 hours</option>
-                        <option value={2}>2 hours</option>
-                        <option value={2.25}>2.25 hours</option>
-                        <option value={2.5}>2.5 hours</option>
-                        <option value={2.75}>2.75 hours</option>
-                        <option value={3}>3 hours</option>
-                        <option value={3.5}>3.5 hours</option>
-                        <option value={4}>4 hours</option>
-                        <option value={4.5}>4.5 hours</option>
-                        <option value={5}>5 hours</option>
-                        <option value={5.5}>5.5 hours</option>
-                        <option value={6}>6 hours</option>
-                        <option value={6.5}>6.5 hours</option>
-                        <option value={7}>7 hours</option>
-                        <option value={7.5}>7.5 hours</option>
-                        <option value={8}>8 hours</option>
-                        <option value={9}>9 hours</option>
-                        <option value={10}>10 hours</option>
-                        <option value={12}>12 hours</option>
-                      </select>
-                      <p className="mt-1 text-xs text-gray-500">Select the hours worked on this equipment</p>
-                    </div>
-
                     {/* Parts Used */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
@@ -1189,29 +1183,24 @@ export default function FillReport() {
 
         {/* Customer Signature */}
         <div className="bg-white border border-gray-200 rounded-lg p-2.5 md:p-3">
-          <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-2">
-            Customer Signature <span className="text-red-500">*</span>
-          </h2>
-          <input
-            type="text"
+          <SignaturePad
+            label="Customer Signature"
             value={customerSignature}
-            onChange={(e) => setCustomerSignature(e.target.value)}
-            placeholder="Customer signature"
+            onChange={setCustomerSignature}
             required
-            className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs md:text-sm mb-2"
           />
-          <label className="block text-xs font-medium text-gray-700 mb-1">
-            Print Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={customerPrintName}
-            onChange={(e) => setCustomerPrintName(e.target.value)}
-            placeholder="Print customer name"
-            required
-            className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs md:text-sm"
-          />
-          <p className="text-xs text-gray-500 mt-1">
+          
+          <div className="mt-3">
+            <Input
+              label="Print Name"
+              value={customerPrintName}
+              onChange={(e) => setCustomerPrintName(e.target.value)}
+              placeholder="Print customer name"
+              required
+            />
+          </div>
+          
+          <p className="text-xs text-gray-500 mt-2">
             Customer acknowledges services performed
           </p>
         </div>
@@ -1225,14 +1214,10 @@ export default function FillReport() {
               <span className="font-medium text-gray-900 ml-1">{equipmentRecords.length}</span>
             </div>
             <div>
-              <span className="text-gray-600">Total Hours:</span>
-              <span className="font-medium text-gray-900 ml-1">{totalHours.toFixed(1)}</span>
-            </div>
-            <div>
               <span className="text-gray-600">Parts Used:</span>
               <span className="font-medium text-gray-900 ml-1">{totalParts}</span>
             </div>
-            <div>
+            <div className="col-span-2">
               <span className="text-gray-600">Parts Cost:</span>
               <span className="font-medium text-gray-900 ml-1">${totalPartsCost.toFixed(2)}</span>
             </div>

@@ -20,7 +20,6 @@ const FORMS_REFERENCE = [
       { label: 'Serial Number', type: 'text', required: false },
       { label: 'Problem / Issue Reported', type: 'textarea', required: true },
       { label: 'Work Performed / Solution', type: 'textarea', required: true },
-      { label: 'Labor Hours', type: 'select', required: true, note: 'Dropdown selector with fractions (0.25, 0.5, 0.75, etc.)' },
       { label: 'Parts Used', type: 'table', required: false, note: 'Name, Quantity, Cost per part' },
       { label: 'Equipment Photos & Videos', type: 'file', required: false, note: 'Camera/gallery/video support' },
       { label: '--- FINAL SECTION ---', type: 'section' },

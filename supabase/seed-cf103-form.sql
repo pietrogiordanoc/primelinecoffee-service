@@ -190,22 +190,7 @@ INSERT INTO public.form_fields (
   'Explain what repairs or maintenance you completed'
 );
 
--- 13. Labor Hours
-INSERT INTO public.form_fields (
-  form_id, field_name, field_label, field_type, 
-  placeholder, validation_rules, is_required, order_index
-) VALUES (
-  '00000000-0000-0000-0000-000000000103'::uuid,
-  'equipment_hours',
-  'Labor Hours',
-  'number',
-  '0.0',
-  '{"min": 0, "max": 24}'::jsonb,
-  true,
-  13
-);
-
--- 14. Parts Used (as textarea for now, could be improved)
+-- 13. Parts Used (as textarea for now, could be improved)
 INSERT INTO public.form_fields (
   form_id, field_name, field_label, field_type, 
   placeholder, is_required, order_index, help_text
@@ -216,11 +201,11 @@ INSERT INTO public.form_fields (
   'textarea',
   'List parts used (one per line): Part Name - Quantity - Price',
   false,
-  14,
+  13,
   'Example: O-Ring Seal - 2 - $12.50'
 );
 
--- 15. Equipment Photos
+-- 14. Equipment Photos
 INSERT INTO public.form_fields (
   form_id, field_name, field_label, field_type, 
   is_required, order_index, help_text
@@ -230,12 +215,12 @@ INSERT INTO public.form_fields (
   'Equipment Photos',
   'file',
   false,
-  15,
+  14,
   'Take photos of equipment, work performed, and any issues'
 );
 
 -- ADDITIONAL NOTES SECTION
--- 16. Additional Notes
+-- 15. Additional Notes
 INSERT INTO public.form_fields (
   form_id, field_name, field_label, field_type, 
   placeholder, is_required, order_index, help_text
@@ -246,11 +231,11 @@ INSERT INTO public.form_fields (
   'textarea',
   'Any additional notes, recommendations, or follow-up needed',
   false,
-  16,
+  15,
   'Include any recommendations for future service or customer instructions'
 );
 
--- 17. Customer Signature
+-- 16. Customer Signature
 INSERT INTO public.form_fields (
   form_id, field_name, field_label, field_type, 
   placeholder, is_required, order_index, help_text
@@ -261,11 +246,11 @@ INSERT INTO public.form_fields (
   'signature',
   'Customer signature',
   true,
-  17,
+  16,
   'Customer acknowledges services performed'
 );
 
--- 18. Customer Print Name
+-- 17. Customer Print Name
 INSERT INTO public.form_fields (
   form_id, field_name, field_label, field_type, 
   placeholder, is_required, order_index, help_text
@@ -276,14 +261,14 @@ INSERT INTO public.form_fields (
   'text',
   'Print customer name',
   true,
-  18,
+  17,
   'Customer printed name below signature'
 );
 
 -- =====================================================
 -- COMPLETION MESSAGE
 -- =====================================================
--- The CF103 form has been created with 18 fields covering:
+-- The CF103 form has been created with 17 fields covering:
 -- - General service information (date, names, emails)
 -- - Service details (property, type)
 -- - Equipment details (brand, model, serial)

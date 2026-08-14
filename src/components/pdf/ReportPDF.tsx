@@ -390,6 +390,25 @@ export default function ReportPDF({ report }: ReportPDFProps) {
           </View>
         )}
 
+        {/* Customer Signature */}
+        {report.signature_url && (
+          <View style={styles.section} wrap={false}>
+            <Text style={styles.sectionTitle}>Customer Signature</Text>
+            <View style={styles.equipmentBox}>
+              <Image 
+                src={report.signature_url}
+                style={{ width: '50%', height: 80, objectFit: 'contain', marginBottom: 8 }}
+              />
+              {report.form_data?.customerPrintName && (
+                <View style={styles.tableRow}>
+                  <Text style={styles.tableLabel}>Print Name:</Text>
+                  <Text style={styles.tableValue}>{String(report.form_data.customerPrintName)}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
         {/* Footer */}
         <View style={styles.footer}>
           <Text>Prime Line Coffee Service • Technical Service Report</Text>

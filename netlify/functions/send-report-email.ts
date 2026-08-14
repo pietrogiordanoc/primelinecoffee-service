@@ -261,65 +261,97 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @media only screen and (max-width: 600px) {
+      .container {
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+      }
+      .header {
+        padding: 24px 16px !important;
+      }
+      .content-section {
+        margin: 16px !important;
+        padding: 16px !important;
+      }
+      .two-column-table td {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+      }
+      .column-box {
+        margin-bottom: 16px !important;
+      }
+      .button-container {
+        margin: 16px !important;
+      }
+      .button {
+        display: block !important;
+        margin: 8px 0 !important;
+        width: calc(100% - 32px) !important;
+      }
+    }
+  </style>
 </head>
-<body style="margin: 0; padding: 24px 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f5f5f5;">
-  <div style="max-width: 680px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+<body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f5f5f5;">
+  <div class="container" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
     
     <!-- Header with Logo -->
-    <div style="background: linear-gradient(135deg, #003f7f 0%, #0056a8 100%); padding: 32px 40px; text-align: center;">
-      <img src="${appUrl}/logo-white.png" alt="Prime Line Coffee Service" style="height: 45px; width: auto; margin-bottom: 12px;" />
-      <p style="color: #ffffff; margin: 0; font-size: 14px; font-weight: 500; opacity: 0.95;">
+    <div class="header" style="background: linear-gradient(135deg, #003f7f 0%, #0056a8 100%); padding: 28px 20px; text-align: center;">
+      <img src="${appUrl}/logo-white.png" alt="Prime Line Coffee Service" style="height: 40px; width: auto; margin-bottom: 10px; max-width: 90%;" />
+      <p style="color: #ffffff; margin: 0; font-size: 13px; font-weight: 500; opacity: 0.95;">
         Technical Service Report
       </p>
     </div>
 
     <!-- Report Summary Card -->
-    <div style="margin: 32px 40px 24px 40px;">
-      <h2 style="margin: 0 0 20px 0; color: #1f2937; font-size: 18px; font-weight: 600;">
+    <div class="content-section" style="margin: 24px 20px 16px 20px;">
+      <h2 style="margin: 0 0 16px 0; color: #1f2937; font-size: 17px; font-weight: 600;">
         Report Overview
       </h2>
       
       <!-- Two Column Layout -->
-      <table style="width: 100%; border-collapse: collapse;">
+      <table class="two-column-table" style="width: 100%; border-collapse: collapse;">
         <tr>
           <!-- Left Column - Report Details -->
-          <td style="width: 50%; vertical-align: top; padding-right: 10px;">
-            <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; border-left: 4px solid #003f7f; height: 100%;">
-              <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 14px; font-weight: 600;">Report Details</h3>
-              <div style="margin-bottom: 14px;">
-                <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Company</p>
-                <p style="margin: 0; color: #1f2937; font-size: 15px; font-weight: 600;">${report.company.name}</p>
+          <td style="width: 50%; vertical-align: top; padding-right: 8px;">
+            <div class="column-box" style="background-color: #f9fafb; border-radius: 8px; padding: 16px; border-left: 4px solid #003f7f;">
+              <h3 style="margin: 0 0 12px 0; color: #1f2937; font-size: 13px; font-weight: 600;">Report Details</h3>
+              <div style="margin-bottom: 12px;">
+                <p style="margin: 0 0 3px 0; color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Company</p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px; font-weight: 600;">${report.company.name}</p>
               </div>
-              <div style="margin-bottom: 14px;">
-                <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Technician</p>
-                <p style="margin: 0; color: #1f2937; font-size: 15px;">${report.technician.user.full_name}</p>
+              <div style="margin-bottom: 12px;">
+                <p style="margin: 0 0 3px 0; color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Technician</p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px;">${report.technician.user.full_name}</p>
               </div>
-              <div style="margin-bottom: 14px;">
-                <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Form Type</p>
-                <p style="margin: 0; color: #1f2937; font-size: 15px;">${report.form.name}</p>
+              <div style="margin-bottom: 12px;">
+                <p style="margin: 0 0 3px 0; color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Form Type</p>
+                <p style="margin: 0; color: #1f2937; font-size: 14px;">${report.form.name}</p>
               </div>
               <div>
-                <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Submitted</p>
-                <p style="margin: 0; color: #1f2937; font-size: 15px;">${report.form_data?.technicianLocalTime || new Date(report.submitted_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'long' })}</p>
-                ${report.form_data?.technicianTimeZone ? `<p style="margin: 4px 0 0 0; color: #6b7280; font-size: 12px;">(${report.form_data.technicianTimeZone})</p>` : ''}
+                <p style="margin: 0 0 3px 0; color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Submitted</p>
+                <p style="margin: 0; color: #1f2937; font-size: 13px;">${report.form_data?.technicianLocalTime || new Date(report.submitted_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'long' })}</p>
+                ${report.form_data?.technicianTimeZone ? `<p style="margin: 3px 0 0 0; color: #6b7280; font-size: 11px;">(${report.form_data.technicianTimeZone})</p>` : ''}
               </div>
             </div>
           </td>
           
           <!-- Right Column - Company Information -->
-          <td style="width: 50%; vertical-align: top; padding-left: 10px;">
-            <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; border-left: 4px solid #0056a8; height: 100%;">
-              <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 14px; font-weight: 600;">Company Information</h3>
-              <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
+          <td style="width: 50%; vertical-align: top; padding-left: 8px;">
+            <div class="column-box" style="background-color: #f9fafb; border-radius: 8px; padding: 16px; border-left: 4px solid #0056a8;">
+              <h3 style="margin: 0 0 12px 0; color: #1f2937; font-size: 13px; font-weight: 600;">Company Information</h3>
+              <p style="color: #4b5563; margin: 6px 0; line-height: 1.5; font-size: 13px;">
                 <strong style="color: #374151; font-weight: 600;">Contact:</strong> ${report.company.contact_name || 'N/A'}
               </p>
-              <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
+              <p style="color: #4b5563; margin: 6px 0; line-height: 1.5; font-size: 13px;">
                 <strong style="color: #374151; font-weight: 600;">Email:</strong> <a href="mailto:${report.company.contact_email}" style="color: #0056a8; text-decoration: none;">${report.company.contact_email || 'N/A'}</a>
               </p>
-              <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
+              <p style="color: #4b5563; margin: 6px 0; line-height: 1.5; font-size: 13px;">
                 <strong style="color: #374151; font-weight: 600;">Phone:</strong> ${report.company.contact_phone || 'N/A'}
               </p>
-              <p style="color: #4b5563; margin: 8px 0; line-height: 1.5; font-size: 14px;">
+              <p style="color: #4b5563; margin: 6px 0; line-height: 1.5; font-size: 13px;">
                 <strong style="color: #374151; font-weight: 600;">Address:</strong> ${report.company.address || 'N/A'} ${report.company.city ? report.company.city : ''}
               </p>
             </div>
@@ -329,25 +361,27 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
     </div>
 
     <!-- Service Information -->
-    <div style="margin: 24px 40px;">
-      <h3 style="color: #1f2937; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Service Details</h3>
+    <div class="content-section" style="margin: 16px 20px;">
+      <h3 style="color: #1f2937; margin: 0 0 12px 0; font-size: 15px; font-weight: 600;">Service Details</h3>
       <table style="width: 100%; border-collapse: collapse; border-radius: 6px; overflow: hidden; border: 1px solid #e5e7eb;">
         ${formDataHtml}
       </table>
     </div>
 
     <!-- Call to Action Buttons -->
-    <div style="margin: 24px 40px; text-align: center;">
+    <div class="button-container" style="margin: 20px; text-align: center;">
       <a href="${appUrl}/report-photos/${report.id}" 
          target="_blank" 
          rel="noopener noreferrer"
-         style="display: inline-block; background-color: #003f7f; color: #ffffff; text-decoration: none; padding: 14px 24px; border-radius: 6px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 4px rgba(0, 63, 127, 0.2); margin: 0 8px;">
+         class="button"
+         style="display: inline-block; background-color: #003f7f; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; box-shadow: 0 2px 4px rgba(0, 63, 127, 0.2); margin: 0 4px;">
         Preview Report
       </a>
       <a href="${reportsUrl}" 
          target="_blank" 
          rel="noopener noreferrer"
-         style="display: inline-block; background-color: #0056a8; color: #ffffff; text-decoration: none; padding: 14px 24px; border-radius: 6px; font-weight: 600; font-size: 15px; box-shadow: 0 2px 4px rgba(0, 86, 168, 0.2); margin: 0 8px;">
+         class="button"
+         style="display: inline-block; background-color: #0056a8; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; box-shadow: 0 2px 4px rgba(0, 86, 168, 0.2); margin: 0 4px;">
         Go to the App/Admin
       </a>
     </div>
@@ -355,10 +389,10 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
     ${
       report.notes
         ? `
-    <div style="margin: 24px 40px;">
-      <h3 style="color: #1f2937; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Additional Notes</h3>
-      <div style="background-color: #f9fafb; border-radius: 6px; padding: 16px; border-left: 3px solid #e5e7eb;">
-        <p style="color: #4b5563; margin: 0; line-height: 1.6; font-size: 14px; white-space: pre-wrap;">
+    <div class="content-section" style="margin: 16px 20px;">
+      <h3 style="color: #1f2937; margin: 0 0 12px 0; font-size: 15px; font-weight: 600;">Additional Notes</h3>
+      <div style="background-color: #f9fafb; border-radius: 6px; padding: 14px; border-left: 3px solid #e5e7eb;">
+        <p style="color: #4b5563; margin: 0; line-height: 1.6; font-size: 13px; white-space: pre-wrap;">
           ${report.notes}
         </p>
       </div>
@@ -368,11 +402,11 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
     }
 
     <!-- Footer -->
-    <div style="background-color: #f9fafb; padding: 24px 40px; text-align: center; margin-top: 32px; border-top: 1px solid #e5e7eb;">
-      <p style="color: #6b7280; margin: 0 0 6px 0; font-size: 13px; line-height: 1.5;">
+    <div style="background-color: #f9fafb; padding: 20px; text-align: center; margin-top: 24px; border-top: 1px solid #e5e7eb;">
+      <p style="color: #6b7280; margin: 0 0 5px 0; font-size: 12px; line-height: 1.5;">
         Automated notification from Prime Line Coffee Service
       </p>
-      <p style="color: #9ca3af; margin: 0; font-size: 12px;">
+      <p style="color: #9ca3af; margin: 0; font-size: 11px;">
         © ${new Date().getFullYear()} Prime Line Coffee Service
       </p>
     </div>
