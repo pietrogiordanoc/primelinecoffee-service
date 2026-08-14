@@ -31,19 +31,21 @@ export default function TechnicianLayout() {
       {/* Admin Mode Banner */}
       {isAdminMode && (
         <div className="fixed top-0 left-0 right-0 z-40 bg-primary-600 text-white">
-          <div className="px-3 py-2 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              <span className="text-xs font-medium">
-                Technician Mode - Viewing as {userProfile?.full_name} ({userProfile?.role === 'super_admin' ? 'Super Admin' : 'Manager'})
+          <div className="px-2 py-1.5 md:px-3 md:py-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 md:gap-2 min-w-0 flex-1">
+              <Users className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
+              <span className="text-[10px] md:text-xs font-medium truncate">
+                <span className="hidden md:inline">Technician Mode - Viewing as {userProfile?.full_name} ({userProfile?.role === 'super_admin' ? 'Super Admin' : 'Manager'})</span>
+                <span className="md:hidden">Tech Mode - {userProfile?.full_name?.split(' ')[0]}</span>
               </span>
             </div>
             <button
               onClick={handleBackToAdmin}
-              className="flex items-center gap-1 text-xs font-medium hover:bg-primary-700 px-2 py-1 rounded transition-colors"
+              className="flex items-center gap-0.5 md:gap-1 text-[10px] md:text-xs font-medium hover:bg-primary-700 px-1.5 md:px-2 py-0.5 md:py-1 rounded transition-colors flex-shrink-0"
             >
-              <ArrowLeft className="w-3 h-3" />
-              Back to Admin
+              <ArrowLeft className="w-3 h-3 md:w-3.5 md:h-3.5" />
+              <span className="hidden sm:inline">Back to Admin</span>
+              <span className="sm:hidden">Back</span>
             </button>
           </div>
         </div>
@@ -52,7 +54,7 @@ export default function TechnicianLayout() {
       {/* Header - FIXED at top */}
       <header className={cn(
         "fixed left-0 right-0 z-30 bg-white border-b border-gray-200 shadow-sm",
-        isAdminMode ? "top-[36px]" : "top-0"
+        isAdminMode ? "top-[28px] md:top-[36px]" : "top-0"
       )}>
         <div className="px-3 py-2">
           <div className="flex items-center gap-2">
@@ -85,7 +87,7 @@ export default function TechnicianLayout() {
       {/* Main content - Padding top for fixed header + admin banner + padding bottom for fixed nav */}
       <main className={cn(
         "flex-1 overflow-y-auto bg-gray-50 pb-20",
-        isAdminMode ? "pt-[88px]" : "pt-[52px]"
+        isAdminMode ? "pt-[80px] md:pt-[88px]" : "pt-[52px]"
       )}>
         <div className="w-full px-3 py-2 md:w-[80%] md:mx-auto md:px-6 md:py-6">
           <Outlet />
