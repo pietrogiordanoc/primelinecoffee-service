@@ -50,7 +50,7 @@ export default function ViewReport() {
           *,
           form:dynamic_forms(name),
           company:companies(name, address, city, state, contact_name, contact_email, contact_phone),
-          technician:technicians!inner(
+          technician:technicians!left(
             user:users(full_name, email)
           ),
           sales_representative:users!sales_representative_id(full_name, email),
