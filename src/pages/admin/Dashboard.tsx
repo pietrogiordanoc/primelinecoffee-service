@@ -166,31 +166,33 @@ export default function Dashboard() {
       };
 
       reports?.forEach((report: any) => {
-        if (!report.technician_id) return;
-        
-        if (!techServiceTypes.has(report.technician_id)) {
-          techServiceTypes.set(report.technician_id, {
-            delivery: 0,
-            pickup: 0,
-            service: 0,
-            tuneup: 0,
-            training: 0,
-            other: 0
-          });
+        // Process per-technician stats (skip if technician_id is NULL - admin reports)
+        if (report.technician_id) {
+          if (!techServiceTypes.has(report.technician_id)) {
+            techServiceTypes.set(report.technician_id, {
+              delivery: 0,
+              pickup: 0,
+              service: 0,
+              tuneup: 0,
+              training: 0,
+              other: 0
+            });
+          }
+          
+          const counts = techServiceTypes.get(report.technician_id)!;
+          const serviceType = report.service_type?.toLowerCase() || 'other';
+          
+          // Count for technician
+          if (serviceType === 'delivery') counts.delivery++;
+          else if (serviceType === 'pick up' || serviceType === 'pickup') counts.pickup++;
+          else if (serviceType === 'service') counts.service++;
+          else if (serviceType === 'tune up' || serviceType === 'tuneup') counts.tuneup++;
+          else if (serviceType === 'training') counts.training++;
+          else counts.other++;
         }
         
-        const counts = techServiceTypes.get(report.technician_id)!;
+        // Count for global stats (include ALL reports, even admin-created ones)
         const serviceType = report.service_type?.toLowerCase() || 'other';
-        
-        // Count for technician
-        if (serviceType === 'delivery') counts.delivery++;
-        else if (serviceType === 'pick up' || serviceType === 'pickup') counts.pickup++;
-        else if (serviceType === 'service') counts.service++;
-        else if (serviceType === 'tune up' || serviceType === 'tuneup') counts.tuneup++;
-        else if (serviceType === 'training') counts.training++;
-        else counts.other++;
-        
-        // Count for global stats
         if (serviceType === 'delivery') globalServiceTypes.delivery++;
         else if (serviceType === 'pick up' || serviceType === 'pickup') globalServiceTypes.pickup++;
         else if (serviceType === 'service') globalServiceTypes.service++;

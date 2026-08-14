@@ -311,6 +311,14 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
                               <td>
                                 <h3 style="margin: 0 0 12px 0; color: #1f2937; font-size: 13px; font-weight: bold; font-family: Arial, sans-serif;">Report Details</h3>
                                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                  ${report.report_code ? `
+                                  <tr>
+                                    <td style="padding-bottom: 12px;">
+                                      <p style="margin: 0 0 3px 0; color: #6b7280; font-size: 11px; font-weight: bold; font-family: Arial, sans-serif;">REPORT CODE</p>
+                                      <p style="margin: 0; color: #003f7f; font-size: 14px; font-weight: bold; font-family: Arial, sans-serif;">${report.report_code}</p>
+                                    </td>
+                                  </tr>
+                                  ` : ''}
                                   <tr>
                                     <td style="padding-bottom: 12px;">
                                       <p style="margin: 0 0 3px 0; color: #6b7280; font-size: 11px; font-weight: bold; font-family: Arial, sans-serif;">COMPANY</p>
