@@ -406,12 +406,12 @@ export default function ViewReport() {
               >
                 <ChevronLeft className="w-5 h-5 text-gray-600" />
               </button>
-              <div className="flex flex-col items-center px-2">
+              <div className="flex items-center gap-2 px-2">
                 <span className="text-xs text-gray-500 hidden sm:inline">
                   {currentIndex + 1}/{reportIds.length}
                 </span>
-                <span className="text-[9px] text-gray-400 hidden lg:inline whitespace-nowrap">
-                  use keyboard arrows
+                <span className="text-[10px] text-gray-400 hidden lg:inline whitespace-nowrap">
+                  use keyboard
                 </span>
               </div>
               <button
