@@ -62,7 +62,12 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     return <Navigate to="/login" replace />;
   }
 
-  if (!allowedRoles.includes(userProfile.role)) {
+  // Allow admins and super_admins to access technician routes (for technician mode)
+  const isAdminAccessingTechnicianMode = 
+    allowedRoles.includes('technician') && 
+    (userProfile.role === 'admin' || userProfile.role === 'super_admin');
+
+  if (!allowedRoles.includes(userProfile.role) && !isAdminAccessingTechnicianMode) {
     // Redirect based on role
     if (userProfile.role === 'technician') {
       return <Navigate to="/technician" replace />;

@@ -41,7 +41,7 @@ export default function AdminLayout() {
   ];
 
   const secondaryNavigation = [
-    { name: 'Technician View', href: '/admin/technician-view', icon: Smartphone },
+    { name: 'Technician Mode', href: '/technician', icon: Smartphone },
   ];
 
   return (
