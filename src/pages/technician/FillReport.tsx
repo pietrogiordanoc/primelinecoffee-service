@@ -758,7 +758,7 @@ export default function FillReport() {
       }
 
       await alert('Report submitted successfully!', 'Success');
-      navigate('/technician');
+      navigate('../..');
     } catch (error: any) {
       console.error('Error submitting report:', error);
       await alert('Error submitting report: ' + error.message, 'Error');

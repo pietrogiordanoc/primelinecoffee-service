@@ -27,7 +27,8 @@ export default function ViewReport() {
   
   // Detect if we're in admin or technician view
   const isAdminView = window.location.pathname.includes('/admin/');
-  const backPath = isAdminView ? '/admin/reports' : '/technician/history';
+  const isTechMode = window.location.pathname.includes('/admin/tech-mode/');
+  const backPath = isTechMode ? '/admin/tech-mode/history' : isAdminView ? '/admin/reports' : '/technician/history';
   const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'super_admin';
 
   useEffect(() => {
@@ -127,14 +128,26 @@ export default function ViewReport() {
   function navigateToPrevious() {
     if (currentIndex > 0 && reportIds.length > 0) {
       const prevId = reportIds[currentIndex - 1];
-      navigate(isAdminView ? `/admin/reports/${prevId}` : `/technician/reports/${prevId}`);
+      if (isTechMode) {
+        navigate(`/admin/tech-mode/report/${prevId}/view`);
+      } else if (isAdminView) {
+        navigate(`/admin/reports/${prevId}`);
+      } else {
+        navigate(`/technician/report/${prevId}/view`);
+      }
     }
   }
 
   function navigateToNext() {
     if (currentIndex < reportIds.length - 1 && reportIds.length > 0) {
       const nextId = reportIds[currentIndex + 1];
-      navigate(isAdminView ? `/admin/reports/${nextId}` : `/technician/reports/${nextId}`);
+      if (isTechMode) {
+        navigate(`/admin/tech-mode/report/${nextId}/view`);
+      } else if (isAdminView) {
+        navigate(`/admin/reports/${nextId}`);
+      } else {
+        navigate(`/technician/report/${nextId}/view`);
+      }
     }
   }
 

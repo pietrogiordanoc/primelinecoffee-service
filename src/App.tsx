@@ -160,6 +160,12 @@ function App() {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="storage" element={<StorageDashboardPage />} />
           <Route path="technician-view" element={<TechnicianViewPage />} />
+          {/* Tech Mode Routes for Admins */}
+          <Route path="tech-mode" element={<TechnicianHome />} />
+          <Route path="tech-mode/report/:formId" element={<FillReport />} />
+          <Route path="tech-mode/report/:reportId/view" element={<ViewReport />} />
+          <Route path="tech-mode/history" element={<ReportHistory />} />
+          <Route path="tech-mode/staff" element={<Staff />} />
         </Route>
 
         {/* Protected Technician Routes */}

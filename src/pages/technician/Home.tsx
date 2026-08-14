@@ -91,7 +91,7 @@ export default function TechnicianHome() {
       alert('Please select a company first.', 'Attention');
       return;
     }
-    navigate(`/technician/report/${formId}?company=${selectedCompany.id}`);
+    navigate(`report/${formId}?company=${selectedCompany.id}`);
   }
 
   // Filter and sort companies

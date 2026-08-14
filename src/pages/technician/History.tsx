@@ -360,7 +360,7 @@ export default function ReportHistory() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/technician/report/${report.id}/view`);
+                          navigate(`../report/${report.id}/view`);
                         }}
                         className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-primary-600 text-white rounded hover:bg-primary-700 transition text-xs font-medium"
                       >

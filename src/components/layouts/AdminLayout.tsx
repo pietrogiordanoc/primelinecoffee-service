@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
   LayoutDashboard,
@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Smartphone,
+  Home,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
@@ -20,8 +21,11 @@ import { cn } from '@/utils/helpers';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { userProfile, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  const isTechMode = location.pathname.startsWith('/admin/tech-mode');
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -41,7 +45,11 @@ export default function AdminLayout() {
   ];
 
   const secondaryNavigation = [
-    { name: 'Technician Mode', href: '/technician', icon: Smartphone },
+    { 
+      name: isTechMode ? 'Admin Mode' : 'Tech Mode', 
+      href: isTechMode ? '/admin' : '/admin/tech-mode', 
+      icon: isTechMode ? Home : Smartphone 
+    },
   ];
 
   return (
@@ -399,33 +407,33 @@ export default function AdminLayout() {
           </NavLink>
 
           <NavLink
-            to="/technician"
-            className={({ isActive }) =>
-              cn(
-                'flex flex-col items-center justify-center flex-1 h-full transition-all',
-                isActive
-                  ? 'text-green-600'
-                  : 'text-gray-400 hover:text-green-500'
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <Smartphone
-                  className={cn(
-                    'w-6 h-6 mb-1 transition-all',
-                    isActive ? 'text-green-600 scale-110' : 'text-gray-400'
-                  )}
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
-                <span className={cn(
-                  'text-xs font-medium',
-                  isActive ? 'text-green-600' : 'text-gray-500'
-                )}>
-                  Tech
-                </span>
-              </>
+            to={isTechMode ? "/admin" : "/admin/tech-mode"}
+            className={cn(
+              'flex flex-col items-center justify-center flex-1 h-full transition-all',
+              isTechMode
+                ? 'text-green-600'
+                : 'text-gray-400 hover:text-green-500'
             )}
+          >
+            <>
+              {isTechMode ? (
+                <Home
+                  className="w-6 h-6 mb-1 transition-all text-green-600 scale-110"
+                  strokeWidth={2.5}
+                />
+              ) : (
+                <Smartphone
+                  className="w-6 h-6 mb-1 transition-all text-gray-400"
+                  strokeWidth={2}
+                />
+              )}
+              <span className={cn(
+                'text-xs font-medium',
+                isTechMode ? 'text-green-600' : 'text-gray-500'
+              )}>
+                {isTechMode ? 'Admin' : 'Tech'}
+              </span>
+            </>
           </NavLink>
 
           <button
