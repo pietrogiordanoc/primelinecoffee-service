@@ -444,7 +444,7 @@ export default function ReportPhotos() {
                 <img
                   src={report.signature_url}
                   alt="Customer Signature"
-                  className="max-w-full h-auto"
+                  className="max-w-full md:max-w-[40%] h-auto"
                 />
                 {report.form_data.customerPrintName && (
                   <div className="mt-2 pt-2 border-t border-gray-300">
