@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
-import { Users, Building2, FileText, HardDrive, Image, Video, AlertTriangle, ExternalLink, BarChart3, Camera, Film, X, Smartphone } from 'lucide-react';
+import { Users, Building2, FileText, HardDrive, Image, Video, AlertTriangle, ExternalLink, BarChart3, Camera, Film, X } from 'lucide-react';
 import type { DashboardStats } from '@/types';
 import { useReportStore } from '@/stores/reportStore';
 import { useTechnicianStore } from '@/stores/technicianStore';
@@ -1038,25 +1038,6 @@ export default function Dashboard() {
               </div>
             </div>
           )}
-        </div>
-      </Card>
-
-      {/* Tech Preview */}
-      <Card>
-        <div className="p-2 md:p-3">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5">
-              <Smartphone className="w-3.5 md:w-4 h-3.5 md:h-4 text-green-600" />
-              <h2 className="text-xs md:text-sm font-semibold text-gray-900">PREVIEW</h2>
-            </div>
-          </div>
-          <button
-            onClick={() => navigate('/technician')}
-            className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            <Smartphone className="w-4 h-4" />
-            Technician Mode
-          </button>
         </div>
       </Card>
 

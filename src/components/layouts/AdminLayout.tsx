@@ -398,6 +398,36 @@ export default function AdminLayout() {
             )}
           </NavLink>
 
+          <NavLink
+            to="/technician"
+            className={({ isActive }) =>
+              cn(
+                'flex flex-col items-center justify-center flex-1 h-full transition-all',
+                isActive
+                  ? 'text-green-600'
+                  : 'text-gray-400 hover:text-green-500'
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <Smartphone
+                  className={cn(
+                    'w-6 h-6 mb-1 transition-all',
+                    isActive ? 'text-green-600 scale-110' : 'text-gray-400'
+                  )}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className={cn(
+                  'text-xs font-medium',
+                  isActive ? 'text-green-600' : 'text-gray-500'
+                )}>
+                  Tech
+                </span>
+              </>
+            )}
+          </NavLink>
+
           <button
             onClick={() => setSidebarOpen(true)}
             className="flex flex-col items-center justify-center flex-1 h-full text-gray-400 hover:text-primary-500 transition-all"
