@@ -285,7 +285,9 @@ export default function ReportPDF({ report }: ReportPDFProps) {
                 key !== 'equipmentRecords' && 
                 key !== 'summary' && 
                 key !== 'technicianLocalTime' &&
-                key !== 'technicianTimeZone'
+                key !== 'technicianTimeZone' &&
+                key !== 'customerSignature' &&
+                key !== 'customerPrintName'
               )
               .map(([key, value]) => (
                 <View key={key} style={styles.tableRow}>
