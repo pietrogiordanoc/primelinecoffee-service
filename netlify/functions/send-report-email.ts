@@ -223,11 +223,11 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
           if (typeof item === 'object') {
             const entries = Object.entries(item)
               .map(([k, v]) => `${k}: ${v}`)
-              .join(', ');
-            return `[${index + 1}] ${entries}`;
+              .join('\n');
+            return `[${index + 1}]\n${entries}`;
           }
           return `• ${item}`;
-        }).join('\n');
+        }).join('\n\n');
       }
       // Format object as key-value pairs
       return Object.entries(value)
