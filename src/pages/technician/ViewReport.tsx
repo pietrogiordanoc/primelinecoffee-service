@@ -397,23 +397,28 @@ export default function ViewReport() {
           
           {/* Navigation Arrows */}
           {reportIds.length > 0 && (
-            <div className="flex items-center gap-0.5 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <button
                 onClick={navigateToPrevious}
                 disabled={currentIndex <= 0}
                 className="p-1.5 hover:bg-gray-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Previous report"
+                title="Previous report (← key)"
               >
                 <ChevronLeft className="w-5 h-5 text-gray-600" />
               </button>
-              <span className="text-xs text-gray-500 px-1 hidden sm:inline">
-                {currentIndex + 1}/{reportIds.length}
-              </span>
+              <div className="flex items-center gap-1.5 px-1">
+                <span className="text-xs text-gray-500 hidden sm:inline">
+                  {currentIndex + 1}/{reportIds.length}
+                </span>
+                <span className="text-[10px] text-gray-400 hidden md:inline whitespace-nowrap">
+                  ← →
+                </span>
+              </div>
               <button
                 onClick={navigateToNext}
                 disabled={currentIndex >= reportIds.length - 1}
                 className="p-1.5 hover:bg-gray-100 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Next report"
+                title="Next report (→ key)"
               >
                 <ChevronRight className="w-5 h-5 text-gray-600" />
               </button>
