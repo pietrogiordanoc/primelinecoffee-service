@@ -11,7 +11,7 @@ import Select from '@/components/ui/Select';
 import { FileText, Search, Download, Eye, Trash2, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight, FileSpreadsheet } from 'lucide-react';
 import type { ReportSummary } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
-import { exportReportsToFile, getUniqueFilterValues } from '@/utils/exportUtils';
+import { exportReportsToFile, exportReportsWithFormData, getUniqueFilterValues } from '@/utils/exportUtils';
 
 export default function ReportsPage() {
   const { reportSummaries, setReportSummaries, loading, setLoading } = useReportStore();
@@ -283,9 +283,16 @@ export default function ReportsPage() {
   const filterOptions = getUniqueFilterValues(reportSummaries);
 
   // Export handlers
-  function handleExportExcel() {
+  async function handleExportExcel() {
     try {
-      exportReportsToFile(filteredReports, { format: 'xlsx' });
+      // If a specific form is filtered, export with form data fields
+      if (formFilter) {
+        const reportIds = filteredReports.map(r => r.id);
+        await exportReportsWithFormData(reportIds, formFilter, { format: 'xlsx' });
+      } else {
+        // Otherwise, export summary only
+        exportReportsToFile(filteredReports, { format: 'xlsx' });
+      }
       setShowExportMenu(false);
     } catch (error) {
       console.error('Export error:', error);
@@ -293,9 +300,16 @@ export default function ReportsPage() {
     }
   }
 
-  function handleExportCSV() {
+  async function handleExportCSV() {
     try {
-      exportReportsToFile(filteredReports, { format: 'csv' });
+      // If a specific form is filtered, export with form data fields
+      if (formFilter) {
+        const reportIds = filteredReports.map(r => r.id);
+        await exportReportsWithFormData(reportIds, formFilter, { format: 'csv' });
+      } else {
+        // Otherwise, export summary only
+        exportReportsToFile(filteredReports, { format: 'csv' });
+      }
       setShowExportMenu(false);
     } catch (error) {
       console.error('Export error:', error);
