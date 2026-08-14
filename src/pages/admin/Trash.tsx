@@ -118,6 +118,16 @@ export default function TrashPage() {
             console.error('Error deleting photos from storage:', storageError);
           }
         }
+
+        // Delete photo records from database
+        const { error: photoError } = await supabase
+          .from('report_photos')
+          .delete()
+          .eq('report_id', reportId);
+
+        if (photoError) {
+          console.error('Error deleting photo records:', photoError);
+        }
       }
 
       // Permanently delete reports
