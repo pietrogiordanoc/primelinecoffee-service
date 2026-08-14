@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Users, Building2, FileText, HardDrive, Image, Video, AlertTriangle, ExternalLink, BarChart3, Camera, Film } from 'lucide-react';
+import Modal from '@/components/ui/Modal';
+import { Users, Building2, FileText, HardDrive, Image, Video, AlertTriangle, ExternalLink, BarChart3, Camera, Film, X } from 'lucide-react';
 import type { DashboardStats } from '@/types';
 import { useReportStore } from '@/stores/reportStore';
 import { useTechnicianStore } from '@/stores/technicianStore';
@@ -74,6 +75,7 @@ export default function Dashboard() {
     other: 0
   });
   const [activeTab, setActiveTab] = useState<'technicians' | 'companies'>('technicians');
+  const [showChartsModal, setShowChartsModal] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -568,7 +570,16 @@ export default function Dashboard() {
           {/* Technician Statistics */}
           {activeTab === 'technicians' && (
             <div className="space-y-3 md:space-y-6">
-              {/* Charts - Hidden on mobile */}
+              {/* Mobile: View Charts Button */}
+              <button
+                onClick={() => setShowChartsModal(true)}
+                className="lg:hidden w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-blue-700 font-medium text-sm transition"
+              >
+                <BarChart3 className="w-4 h-4" />
+                View Charts
+              </button>
+
+              {/* Desktop: Charts Grid */}
               <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Pie Chart - Reports Distribution */}
                 <div>
@@ -794,7 +805,16 @@ export default function Dashboard() {
           {/* Company Statistics */}
           {activeTab === 'companies' && (
             <div className="space-y-3 md:space-y-6">
-              {/* Charts - Hidden on mobile */}
+              {/* Mobile: View Charts Button */}
+              <button
+                onClick={() => setShowChartsModal(true)}
+                className="lg:hidden w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-blue-700 font-medium text-sm transition"
+              >
+                <BarChart3 className="w-4 h-4" />
+                View Charts
+              </button>
+
+              {/* Desktop: Charts Grid */}
               <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Pie Chart - Reports by Company */}
                 <div>
@@ -1018,6 +1038,123 @@ export default function Dashboard() {
           )}
         </div>
       </Card>
+
+      {/* Mobile Charts Modal */}
+      <Modal
+        isOpen={showChartsModal}
+        onClose={() => setShowChartsModal(false)}
+        title="Statistics Charts"
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* Reports Distribution */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              {activeTab === 'technicians' ? 'Reports by Technician' : 'Reports by Company'}
+            </h3>
+            {(activeTab === 'technicians' ? technicianStats : companyStats).length > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={activeTab === 'technicians' ? technicianStats : companyStats}
+                    dataKey="report_count"
+                    nameKey={activeTab === 'technicians' ? 'technician_name' : 'company_name'}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={60}
+                    label={false}
+                  >
+                    {(activeTab === 'technicians' ? technicianStats : companyStats).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend 
+                    wrapperStyle={{ fontSize: '10px' }}
+                    iconSize={8}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-gray-500 text-center py-8 text-sm">No data available</p>
+            )}
+          </div>
+
+          {/* Media Usage */}
+          {activeTab === 'technicians' && technicianStats.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <Camera className="w-4 h-4" />
+                Media Usage
+              </h3>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={technicianStats.slice(0, 5)}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="technician_name" 
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                    tick={{ fontSize: 9 }}
+                  />
+                  <YAxis tick={{ fontSize: 10 }} />
+                  <Tooltip contentStyle={{ fontSize: '11px' }} />
+                  <Legend wrapperStyle={{ fontSize: '10px' }} iconSize={8} />
+                  <Bar dataKey="photo_count" fill="#3b82f6" name="Photos" />
+                  <Bar dataKey="video_count" fill="#8b5cf6" name="Videos" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Service Types */}
+          {serviceTypeStats && (serviceTypeStats.delivery + serviceTypeStats.pickup + serviceTypeStats.service + serviceTypeStats.tuneup + serviceTypeStats.training + serviceTypeStats.other) > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Service Types
+              </h3>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Delivery', value: serviceTypeStats.delivery },
+                      { name: 'Pick up', value: serviceTypeStats.pickup },
+                      { name: 'Service', value: serviceTypeStats.service },
+                      { name: 'Tune up', value: serviceTypeStats.tuneup },
+                      { name: 'Training', value: serviceTypeStats.training },
+                      { name: 'Other', value: serviceTypeStats.other }
+                    ].filter(item => item.value > 0)}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={60}
+                    label={false}
+                  >
+                    {[
+                      { name: 'Delivery', value: serviceTypeStats.delivery, color: SERVICE_TYPE_COLORS.delivery },
+                      { name: 'Pick up', value: serviceTypeStats.pickup, color: SERVICE_TYPE_COLORS.pickup },
+                      { name: 'Service', value: serviceTypeStats.service, color: SERVICE_TYPE_COLORS.service },
+                      { name: 'Tune up', value: serviceTypeStats.tuneup, color: SERVICE_TYPE_COLORS.tuneup },
+                      { name: 'Training', value: serviceTypeStats.training, color: SERVICE_TYPE_COLORS.training },
+                      { name: 'Other', value: serviceTypeStats.other, color: SERVICE_TYPE_COLORS.other }
+                    ].filter(item => item.value > 0).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ fontSize: '11px' }} />
+                  <Legend 
+                    wrapperStyle={{ fontSize: '10px' }}
+                    iconSize={8}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }
