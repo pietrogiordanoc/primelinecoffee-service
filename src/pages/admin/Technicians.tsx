@@ -96,7 +96,20 @@ export default function TechniciansPage() {
   }
 
   function getSortedTechnicians() {
-    const filtered = technicians.filter(t => roleFilter === 'all' || t.user?.role === roleFilter);
+    console.log('🔍 Filter:', roleFilter);
+    console.log('🔍 Total technicians before filter:', technicians.length);
+    
+    const filtered = technicians.filter(t => {
+      if (roleFilter === 'all') return true;
+      const matches = t.user?.role === roleFilter;
+      if (!matches) {
+        console.log(`🔍 Filtered out: ${t.user?.full_name} (role: ${t.user?.role})`);
+      }
+      return matches;
+    });
+    
+    console.log('🔍 Filtered technicians:', filtered.length);
+    console.log('🔍 Filtered users:', filtered.map(t => ({ name: t.user?.full_name, role: t.user?.role })));
     
     return [...filtered].sort((a, b) => {
       let aValue: any;
@@ -170,6 +183,16 @@ export default function TechniciansPage() {
         return;
       }
 
+      console.log('📊 Raw staff data from RPC:', staffData);
+      console.log('📊 Total records:', staffData?.length);
+      
+      // Log role distribution
+      const roleCount = (staffData || []).reduce((acc: any, staff: any) => {
+        acc[staff.role] = (acc[staff.role] || 0) + 1;
+        return acc;
+      }, {});
+      console.log('📊 Role distribution:', roleCount);
+
       // Map the data to the expected format
       const techniciansWithData = (staffData || []).map((staff: any) => ({
         id: staff.id,
@@ -186,6 +209,7 @@ export default function TechniciansPage() {
         },
       }));
 
+      console.log('📊 Mapped technicians:', techniciansWithData);
       setTechnicians(techniciansWithData);
     } catch (error) {
       console.error('Error loading staff:', error);
