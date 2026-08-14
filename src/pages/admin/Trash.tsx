@@ -97,58 +97,112 @@ export default function TrashPage() {
 
       // Delete associated records for each report
       for (const reportId of reportIds) {
-        // Delete photos from storage
-        const { data: photos } = await supabase
-          .from('report_photos')
-          .select('file_name')
-          .eq('report_id', reportId);
+        console.log(`🗑️ Processing report ${reportId}...`);
+        
+        // Step 1: Delete photos from storage
+        try {
+          const { data: photos, error: fetchError } = await supabase
+            .from('report_photos')
+            .select('file_name')
+            .eq('report_id', reportId);
 
-        if (photos && photos.length > 0) {
-          const allFiles: string[] = [];
-          photos.forEach(photo => {
-            allFiles.push(photo.file_name);
-            const thumbName = photo.file_name.replace('.webp', '_thumb.webp');
-            allFiles.push(thumbName);
-          });
-
-          const { error: storageError } = await supabase.storage
-            .from('service-photos')
-            .remove(allFiles);
-
-          if (storageError) {
-            console.error('Error deleting photos from storage:', storageError);
+          if (fetchError) {
+            console.error(`❌ Error fetching photos for report ${reportId}:`, fetchError);
+            throw new Error(`Failed to fetch photos: ${fetchError.message}`);
           }
+
+          if (photos && photos.length > 0) {
+            const allFiles: string[] = [];
+            photos.forEach(photo => {
+              allFiles.push(photo.file_name);
+              const thumbName = photo.file_name.replace('.webp', '_thumb.webp');
+              allFiles.push(thumbName);
+            });
+
+            const { error: storageError } = await supabase.storage
+              .from('service-photos')
+              .remove(allFiles);
+
+            if (storageError) {
+              console.error(`⚠️ Error deleting photos from storage for report ${reportId}:`, storageError);
+              // Don't throw - continue even if storage delete fails
+            } else {
+              console.log(`✅ Deleted ${allFiles.length} files from storage`);
+            }
+          }
+        } catch (error) {
+          console.error(`⚠️ Storage deletion error for report ${reportId}:`, error);
+          // Don't throw - continue with DB deletions
         }
 
-        // Delete photo records from database
-        const { error: photoError } = await supabase
-          .from('report_photos')
-          .delete()
-          .eq('report_id', reportId);
+        // Step 2: Delete admin comments explicitly
+        try {
+          const { error: commentsError } = await supabase
+            .from('admin_comments')
+            .delete()
+            .eq('report_id', reportId);
 
-        if (photoError) {
-          console.error('Error deleting photo records:', photoError);
+          if (commentsError) {
+            console.error(`❌ Error deleting comments for report ${reportId}:`, commentsError);
+            throw new Error(`Failed to delete comments: ${commentsError.message}`);
+          } else {
+            console.log(`✅ Deleted admin comments`);
+          }
+        } catch (error: any) {
+          console.error(`❌ Comments deletion error for report ${reportId}:`, error);
+          throw error;
         }
 
-        // Delete email logs
-        const { error: emailError } = await supabase
-          .from('email_logs')
-          .delete()
-          .eq('report_id', reportId);
+        // Step 3: Delete photo records from database
+        try {
+          const { error: photoError } = await supabase
+            .from('report_photos')
+            .delete()
+            .eq('report_id', reportId);
 
-        if (emailError) {
-          console.error('Error deleting email logs:', emailError);
+          if (photoError) {
+            console.error(`❌ Error deleting photo records for report ${reportId}:`, photoError);
+            throw new Error(`Failed to delete photo records: ${photoError.message}`);
+          } else {
+            console.log(`✅ Deleted photo records from database`);
+          }
+        } catch (error: any) {
+          console.error(`❌ Photo records deletion error for report ${reportId}:`, error);
+          throw error;
+        }
+
+        // Step 4: Delete email logs
+        try {
+          const { error: emailError } = await supabase
+            .from('email_logs')
+            .delete()
+            .eq('report_id', reportId);
+
+          if (emailError) {
+            console.error(`❌ Error deleting email logs for report ${reportId}:`, emailError);
+            throw new Error(`Failed to delete email logs: ${emailError.message}`);
+          } else {
+            console.log(`✅ Deleted email logs`);
+          }
+        } catch (error: any) {
+          console.error(`❌ Email logs deletion error for report ${reportId}:`, error);
+          throw error;
         }
       }
 
-      // Permanently delete reports
+      // Step 5: Permanently delete reports
+      console.log(`🗑️ Deleting ${reportIds.length} report(s) from service_reports...`);
       const { error } = await supabase
         .from('service_reports')
         .delete()
         .in('id', reportIds);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error deleting service reports:', error);
+        throw new Error(`Failed to delete reports: ${error.message}`);
+      }
 
+      console.log('✅ All reports deleted successfully');
       await alert('Reports permanently deleted', 'Success');
       setSelectedReports(new Set());
       await loadTrashedReports();
