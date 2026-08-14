@@ -648,14 +648,16 @@ export default function FillReport() {
         },
       };
 
-      // Get technician ID
+      // Get technician ID (if user is a technician)
+      // Admins/managers in technician mode won't have a technician record
       const { data: techData } = await supabase
         .from('technicians')
         .select('id')
         .eq('user_id', userProfile?.id)
         .single();
 
-      if (!techData) throw new Error('Technician not found');
+      const technicianId = techData?.id || null;
+      const isAdminMode = userProfile?.role === 'admin' || userProfile?.role === 'super_admin';
 
       // Upload customer signature to storage
       let signatureUrl = '';
@@ -666,7 +668,8 @@ export default function FillReport() {
           const blob = await base64Response.blob();
           
           const timestamp = Date.now();
-          const signatureFileName = `signature_${timestamp}_${techData.id}.png`;
+          const userId = userProfile?.id || 'unknown';
+          const signatureFileName = `signature_${timestamp}_${userId}.png`;
           const signaturePath = `signatures/${signatureFileName}`;
 
           const { data: uploadData, error: uploadError } = await supabase.storage
@@ -695,7 +698,7 @@ export default function FillReport() {
         .from('service_reports')
         .insert({
           form_id: formId!,
-          technician_id: techData.id,
+          technician_id: technicianId,
           company_id: companyId,
           sales_representative_id: salesRepresentativeId || null,
           status: 'submitted',
