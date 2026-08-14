@@ -95,8 +95,9 @@ export default function TrashPage() {
     try {
       setProcessing(true);
 
-      // Delete photos from storage for each report
+      // Delete associated records for each report
       for (const reportId of reportIds) {
+        // Delete photos from storage
         const { data: photos } = await supabase
           .from('report_photos')
           .select('file_name')
@@ -127,6 +128,16 @@ export default function TrashPage() {
 
         if (photoError) {
           console.error('Error deleting photo records:', photoError);
+        }
+
+        // Delete email logs
+        const { error: emailError } = await supabase
+          .from('email_logs')
+          .delete()
+          .eq('report_id', reportId);
+
+        if (emailError) {
+          console.error('Error deleting email logs:', emailError);
         }
       }
 
