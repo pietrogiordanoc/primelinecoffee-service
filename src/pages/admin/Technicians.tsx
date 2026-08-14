@@ -912,7 +912,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
           >
             <option value="technician">Technician</option>
             <option value="admin">Manager</option>
-            <option value="sales_representative">Sales Representative</option>
+            <option value="sales_representative">Sales Rep</option>
             <option value="super_admin">Super Admin</option>
           </select>
           {errors.role && (

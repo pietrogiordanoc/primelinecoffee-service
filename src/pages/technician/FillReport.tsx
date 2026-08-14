@@ -888,7 +888,7 @@ export default function FillReport() {
             </div>
             <div className="md:col-span-2">
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                Sales Representative
+                Sales Rep
               </label>
               <select
                 value={salesRepresentativeId}

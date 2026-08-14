@@ -13,7 +13,7 @@ const FORMS_REFERENCE = [
       { label: 'Technician Name', type: 'text', required: true, note: 'Auto-populated from login' },
       { label: 'Property', type: 'select', required: true, options: ['PLD', 'La Colombe', 'Owner'] },
       { label: 'Service Type', type: 'select', required: true, options: ['Delivery', 'Pick up', 'Service', 'Tune up', 'Training', 'Other'] },
-      { label: 'Sales Representative', type: 'select', required: false, note: 'Who requested this service' },
+      { label: 'Sales Rep', type: 'select', required: false, note: 'Who requested this service' },
       { label: '--- EQUIPMENT RECORDS ---', type: 'section', note: 'Repeatable section for multiple equipment' },
       { label: 'Equipment Brand', type: 'text', required: true },
       { label: 'Model', type: 'text', required: true },
