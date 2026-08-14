@@ -346,7 +346,7 @@ export default function TechniciansPage() {
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          Managers
+          Admins
         </button>
         <button
           onClick={() => setRoleFilter('technician')}
@@ -482,7 +482,7 @@ export default function TechniciansPage() {
                         'bg-green-100 text-green-700'
                       }`}>
                         {technician.user?.role === 'super_admin' ? 'Super Admin' :
-                         technician.user?.role === 'admin' ? 'Manager' :
+                         technician.user?.role === 'admin' ? 'Admin' :
                          technician.user?.role === 'sales_representative' ? 'Sales Rep' :
                          'Technician'}
                       </span>
@@ -588,7 +588,7 @@ export default function TechniciansPage() {
                         </p>
                         <p className="text-xs text-gray-400 truncate leading-none mt-0.5">
                           {technician.user?.role === 'super_admin' ? 'Super' :
-                           technician.user?.role === 'admin' ? 'Manager' :
+                           technician.user?.role === 'admin' ? 'Admin' :
                            technician.user?.role === 'sales_representative' ? 'Sales' :
                            'Tech'}
                         </p>
@@ -911,7 +911,7 @@ function TechnicianModal({ isOpen, onClose, technician, onSuccess }: TechnicianM
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="technician">Technician</option>
-            <option value="admin">Manager</option>
+            <option value="admin">Admin</option>
             <option value="sales_representative">Sales Rep</option>
             <option value="super_admin">Super Admin</option>
           </select>
