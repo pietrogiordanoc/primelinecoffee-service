@@ -41,6 +41,27 @@ export default function ViewReport() {
     }
   }, [reportId, isAdmin]);
 
+  // Keyboard navigation
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      // Ignore if user is typing in an input or textarea
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        navigateToPrevious();
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        navigateToNext();
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, reportIds, isTechMode, isAdminView]);
+
   async function loadReport() {
     try {
       setLoading(true);
