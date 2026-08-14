@@ -467,8 +467,8 @@ export default function ViewReport() {
               <User className="w-4 h-4 md:w-5 md:h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] md:text-xs text-gray-500">Technician</p>
-                <p className="text-sm md:text-base font-medium text-gray-900 truncate">{report.technician?.user?.full_name}</p>
-                <p className="text-[11px] md:text-sm text-gray-600 truncate">{report.technician?.user?.email}</p>
+                <p className="text-sm md:text-base font-medium text-gray-900 truncate">{report.technician?.user?.full_name || report.form_data?.technicianName || 'Admin User'}</p>
+                <p className="text-[11px] md:text-sm text-gray-600 truncate">{report.technician?.user?.email || ''}</p>
               </div>
             </div>
 

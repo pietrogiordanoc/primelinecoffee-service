@@ -152,7 +152,11 @@ export default function ReportPhotos() {
               <h1 className="text-xl font-bold text-gray-900 truncate">
                 Service Report
               </h1>
-              <p className="text-sm text-gray-500">{report.form?.name}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-semibold text-primary-600">{report.report_code || 'N/A'}</p>
+                <span className="text-gray-400">·</span>
+                <p className="text-sm text-gray-500">{report.form?.name}</p>
+              </div>
             </div>
             <span
               className={`px-3 py-1 text-xs font-medium rounded-full ${
@@ -196,8 +200,8 @@ export default function ReportPhotos() {
                 <User className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-500">Technician</p>
-                  <p className="font-medium text-gray-900 truncate">{report.technician?.user?.full_name}</p>
-                  <p className="text-sm text-gray-600 truncate">{report.technician?.user?.email}</p>
+                  <p className="font-medium text-gray-900 truncate">{report.technician?.user?.full_name || report.form_data?.technicianName || 'Admin User'}</p>
+                  <p className="text-sm text-gray-600 truncate">{report.technician?.user?.email || ''}</p>
                 </div>
               </div>
 

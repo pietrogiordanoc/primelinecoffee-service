@@ -224,7 +224,7 @@ export default function ReportPDF({ report }: ReportPDFProps) {
                   <Text style={styles.label}>Technician</Text>
                 </View>
                 <Text style={styles.valueStrong}>
-                  {report.technician?.user?.full_name || 'N/A'}
+                  {report.technician?.user?.full_name || report.form_data?.technicianName || 'Admin User'}
                 </Text>
                 
                 {report.sales_representative && (
