@@ -359,9 +359,8 @@ export default function ReportPhotos() {
                     <p className="text-xs text-gray-500 mb-2">Parts Used</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {equipment.parts_used.map((part: any, partIndex: number) => (
-                        <div key={partIndex} className="text-sm text-gray-900 flex justify-between items-center bg-gray-50 rounded px-3 py-2">
-                          <span>{part.name} <span className="text-gray-500">x{part.quantity}</span></span>
-                          <span className="font-medium">${part.cost}</span>
+                        <div key={partIndex} className="text-sm text-gray-900 bg-gray-50 rounded px-3 py-2">
+                          {part.name} <span className="text-gray-500">x{part.quantity}</span>
                         </div>
                       ))}
                     </div>

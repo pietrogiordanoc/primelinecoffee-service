@@ -34,7 +34,7 @@ interface EquipmentRecord {
   serial: string;
   problem: string;
   work_performed: string;
-  parts_used: Array<{ name: string; quantity: number; cost: number }>;
+  parts_used: Array<{ name: string; quantity: number }>;
   files: UploadedFile[]; // Changed from photos to files (includes photos and videos)
   collapsed: boolean;
 }
@@ -268,7 +268,7 @@ export default function FillReport() {
     setEquipmentRecords(
       equipmentRecords.map(r =>
         r.id === equipmentId
-          ? { ...r, parts_used: [...r.parts_used, { name: '', quantity: 1, cost: 0 }] }
+          ? { ...r, parts_used: [...r.parts_used, { name: '', quantity: 1 }] }
           : r
       )
     );
@@ -284,7 +284,7 @@ export default function FillReport() {
     );
   }
 
-  function updatePart(equipmentId: string, partIndex: number, field: 'name' | 'quantity' | 'cost', value: any) {
+  function updatePart(equipmentId: string, partIndex: number, field: 'name' | 'quantity', value: any) {
     setEquipmentRecords(
       equipmentRecords.map(r =>
         r.id === equipmentId
@@ -594,10 +594,6 @@ export default function FillReport() {
   }
 
   // Calculate totals
-  const totalPartsCost = equipmentRecords.reduce(
-    (sum, r) => sum + r.parts_used.reduce((pSum, p) => pSum + (p.quantity * p.cost || 0), 0),
-    0
-  );
   const totalParts = equipmentRecords.reduce((sum, r) => sum + r.parts_used.length, 0);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -632,7 +628,6 @@ export default function FillReport() {
         property,
         serviceType,
         additionalNotes,
-        customerSignature,
         customerPrintName,
         technicianLocalTime: localTimeString,
         technicianTimeZone: timeZone,
@@ -648,7 +643,6 @@ export default function FillReport() {
           videoCount: r.files.filter(f => f.type === 'video').length,
         })),
         summary: {
-          totalPartsCost,
           totalParts,
           equipmentCount: equipmentRecords.length,
         },
@@ -1032,14 +1026,6 @@ export default function FillReport() {
                                 placeholder="Qty"
                                 className="w-16 px-2 py-1 border border-gray-300 rounded text-xs"
                               />
-                              <input
-                                type="number"
-                                step="0.01"
-                                value={part.cost}
-                                onChange={(e) => updatePart(equipment.id, partIdx, 'cost', parseFloat(e.target.value) || 0)}
-                                placeholder="Cost"
-                                className="w-20 px-2 py-1 border border-gray-300 rounded text-xs"
-                              />
                               <button
                                 type="button"
                                 onClick={() => removePartFromEquipment(equipment.id, partIdx)}
@@ -1215,10 +1201,6 @@ export default function FillReport() {
             <div>
               <span className="text-gray-600">Parts Used:</span>
               <span className="font-medium text-gray-900 ml-1">{totalParts}</span>
-            </div>
-            <div className="col-span-2">
-              <span className="text-gray-600">Parts Cost:</span>
-              <span className="font-medium text-gray-900 ml-1">${totalPartsCost.toFixed(2)}</span>
             </div>
           </div>
         </div>

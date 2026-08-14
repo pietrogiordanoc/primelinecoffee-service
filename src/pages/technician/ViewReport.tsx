@@ -630,9 +630,8 @@ export default function ViewReport() {
                   <p className="text-[10px] md:text-xs text-gray-500 mb-1.5 md:mb-2">Parts Used</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 md:gap-2">
                     {equipment.parts_used.map((part: any, partIndex: number) => (
-                      <div key={partIndex} className="text-xs md:text-sm text-gray-900 flex justify-between items-center bg-gray-50 rounded px-2 md:px-3 py-1.5 md:py-2">
-                        <span>{part.name} <span className="text-gray-500">x{part.quantity}</span></span>
-                        <span className="font-medium">${part.cost}</span>
+                      <div key={partIndex} className="text-xs md:text-sm text-gray-900 bg-gray-50 rounded px-2 md:px-3 py-1.5 md:py-2">
+                        {part.name} <span className="text-gray-500">x{part.quantity}</span>
                       </div>
                     ))}
                   </div>

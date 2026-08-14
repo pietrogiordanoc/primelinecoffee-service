@@ -349,7 +349,7 @@ export default function ReportPDF({ report }: ReportPDFProps) {
                       <View key={partIndex} style={styles.tableRow}>
                         <Text style={styles.tableLabel}></Text>
                         <Text style={styles.tableValue}>
-                          {part.name} x{part.quantity} - ${part.cost}
+                          {part.name} x{part.quantity}
                         </Text>
                       </View>
                     ))}
