@@ -196,10 +196,14 @@ export default function ReportHistory() {
       return matchesSearch && matchesDate;
     })
     .sort((a, b) => {
+      // Sort by date (submitted_at or created_at)
+      const dateA = new Date(a.submitted_at || a.created_at).getTime();
+      const dateB = new Date(b.submitted_at || b.created_at).getTime();
+      
       if (sortOrder === 'asc') {
-        return a.company_name.localeCompare(b.company_name);
+        return dateA - dateB; // Oldest first
       } else {
-        return b.company_name.localeCompare(a.company_name);
+        return dateB - dateA; // Newest first (default)
       }
     });
 
@@ -252,7 +256,7 @@ export default function ReportHistory() {
               className="flex items-center gap-1 px-2 py-1 text-xs border border-gray-300 rounded bg-white hover:bg-gray-50"
             >
               <ArrowUpDown className="w-3 h-3" />
-              {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
+              {sortOrder === 'asc' ? 'Oldest' : 'Newest'}
             </button>
             <select
               value={dateFilter}
