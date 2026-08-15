@@ -1393,7 +1393,7 @@ export default function FillReport() {
         </div>
 
         {/* Action Buttons */}
-        <div className="sticky bottom-16 z-10 mt-4 flex gap-3">
+        <div className="sticky bottom-16 z-10 mt-4 flex gap-2">
           {/* Save Draft Button */}
           <Button
             type="button"
@@ -1404,10 +1404,11 @@ export default function FillReport() {
             size="md"
             className="flex-1"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
             </svg>
-            Save Draft
+            <span className="hidden sm:inline">Save Draft</span>
+            <span className="sm:hidden">Draft</span>
           </Button>
           
           {/* Submit Report Button */}
@@ -1419,8 +1420,9 @@ export default function FillReport() {
             size="md"
             className="flex-1"
           >
-            <Check className="w-4 h-4 mr-2" />
-            Submit Report
+            <Check className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Submit Report</span>
+            <span className="sm:hidden">Submit</span>
           </Button>
         </div>
       </form>
