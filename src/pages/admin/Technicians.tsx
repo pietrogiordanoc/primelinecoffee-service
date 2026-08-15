@@ -492,7 +492,10 @@ export default function TechniciansPage() {
                       <SortIcon field="status" />
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th 
+                    className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    title="Toggle whether technician can view all reports or only their own in History"
+                  >
                     View All
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -556,7 +559,9 @@ export default function TechniciansPage() {
                               ? 'bg-blue-600'
                               : 'bg-gray-200'
                           }`}
-                          title={technician.can_view_all_reports ? 'Can view all reports' : 'Can only view own reports'}
+                          title={technician.can_view_all_reports 
+                            ? 'ON: This tech can see ALL reports from everyone in History' 
+                            : 'OFF: This tech can only see their OWN reports in History'}
                         >
                           <span
                             className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -740,6 +745,9 @@ export default function TechniciansPage() {
                                 ? 'bg-blue-600'
                                 : 'bg-gray-200'
                             }`}
+                            title={technician.can_view_all_reports 
+                              ? 'ON: This tech can see ALL reports from everyone in History' 
+                              : 'OFF: This tech can only see their OWN reports in History'}
                           >
                             <span
                               className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
