@@ -191,14 +191,14 @@ export default function FillReport() {
   }
 
   async function loadForm() {
+    // If we're editing a draft, load the report data instead
+    if (isEditMode && editReportId) {
+      await loadDraftReport(editReportId);
+      return;
+    }
+    
     try {
       setLoading(true);
-      
-      // If we're editing a draft, load the report data instead
-      if (isEditMode && editReportId) {
-        await loadDraftReport(editReportId);
-        return;
-      }
       
       if (!formId) {
         setForm(null);
@@ -222,6 +222,8 @@ export default function FillReport() {
 
   async function loadDraftReport(reportId: string) {
     try {
+      setLoading(true);
+      
       // Load the draft report
       const { data: report, error: reportError } = await supabase
         .from('service_reports')
@@ -230,12 +232,18 @@ export default function FillReport() {
         .eq('status', 'draft')
         .single();
 
-      if (reportError) throw reportError;
+      if (reportError) {
+        console.error('Error loading draft report:', reportError);
+        throw reportError;
+      }
+      
       if (!report) {
         await alert('This draft report could not be found or is no longer available.', 'Draft Not Found');
         navigate('../history');
         return;
       }
+
+      console.log('✅ Draft report loaded:', report);
 
       // Load the form
       const { data: loadedForm, error: formError } = await supabase
@@ -244,7 +252,17 @@ export default function FillReport() {
         .eq('id', report.form_id)
         .single();
 
-      if (formError) throw formError;
+      if (formError) {
+        console.error('Error loading form for draft:', formError);
+        throw formError;
+      }
+      
+      if (!loadedForm) {
+        console.error('❌ Form not found for form_id:', report.form_id);
+        throw new Error('Form not found');
+      }
+
+      console.log('✅ Form loaded:', loadedForm);
       setForm(loadedForm);
 
       // Set company info
@@ -320,6 +338,8 @@ export default function FillReport() {
       console.error('Error loading draft report:', error);
       await alert('Failed to load draft report. Please try again.', 'Error');
       navigate('../history');
+    } finally {
+      setLoading(false);
     }
   }
 
