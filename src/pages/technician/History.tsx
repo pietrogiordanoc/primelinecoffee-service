@@ -27,6 +27,12 @@ export default function ReportHistory() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  // Version marker for debugging
+  useEffect(() => {
+    console.log('🚀 History Component Loaded - Version: 2024-08-15-DEBUG');
+    console.log('📍 Draft deletion debugging active');
+  }, []);
+
   useEffect(() => {
     loadReports();
   }, [userProfile]);
@@ -65,6 +71,10 @@ export default function ReportHistory() {
   }
 
   async function handleDelete(reportId: string, companyName: string) {
+    console.log('🎯 handleDelete FUNCTION CALLED');
+    console.log('  reportId:', reportId);
+    console.log('  companyName:', companyName);
+    
     const confirmed = await confirm({
       title: 'Delete Report',
       message: `Are you sure you want to delete the report from ${companyName}? This action cannot be undone.`,
@@ -73,12 +83,16 @@ export default function ReportHistory() {
       danger: true,
     });
     
+    console.log('  User confirmed?', confirmed);
+    
     if (!confirmed) {
+      console.log('  ❌ User cancelled deletion');
       return;
     }
 
     try {
       setDeleting(reportId);
+      console.log('  ⏳ Set deleting state to:', reportId);
 
       console.log('🗑️ Attempting to delete report:', reportId);
 
@@ -353,6 +367,7 @@ export default function ReportHistory() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
+                                console.log('🔵 Continue button clicked');
                                 navigate(`../report/${report.id}/edit`);
                               }}
                               className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-amber-600 text-white rounded hover:bg-amber-700 transition text-xs font-medium"
@@ -362,6 +377,10 @@ export default function ReportHistory() {
                             </button>
                             <button
                               onClick={(e) => {
+                                console.log('🔴 DELETE BUTTON CLICKED!');
+                                console.log('Report ID:', report.id);
+                                console.log('Company:', report.company_name);
+                                console.log('Deleting state:', deleting);
                                 e.stopPropagation();
                                 handleDelete(report.id, report.company_name);
                               }}
