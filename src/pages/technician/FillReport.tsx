@@ -221,10 +221,15 @@ export default function FillReport() {
   }
 
   async function loadDraftReport(reportId: string) {
+    console.log('🎬 === LOADING DRAFT REPORT ===');
+    console.log('📋 Report ID:', reportId);
+    console.log('👤 User Profile:', userProfile);
+    
     try {
       setLoading(true);
       
       // Load the draft report
+      console.log('📥 Step 1: Fetching draft report from database...');
       const { data: report, error: reportError } = await supabase
         .from('service_reports')
         .select('*, companies(name, contact_name, contact_email, address, phone)')
@@ -233,36 +238,58 @@ export default function FillReport() {
         .single();
 
       if (reportError) {
-        console.error('Error loading draft report:', reportError);
+        console.error('❌ ERROR loading draft report:', reportError);
+        console.error('   Code:', reportError.code);
+        console.error('   Message:', reportError.message);
+        console.error('   Details:', reportError.details);
         throw reportError;
       }
       
       if (!report) {
+        console.error('❌ No draft report found with ID:', reportId);
         await alert('This draft report could not be found or is no longer available.', 'Draft Not Found');
         navigate('../history');
         return;
       }
 
-      console.log('✅ Draft report loaded:', report);
+      console.log('✅ Draft report loaded successfully!');
+      console.log('   Report:', report);
+      console.log('   Form ID needed:', report.form_id);
+      console.log('   Status:', report.status);
 
       // Load the form
+      console.log('📥 Step 2: Fetching form definition...');
+      console.log('   Attempting to load form ID:', report.form_id);
+      
       const { data: loadedForm, error: formError } = await supabase
         .from('dynamic_forms')
         .select('*')
         .eq('id', report.form_id)
         .single();
 
+      console.log('📊 Form query result:');
+      console.log('   Data:', loadedForm);
+      console.log('   Error:', formError);
+
       if (formError) {
-        console.error('Error loading form for draft:', formError);
+        console.error('❌ ERROR loading form:', formError);
+        console.error('   Code:', formError.code);
+        console.error('   Message:', formError.message);
+        console.error('   Details:', formError.details);
+        console.error('   Hint:', formError.hint);
         throw formError;
       }
       
       if (!loadedForm) {
-        console.error('❌ Form not found for form_id:', report.form_id);
+        console.error('❌ Form query returned null/undefined');
+        console.error('   Form ID searched:', report.form_id);
+        console.error('   This means the form exists but RLS denied access');
         throw new Error('Form not found');
       }
 
-      console.log('✅ Form loaded:', loadedForm);
+      console.log('✅ Form loaded successfully!');
+      console.log('   Form name:', loadedForm.name);
+      console.log('   Form is_active:', loadedForm.is_active);
       setForm(loadedForm);
 
       // Set company info
