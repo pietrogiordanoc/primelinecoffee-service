@@ -232,7 +232,7 @@ export default function FillReport() {
       console.log('📥 Step 1: Fetching draft report from database...');
       const { data: report, error: reportError } = await supabase
         .from('service_reports')
-        .select('*, companies(name, contact_name, contact_email, address, phone)')
+        .select('*, companies(name, contact_name, contact_email, address, contact_phone)')
         .eq('id', reportId)
         .eq('status', 'draft')
         .single();
@@ -299,7 +299,7 @@ export default function FillReport() {
           contact_name: report.companies.contact_name,
           contact_email: report.companies.contact_email,
           address: report.companies.address,
-          phone: report.companies.phone,
+          phone: report.companies.contact_phone,
         });
       }
 
