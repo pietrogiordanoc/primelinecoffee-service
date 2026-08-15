@@ -8,11 +8,13 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate, formatRelativeTime } from '@/utils/dateUtils';
 import { Clock, FileText, Eye, Trash2, Building2, ChevronRight, ChevronDown, Search, Calendar, Image as ImageIcon, ArrowUpDown, ChevronLeft, ChevronRight as ChevronRightIcon, Edit, FilePlus } from 'lucide-react';
 import type { ReportSummary } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 export default function ReportHistory() {
   const navigate = useNavigate();
   const { userProfile } = useAuthStore();
   const { confirm, alert } = useConfirm();
+  const { t } = useTranslation();
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -202,14 +204,14 @@ export default function ReportHistory() {
       <div className="fixed top-[52px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2">
         <div className="max-w-full md:max-w-[80%] md:mx-auto space-y-1.5">
           <div className="flex items-center justify-between mb-1">
-            <h1 className="text-sm font-bold text-gray-900">Reports</h1>
+            <h1 className="text-sm font-bold text-gray-900">{t('history.title')}</h1>
           </div>
           {/* Search Input */}
           <div className="relative">
             <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search reports..."
+              placeholder={t('history.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-6 pr-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs bg-white"
@@ -276,7 +278,7 @@ export default function ReportHistory() {
           <div className="p-12 text-center">
             <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-500">
-              {searchQuery ? 'No reports found' : 'You have no reports yet'}
+              {searchQuery ? t('common.noData') : t('history.noReports')}
             </p>
           </div>
         </Card>
@@ -287,7 +289,8 @@ export default function ReportHistory() {
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-2 px-1">
                 <FilePlus className="w-4 h-4 text-gray-600" />
-                <h2 className="text-sm font-semibold text-gray-900">Drafts ({draftReports.length})</h2>
+                <h2 className="text-sm font-semibold text-gray-900">{t('history.drafts')} ({draftReports.length})</h2>
+                <p className="text-xs text-gray-500">- {t('history.draftsHelp')}</p>
               </div>
               <div className="space-y-1">
                 {draftReports.map((report) => {
@@ -312,7 +315,7 @@ export default function ReportHistory() {
                               {report.company_name}
                             </p>
                             <p className="text-xs text-amber-600 leading-none mt-0.5">
-                              Draft • {formatRelativeTime(report.created_at)}
+                            {t('history.draft')} • {formatRelativeTime(report.created_at)}
                             </p>
                           </div>
                         </div>
@@ -341,7 +344,7 @@ export default function ReportHistory() {
                               className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-amber-600 text-white rounded hover:bg-amber-700 transition text-xs font-medium"
                             >
                               <Edit className="w-3.5 h-3.5" />
-                              Continue
+                              {t('common.continue')}
                             </button>
                             <button
                               onClick={(e) => {
@@ -368,7 +371,8 @@ export default function ReportHistory() {
             <div>
               <div className="flex items-center gap-2 mb-2 px-1">
                 <FileText className="w-4 h-4 text-gray-600" />
-                <h2 className="text-sm font-semibold text-gray-900">Submitted Reports ({submittedReports.length})</h2>
+                <h2 className="text-sm font-semibold text-gray-900">{t('history.submitted')} ({submittedReports.length})</h2>
+                <p className="text-xs text-gray-500">- {t('history.submittedHelp')}</p>
               </div>
           <div className="space-y-1">
             {paginatedReports.map((report) => {

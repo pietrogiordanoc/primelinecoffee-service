@@ -8,12 +8,14 @@ import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { AlertTriangle, Edit, XCircle, FileText } from 'lucide-react';
 import type { ServiceReport } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 export default function AmendReport() {
   const { reportId } = useParams<{ reportId: string }>();
   const navigate = useNavigate();
   const { userProfile } = useAuthStore();
   const { alert } = useConfirm();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);

@@ -3,10 +3,13 @@ import { Home, ClipboardList, LogOut, Users, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/utils/helpers';
+import LanguageToggle from '@/components/ui/LanguageToggle';
+import { useTranslation } from 'react-i18next';
 
 export default function TechnicianLayout() {
   const navigate = useNavigate();
   const { userProfile, logout } = useAuthStore();
+  const { t } = useTranslation();
 
   const isAdminMode = userProfile?.role === 'admin' || userProfile?.role === 'super_admin';
 
@@ -21,9 +24,9 @@ export default function TechnicianLayout() {
   };
 
   const navigation = [
-    { name: 'Home', href: '/technician', icon: Home, end: true },
-    { name: 'History', href: '/technician/history', icon: ClipboardList, end: false },
-    { name: 'Staff', href: '/technician/staff', icon: Users, end: false },
+    { name: t('nav.home'), href: '/technician', icon: Home, end: true },
+    { name: t('nav.history'), href: '/technician/history', icon: ClipboardList, end: false },
+    { name: t('nav.staff'), href: '/technician/staff', icon: Users, end: false },
   ];
 
   return (
@@ -71,7 +74,9 @@ export default function TechnicianLayout() {
               alt="Prime Line Coffee Service" 
               className="h-7 w-auto"
             />
-            <div className="ml-auto">
+            <div className="flex-1" />
+            <LanguageToggle />
+            <div>
               <p className="text-xs font-medium text-gray-900 leading-tight text-right">{userProfile?.full_name}</p>
               <p className="text-xs text-gray-500 leading-tight text-right">
                 {isAdminMode 
