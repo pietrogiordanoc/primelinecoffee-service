@@ -80,11 +80,15 @@ export default function ReportHistory() {
     try {
       setDeleting(reportId);
 
+      console.log('🗑️ Attempting to delete report:', reportId);
+
       // Get report photos to delete from storage
       const { data: photos } = await supabase
         .from('report_photos')
         .select('file_name')
         .eq('report_id', reportId);
+
+      console.log('📸 Found photos to delete:', photos?.length || 0);
 
       // Delete photos and thumbnails from storage
       if (photos && photos.length > 0) {
@@ -96,29 +100,39 @@ export default function ReportHistory() {
           allFiles.push(thumbName);
         });
         
+        console.log('🗑️ Deleting files from storage:', allFiles.length);
+        
         // Remove all files from storage
         const { error: storageError } = await supabase.storage
           .from('service-photos')
           .remove(allFiles);
         
         if (storageError) {
-          console.error('Error deleting photos from storage:', storageError);
+          console.error('❌ Error deleting photos from storage:', storageError);
+        } else {
+          console.log('✅ Photos deleted from storage');
         }
       }
 
       // Delete report (cascade will delete photos records)
+      console.log('🗑️ Deleting report record from database...');
       const { error } = await supabase
         .from('service_reports')
         .delete()
         .eq('id', reportId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Delete failed:', error);
+        throw error;
+      }
+
+      console.log('✅ Report deleted successfully');
 
       // Reload reports
       await loadReports();
-    } catch (error) {
-      console.error('Error deleting report:', error);
-      await alert('Error deleting report. Please try again.', 'Error');
+    } catch (error: any) {
+      console.error('❌ Error deleting report:', error);
+      await alert(`Error deleting report: ${error.message || 'Unknown error'}. Check browser console for details.`, 'Error');
     } finally {
       setDeleting(null);
     }
