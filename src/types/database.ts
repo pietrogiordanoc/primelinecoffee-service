@@ -1,7 +1,7 @@
 // Generated types for Supabase database schema
 
 export type UserRole = 'super_admin' | 'admin' | 'technician' | 'sales_representative';
-export type ReportStatus = 'draft' | 'submitted' | 'reviewed' | 'completed';
+export type ReportStatus = 'draft' | 'submitted' | 'voided' | 'reviewed' | 'completed';
 export type FieldType =
   | 'text'
   | 'textarea'

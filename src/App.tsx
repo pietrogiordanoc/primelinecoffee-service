@@ -23,6 +23,7 @@ import TechnicianHome from '@/pages/technician/Home';
 import FillReport from '@/pages/technician/FillReport';
 import ReportHistory from '@/pages/technician/History';
 import ViewReport from '@/pages/technician/ViewReport';
+import AmendReport from '@/pages/technician/AmendReport';
 import Staff from '@/pages/technician/Staff';
 import ReportPhotos from '@/pages/ReportPhotos';
 
@@ -163,7 +164,9 @@ function App() {
           {/* Tech Mode Routes for Admins */}
           <Route path="tech-mode" element={<TechnicianHome />} />
           <Route path="tech-mode/report/:formId" element={<FillReport />} />
+          <Route path="tech-mode/report/:reportId/edit" element={<FillReport />} />
           <Route path="tech-mode/report/:reportId/view" element={<ViewReport />} />
+          <Route path="tech-mode/report/:reportId/amend" element={<AmendReport />} />
           <Route path="tech-mode/history" element={<ReportHistory />} />
           <Route path="tech-mode/staff" element={<Staff />} />
         </Route>
@@ -179,7 +182,9 @@ function App() {
         >
           <Route index element={<TechnicianHome />} />
           <Route path="report/:formId" element={<FillReport />} />
+          <Route path="report/:reportId/edit" element={<FillReport />} />
           <Route path="report/:reportId/view" element={<ViewReport />} />
+          <Route path="report/:reportId/amend" element={<AmendReport />} />
           <Route path="history" element={<ReportHistory />} />
           <Route path="staff" element={<Staff />} />
         </Route>

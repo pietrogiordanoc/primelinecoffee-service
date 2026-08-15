@@ -198,6 +198,7 @@ export default function TechniciansPage() {
         id: staff.id,
         user_id: staff.user_id,
         is_active: staff.is_active,
+        can_view_all_reports: staff.can_view_all_reports || false,
         user: {
           id: staff.user_id,
           email: staff.email,
@@ -237,6 +238,24 @@ export default function TechniciansPage() {
       await loadTechnicians();
     } catch (error) {
       console.error('Error toggling technician status:', error);
+    }
+  }
+
+  async function handleToggleViewAllReports(technician: Technician) {
+    try {
+      const newValue = !technician.can_view_all_reports;
+      
+      const { error } = await supabase
+        .from('technicians')
+        .update({ can_view_all_reports: newValue })
+        .eq('id', technician.id);
+
+      if (error) throw error;
+
+      await loadTechnicians();
+    } catch (error) {
+      console.error('Error updating view all reports permission:', error);
+      await alert('Error updating permission. Please try again.', 'Error');
     }
   }
 
@@ -473,6 +492,9 @@ export default function TechniciansPage() {
                       <SortIcon field="status" />
                     </div>
                   </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    View All
+                  </th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
@@ -524,6 +546,25 @@ export default function TechniciansPage() {
                       >
                         {technician.is_active ? 'Active' : 'Inactive'}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      {technician.user?.role === 'technician' && (
+                        <button
+                          onClick={() => handleToggleViewAllReports(technician)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            technician.can_view_all_reports
+                              ? 'bg-blue-600'
+                              : 'bg-gray-200'
+                          }`}
+                          title={technician.can_view_all_reports ? 'Can view all reports' : 'Can only view own reports'}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              technician.can_view_all_reports ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
@@ -681,6 +722,30 @@ export default function TechniciansPage() {
                             className="px-2 py-1.5 text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded transition"
                           >
                             <Building2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* View All Reports Toggle for Technicians */}
+                      {technician.user?.role === 'technician' && (
+                        <div className="flex items-center justify-between px-2 py-1.5 bg-white rounded border border-gray-200">
+                          <span className="text-xs font-medium text-gray-700">View all reports</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleViewAllReports(technician);
+                            }}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                              technician.can_view_all_reports
+                                ? 'bg-blue-600'
+                                : 'bg-gray-200'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                                technician.can_view_all_reports ? 'translate-x-5' : 'translate-x-1'
+                              }`}
+                            />
                           </button>
                         </div>
                       )}

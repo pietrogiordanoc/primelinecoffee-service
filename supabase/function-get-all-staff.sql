@@ -9,6 +9,7 @@ RETURNS TABLE (
   phone TEXT,
   role user_role,
   is_active BOOLEAN,
+  can_view_all_reports BOOLEAN,
   created_at TIMESTAMPTZ
 ) 
 SECURITY DEFINER
@@ -50,6 +51,7 @@ BEGIN
     u.phone,
     u.role,
     COALESCE(t.is_active, u.is_active) as is_active,
+    COALESCE(t.can_view_all_reports, false) as can_view_all_reports,
     u.created_at
   FROM public.users u
   LEFT JOIN public.technicians t ON t.user_id = u.id

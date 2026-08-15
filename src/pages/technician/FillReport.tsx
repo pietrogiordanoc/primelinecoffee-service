@@ -41,16 +41,21 @@ interface EquipmentRecord {
 
 export default function FillReport() {
   const navigate = useNavigate();
-  const { formId } = useParams<{ formId: string }>();
+  const { formId } = useParams<{ formId?: string; reportId?: string }>();
   const [searchParams] = useSearchParams();
   const companyId = searchParams.get('company');
   const { userProfile } = useAuthStore();
   const { settings, fetchSettings } = useSettingsStore();
   const { alert } = useConfirm();
 
+  // Check if we're editing a draft (URL contains /edit)
+  const isEditMode = window.location.pathname.includes('/edit');
+  const editReportId = isEditMode ? formId : null; // In edit mode, formId param is actually the reportId
+
   const [form, setForm] = useState<DynamicForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   
   // General service data
   const [serviceDate, setServiceDate] = useState(new Date().toISOString().split('T')[0]);
@@ -189,6 +194,12 @@ export default function FillReport() {
     try {
       setLoading(true);
       
+      // If we're editing a draft, load the report data instead
+      if (isEditMode && editReportId) {
+        await loadDraftReport(editReportId);
+        return;
+      }
+      
       if (!formId) {
         setForm(null);
         return;
@@ -206,6 +217,115 @@ export default function FillReport() {
       console.error('Error loading form:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadDraftReport(reportId: string) {
+    try {
+      // Load the draft report
+      const { data: report, error: reportError } = await supabase
+        .from('service_reports')
+        .select('*, companies(name, contact_name, contact_email, address, phone)')
+        .eq('id', reportId)
+        .eq('status', 'draft')
+        .single();
+
+      if (reportError) throw reportError;
+      if (!report) {
+        await alert({
+          title: 'Draft Not Found',
+          message: 'This draft report could not be found or is no longer available.',
+        });
+        navigate('../history');
+        return;
+      }
+
+      // Load the form
+      const { data: formData, error: formError } = await supabase
+        .from('dynamic_forms')
+        .select('*')
+        .eq('id', report.form_id)
+        .single();
+
+      if (formError) throw formError;
+      setForm(formData);
+
+      // Set company info
+      if (report.companies) {
+        setCompanyInfo({
+          name: report.companies.name,
+          contact_name: report.companies.contact_name,
+          contact_email: report.companies.contact_email,
+          address: report.companies.address,
+          phone: report.companies.phone,
+        });
+      }
+
+      // Populate form fields from form_data
+      const formData = report.form_data || {};
+      
+      setServiceDate(formData.serviceDate || new Date().toISOString().split('T')[0]);
+      setTechnicianName(formData.technicianName || userProfile?.full_name || '');
+      setCustomerName(formData.customerName || '');
+      setCustomerEmail(formData.customerEmail || '');
+      setProperty(formData.property || '');
+      setServiceType(formData.serviceType || '');
+      setSalesRepresentativeId(formData.salesRepresentativeId || report.sales_representative_id || '');
+      setAdditionalNotes(formData.additionalNotes || '');
+      setCustomerPrintName(formData.customerPrintName || '');
+      
+      // Populate equipment records if they exist
+      if (formData.equipmentRecords && Array.isArray(formData.equipmentRecords)) {
+        setEquipmentRecords(formData.equipmentRecords);
+      }
+
+      // Load signature if exists
+      if (report.signature_url) {
+        setCustomerSignature(report.signature_url);
+      }
+
+      // Load photos/videos
+      const { data: photos, error: photosError } = await supabase
+        .from('report_photos')
+        .select('*')
+        .eq('report_id', reportId);
+
+      if (!photosError && photos) {
+        // Group photos by equipment_reference_id
+        const photosByEquipment: Record<string, UploadedFile[]> = {};
+        
+        photos.forEach(photo => {
+          const equipmentId = photo.equipment_reference_id || '1';
+          if (!photosByEquipment[equipmentId]) {
+            photosByEquipment[equipmentId] = [];
+          }
+          
+          photosByEquipment[equipmentId].push({
+            id: photo.id,
+            file_url: photo.file_url,
+            thumbnail_url: photo.thumbnail_url,
+            file_name: photo.file_name,
+            file_size: photo.file_size,
+            mime_type: photo.mime_type,
+            type: photo.mime_type.startsWith('video/') ? 'video' : 'photo',
+            duration: photo.duration,
+          });
+        });
+
+        // Update equipment records with their files
+        setEquipmentRecords(prev => prev.map(eq => ({
+          ...eq,
+          files: photosByEquipment[eq.id] || [],
+        })));
+      }
+
+    } catch (error) {
+      console.error('Error loading draft report:', error);
+      await alert({
+        title: 'Error',
+        message: 'Failed to load draft report. Please try again.',
+      });
+      navigate('../history');
     }
   }
 
@@ -596,21 +716,27 @@ export default function FillReport() {
   // Calculate totals
   const totalParts = equipmentRecords.reduce((sum, r) => sum + r.parts_used.length, 0);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent, isDraft: boolean = false) {
     e.preventDefault();
 
-    if (!companyId) {
+    // In edit mode, use editReportId instead of companyId check
+    if (!isEditMode && !companyId) {
       await alert('No company selected.', 'Error');
       return;
     }
 
-    if (!customerSignature) {
+    // Only require signature for final submission
+    if (!isDraft && !customerSignature) {
       await alert('Customer signature is required.', 'Error');
       return;
     }
 
     try {
-      setSubmitting(true);
+      if (isDraft) {
+        setSavingDraft(true);
+      } else {
+        setSubmitting(true);
+      }
 
       // Capture technician's local time information
       const localDate = new Date();
@@ -693,26 +819,61 @@ export default function FillReport() {
         }
       }
 
-      // Create service report first
-      const { data: reportData2, error: reportError } = await supabase
-        .from('service_reports')
-        .insert({
-          form_id: formId!,
-          technician_id: technicianId,
-          company_id: companyId,
-          sales_representative_id: salesRepresentativeId || null,
-          status: 'submitted',
-          form_data: reportData,
-          signature_url: signatureUrl || null,
-          submitted_at: new Date().toISOString(),
-        })
-        .select('id')
-        .single();
+      // Create or update service report
+      let reportId: string;
 
-      if (reportError) throw reportError;
-      if (!reportData2) throw new Error('Failed to create report');
+      if (isEditMode && editReportId) {
+        // UPDATE existing draft
+        const { data: updateData, error: updateError } = await supabase
+          .from('service_reports')
+          .update({
+            sales_representative_id: salesRepresentativeId || null,
+            status: isDraft ? 'draft' : 'submitted',
+            form_data: reportData,
+            signature_url: signatureUrl || null,
+            submitted_at: isDraft ? null : new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editReportId)
+          .select('id')
+          .single();
 
-      const reportId = reportData2.id;
+        if (updateError) throw updateError;
+        if (!updateData) throw new Error('Failed to update report');
+        reportId = updateData.id;
+
+        // When updating, we need to handle photos differently
+        // Delete old photo records and re-insert new ones
+        const { error: deletePhotosError } = await supabase
+          .from('report_photos')
+          .delete()
+          .eq('report_id', reportId);
+
+        if (deletePhotosError) {
+          console.error('Error deleting old photo records:', deletePhotosError);
+        }
+
+      } else {
+        // INSERT new report
+        const { data: reportData2, error: reportError } = await supabase
+          .from('service_reports')
+          .insert({
+            form_id: formId!,
+            technician_id: technicianId,
+            company_id: companyId,
+            sales_representative_id: salesRepresentativeId || null,
+            status: isDraft ? 'draft' : 'submitted',
+            form_data: reportData,
+            signature_url: signatureUrl || null,
+            submitted_at: isDraft ? null : new Date().toISOString(),
+          })
+          .select('id')
+          .single();
+
+        if (reportError) throw reportError;
+        if (!reportData2) throw new Error('Failed to create report');
+        reportId = reportData2.id;
+      }
 
       // Insert photo/video records into database (files are already uploaded)
       const allFiles = equipmentRecords.flatMap(r => r.files);
@@ -738,32 +899,44 @@ export default function FillReport() {
         }
       }
 
-      // Send email notification
-      try {
-        console.log('📧 Sending notification email...');
-        const emailResponse = await fetch('/.netlify/functions/send-report-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reportId }),
-        });
+      // Send email notification only for final submission
+      if (!isDraft) {
+        try {
+          console.log('📧 Sending notification email...');
+          const emailResponse = await fetch('/.netlify/functions/send-report-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reportId }),
+          });
 
-        if (emailResponse.ok) {
-          console.log('✅ Email sent successfully');
-        } else {
-          console.warn('⚠️ Error sending email, but report was saved correctly');
+          if (emailResponse.ok) {
+            console.log('✅ Email sent successfully');
+          } else {
+            console.warn('⚠️ Error sending email, but report was saved correctly');
+          }
+        } catch (emailError) {
+          console.error('Error sending email:', emailError);
+          // Don't fail entire process if email fails
         }
-      } catch (emailError) {
-        console.error('Error sending email:', emailError);
-        // Don't fail entire process if email fails
       }
 
-      await alert('Report submitted successfully!', 'Success');
+      const successMessage = isEditMode
+        ? (isDraft 
+            ? 'Draft updated successfully!' 
+            : 'Draft submitted successfully!')
+        : (isDraft 
+            ? 'Draft saved successfully! You can continue it later from History.' 
+            : 'Report submitted successfully!');
+      
+      await alert(successMessage, 'Success');
       navigate('../..');
     } catch (error: any) {
       console.error('Error submitting report:', error);
-      await alert('Error submitting report: ' + error.message, 'Error');
+      const actionText = isDraft ? (isEditMode ? 'updating draft' : 'saving draft') : 'submitting report';
+      await alert(`Error ${actionText}: ${error.message}`, 'Error');
     } finally {
       setSubmitting(false);
+      setSavingDraft(false);
     }
   }
 
@@ -785,6 +958,17 @@ export default function FillReport() {
 
   return (
     <div className="pb-20">
+      {/* Edit Draft Banner */}
+      {isEditMode && (
+        <div className="mb-3 bg-amber-50 border border-amber-300 rounded-lg p-2.5 flex items-center gap-2">
+          <Edit className="w-4 h-4 text-amber-700 flex-shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-amber-900">Editing Draft</p>
+            <p className="text-xs text-amber-700">You're continuing a previously saved draft.</p>
+          </div>
+        </div>
+      )}
+
       <div className="mb-3">
         <h1 className="text-base md:text-lg font-bold text-gray-900">{form.name}</h1>
         {form.description && (
@@ -1208,17 +1392,37 @@ export default function FillReport() {
           </div>
         </div>
 
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          loading={submitting}
-          size="md"
-          fullWidth
-          className="sticky bottom-16 z-10 mt-4"
-        >
-          <Check className="w-4 h-4 mr-2" />
-          Submit Report
-        </Button>
+        {/* Action Buttons */}
+        <div className="sticky bottom-16 z-10 mt-4 flex gap-3">
+          {/* Save Draft Button */}
+          <Button
+            type="button"
+            onClick={(e) => handleSubmit(e, true)}
+            loading={savingDraft}
+            disabled={submitting}
+            variant="secondary"
+            size="md"
+            className="flex-1"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+            Save Draft
+          </Button>
+          
+          {/* Submit Report Button */}
+          <Button
+            type="submit"
+            onClick={(e) => handleSubmit(e, false)}
+            loading={submitting}
+            disabled={savingDraft}
+            size="md"
+            className="flex-1"
+          >
+            <Check className="w-4 h-4 mr-2" />
+            Submit Report
+          </Button>
+        </div>
       </form>
 
       {/* Camera Modal - Simple code that works */}
@@ -1257,7 +1461,7 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [currentFacingMode, setCurrentFacingMode] = useState<'environment' | 'user'>('user');
+  const [currentFacingMode, setCurrentFacingMode] = useState<'environment' | 'user'>('environment');
   const [error, setError] = useState<string | null>(null);
 
   // Start camera - Following complete instructions for mobile

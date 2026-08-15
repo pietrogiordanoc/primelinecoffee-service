@@ -5,8 +5,8 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate } from '@/utils/dateUtils';
-import { ArrowLeft, Building2, User, Calendar, FileText, Image as ImageIcon, MessageSquare, Send, Share2, Check, Download, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { ServiceReport, AdminComment } from '@/types';
+import { ArrowLeft, Building2, User, Calendar, FileText, Image as ImageIcon, MessageSquare, Send, Share2, Check, Download, ChevronLeft, ChevronRight, AlertTriangle, XCircle, Edit } from 'lucide-react';
+import type { ServiceReport, AdminComment, ReportAmendment } from '@/types';
 import { useAuthStore } from '@/stores/authStore';
 import { pdf } from '@react-pdf/renderer';
 import ReportPDF from '@/components/pdf/ReportPDF';
@@ -18,6 +18,7 @@ export default function ViewReport() {
   const [report, setReport] = useState<ServiceReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState<AdminComment[]>([]);
+  const [amendments, setAmendments] = useState<ReportAmendment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -35,6 +36,7 @@ export default function ViewReport() {
     if (reportId) {
       loadReport();
       loadReportIds();
+      loadAmendments();
       if (isAdmin) {
         loadComments();
       }
@@ -143,6 +145,24 @@ export default function ViewReport() {
       setComments(data || []);
     } catch (error) {
       console.error('Error loading comments:', error);
+    }
+  }
+
+  async function loadAmendments() {
+    try {
+      const { data, error } = await supabase
+        .from('report_amendments')
+        .select(`
+          *,
+          user:users!amended_by(full_name, email)
+        `)
+        .eq('original_report_id', reportId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAmendments(data || []);
+    } catch (error) {
+      console.error('Error loading amendments:', error);
     }
   }
 
@@ -749,6 +769,79 @@ export default function ViewReport() {
           <div className="p-2 md:p-4">
             <h2 className="text-xs md:text-sm font-semibold text-gray-900 mb-1.5 md:mb-2">Notes</h2>
             <p className="text-xs md:text-sm text-gray-700 whitespace-pre-wrap">{report.notes}</p>
+          </div>
+        </Card>
+      )}
+
+      {/* Report Amendments Section */}
+      {amendments.length > 0 && (
+        <Card>
+          <div className="p-2 md:p-4">
+            <div className="flex items-center gap-2 mb-3 md:mb-4">
+              <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
+              <h2 className="text-xs md:text-sm font-semibold text-gray-900">Amendment History</h2>
+              <span className="text-[10px] md:text-xs text-gray-500">({amendments.length})</span>
+            </div>
+
+            {/* Voided Banner (if report is voided) */}
+            {report.status === 'voided' && (
+              <div className="mb-4 bg-red-50 border-2 border-red-300 rounded-lg p-3 flex items-start gap-2">
+                <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-red-900 text-sm mb-1">This Report Has Been Voided</p>
+                  <p className="text-xs text-red-700">
+                    This report has been marked as invalid. See amendment details below for reason.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Amendments List */}
+            <div className="space-y-3">
+              {amendments.map((amendment) => (
+                <div
+                  key={amendment.id}
+                  className={`border-l-4 pl-3 py-2 ${
+                    amendment.amendment_type === 'void'
+                      ? 'border-red-400 bg-red-50'
+                      : 'border-blue-400 bg-blue-50'
+                  }`}
+                >
+                  <div className="flex items-start gap-2 mb-2">
+                    {amendment.amendment_type === 'void' ? (
+                      <XCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <Edit className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                    )}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={`text-xs font-semibold ${
+                            amendment.amendment_type === 'void' ? 'text-red-900' : 'text-blue-900'
+                          }`}
+                        >
+                          {amendment.amendment_type === 'void' ? 'Report Voided' : 'Information Updated'}
+                        </span>
+                        <span className="text-[10px] text-gray-500">
+                          {new Date(amendment.created_at).toLocaleString('en-US', {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-0.5">
+                        By: {amendment.user?.full_name || 'Unknown'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-2 bg-white rounded p-2 border border-gray-200">
+                    <p className="text-xs font-semibold text-gray-700 mb-1">Reason:</p>
+                    <p className="text-xs text-gray-900 whitespace-pre-wrap">{amendment.reason}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </Card>
       )}

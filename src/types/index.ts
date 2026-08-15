@@ -24,6 +24,7 @@ export interface Technician {
   specialization?: string;
   certifications?: string[] | string;
   is_active: boolean;
+  can_view_all_reports?: boolean;
   user?: User;
   assigned_companies?: Company[];
 }
@@ -106,6 +107,7 @@ export interface ServiceReport {
   company_id: string;
   sales_representative_id?: string;
   status: ReportStatus;
+  amendment_count?: number;
   form_data: Record<string, any>;
   signature_url?: string;
   submitted_at?: string;
@@ -119,6 +121,7 @@ export interface ServiceReport {
   company?: Company;
   sales_representative?: User;
   photos?: ReportPhoto[];
+  amendments?: ReportAmendment[];
 }
 
 export interface ReportPhoto {
@@ -133,6 +136,18 @@ export interface ReportPhoto {
   order_index: number;
   uploaded_at: string;
 }
+
+export interface ReportAmendment {
+  id: string;
+  original_report_id: string;
+  amendment_type: 'update' | 'void';
+  reason: string;
+  amended_by: string;
+  amended_data?: Record<string, any>;
+  created_at: string;
+  user?: User;
+}
+
 export interface AdminComment {
   id: string;
   report_id: string;
@@ -167,6 +182,7 @@ export interface ReportSummary {
   id: string;
   report_code?: string;
   status: ReportStatus;
+  amendment_count?: number;
   created_at: string;
   submitted_at?: string;
   deleted_at?: string;

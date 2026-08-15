@@ -6,7 +6,7 @@ import { useConfirm } from '@/contexts/ConfirmContext';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { formatDate, formatRelativeTime } from '@/utils/dateUtils';
-import { Clock, FileText, Eye, Trash2, Building2, ChevronRight, ChevronDown, Search, Calendar, Image as ImageIcon, ArrowUpDown, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { Clock, FileText, Eye, Trash2, Building2, ChevronRight, ChevronDown, Search, Calendar, Image as ImageIcon, ArrowUpDown, ChevronLeft, ChevronRight as ChevronRightIcon, Edit, FilePlus } from 'lucide-react';
 import type { ReportSummary } from '@/types';
 
 export default function ReportHistory() {
@@ -35,17 +35,23 @@ export default function ReportHistory() {
 
       const { data: techData } = await supabase
         .from('technicians')
-        .select('id')
+        .select('id, can_view_all_reports')
         .eq('user_id', userProfile?.id)
         .single();
 
       if (!techData) return;
 
-      const { data, error } = await supabase
+      // Build query based on permission
+      let query = supabase
         .from('report_summary')
-        .select('*')
-        .eq('technician_email', userProfile?.email)
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      // Only filter by technician email if they can't view all reports
+      if (!techData.can_view_all_reports) {
+        query = query.eq('technician_email', userProfile?.email);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       setReports(data || []);
@@ -167,11 +173,15 @@ export default function ReportHistory() {
       }
     });
 
-  // Pagination
-  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
+  // Separate drafts and submitted reports
+  const draftReports = filteredReports.filter(r => r.status === 'draft');
+  const submittedReports = filteredReports.filter(r => r.status !== 'draft');
+
+  // Pagination (currently only for submitted reports)
+  const totalPages = Math.ceil(submittedReports.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedReports = filteredReports.slice(startIndex, endIndex);
+  const paginatedReports = submittedReports.slice(startIndex, endIndex);
 
   // Reset to page 1 when search/filter changes
   useEffect(() => {
@@ -253,7 +263,7 @@ export default function ReportHistory() {
               <option value={50}>50</option>
             </select>
             <span className="text-xs text-gray-500">
-              {filteredReports.length} total
+              {draftReports.length + submittedReports.length} total ({draftReports.length} drafts, {submittedReports.length} submitted)
             </span>
           </div>
         </div>
@@ -272,6 +282,94 @@ export default function ReportHistory() {
         </Card>
       ) : (
         <>
+          {/* DRAFTS SECTION */}
+          {draftReports.length > 0 && (
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2 px-1">
+                <FilePlus className="w-4 h-4 text-gray-600" />
+                <h2 className="text-sm font-semibold text-gray-900">Drafts ({draftReports.length})</h2>
+              </div>
+              <div className="space-y-1">
+                {draftReports.map((report) => {
+                  const isExpanded = expandedReport === report.id;
+                  
+                  return (
+                    <div
+                      key={report.id}
+                      className="bg-amber-50 rounded border border-amber-200 hover:border-amber-300 transition-all"
+                    >
+                      {/* Draft Header */}
+                      <div
+                        className="flex items-center justify-between p-2 cursor-pointer"
+                        onClick={() => setExpandedReport(isExpanded ? null : report.id)}
+                      >
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <div className="w-7 h-7 rounded bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+                            <Building2 className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-gray-900 truncate leading-none">
+                              {report.company_name}
+                            </p>
+                            <p className="text-xs text-amber-600 leading-none mt-0.5">
+                              Draft • {formatRelativeTime(report.created_at)}
+                            </p>
+                          </div>
+                        </div>
+                        {isExpanded ? (
+                          <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 ml-1.5" />
+                        ) : (
+                          <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 ml-1.5" />
+                        )}
+                      </div>
+
+                      {/* Draft Details */}
+                      {isExpanded && (
+                        <div className="px-2 pb-1.5 space-y-1 border-t border-amber-200">
+                          <div className="flex items-center gap-1 pt-1.5">
+                            <FileText className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                            <p className="text-xs text-gray-900 leading-tight">{report.form_name}</p>
+                          </div>
+                          
+                          {/* Action Buttons for Drafts */}
+                          <div className="flex gap-1.5 pt-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`../report/${report.id}/edit`);
+                              }}
+                              className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-amber-600 text-white rounded hover:bg-amber-700 transition text-xs font-medium"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                              Continue
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(report.id, report.company_name);
+                              }}
+                              disabled={deleting === report.id}
+                              className="px-2.5 py-1.5 border border-red-200 text-red-600 rounded hover:bg-red-50 hover:border-red-300 transition text-xs font-medium disabled:opacity-50"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* SUBMITTED REPORTS SECTION */}
+          {submittedReports.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-2 px-1">
+                <FileText className="w-4 h-4 text-gray-600" />
+                <h2 className="text-sm font-semibold text-gray-900">Submitted Reports ({submittedReports.length})</h2>
+              </div>
           <div className="space-y-1">
             {paginatedReports.map((report) => {
             const isExpanded = expandedReport === report.id;
@@ -370,12 +468,12 @@ export default function ReportHistory() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(report.id, report.company_name);
+                          navigate(`../report/${report.id}/amend`);
                         }}
-                        disabled={deleting === report.id}
-                        className="px-2.5 py-1.5 border border-red-200 text-red-600 rounded hover:bg-red-50 hover:border-red-300 transition text-xs font-medium disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition text-xs font-medium"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Edit className="w-3.5 h-3.5" />
+                        Amend
                       </button>
                     </div>
                   </div>
@@ -384,6 +482,10 @@ export default function ReportHistory() {
             );
           })}
         </div>
+            </div>
+          )}
+        </>
+      )}
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
