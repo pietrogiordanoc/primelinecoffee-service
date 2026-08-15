@@ -46,20 +46,14 @@ export default function AmendReport() {
 
       // Verify the technician owns this report
       if (data.technicians.user_id !== userProfile?.id) {
-        await alert({
-          title: 'Access Denied',
-          message: 'You can only amend your own reports.',
-        });
+        await alert('You can only amend your own reports.', 'Access Denied');
         navigate('../history');
         return;
       }
 
       // Verify report is in submitted status
       if (data.status !== 'submitted') {
-        await alert({
-          title: 'Invalid Report',
-          message: 'You can only amend submitted reports. Drafts can be edited directly.',
-        });
+        await alert('You can only amend submitted reports. Drafts can be edited directly.', 'Invalid Report');
         navigate('../history');
         return;
       }
@@ -67,10 +61,7 @@ export default function AmendReport() {
       setReport(data);
     } catch (error) {
       console.error('Error loading report:', error);
-      await alert({
-        title: 'Error',
-        message: 'Failed to load report. Please try again.',
-      });
+      await alert('Failed to load report. Please try again.', 'Error');
       navigate('../history');
     } finally {
       setLoading(false);
@@ -79,10 +70,7 @@ export default function AmendReport() {
 
   async function handleSubmitAmendment() {
     if (!reason.trim()) {
-      await alert({
-        title: 'Reason Required',
-        message: 'Please provide a reason for this amendment.',
-      });
+      await alert('Please provide a reason for this amendment.', 'Reason Required');
       return;
     }
 
@@ -120,18 +108,12 @@ export default function AmendReport() {
         ? 'Report has been voided successfully.'
         : 'Amendment has been recorded successfully.';
 
-      await alert({
-        title: 'Success',
-        message: successMessage,
-      });
+      await alert(successMessage, 'Success');
 
       navigate('../history');
     } catch (error) {
       console.error('Error creating amendment:', error);
-      await alert({
-        title: 'Error',
-        message: 'Failed to create amendment. Please try again.',
-      });
+      await alert('Failed to create amendment. Please try again.', 'Error');
     } finally {
       setSubmitting(false);
     }

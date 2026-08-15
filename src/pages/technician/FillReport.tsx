@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import SignaturePad from '@/components/ui/SignaturePad';
-import { Camera, X, Check, Plus, Trash2, ChevronDown, ChevronUp, Image, Video, Upload } from 'lucide-react';
+import { Camera, X, Check, Plus, Trash2, ChevronDown, ChevronUp, Image, Video, Upload, Edit } from 'lucide-react';
 import { compressVideo, validateVideo, getVideoDuration, generateVideoThumbnail } from '@/utils/videoCompression';
 import { optimizeImages } from '@/utils/imageOptimization';
 import type { DynamicForm, OptimizedPhoto } from '@/types';
@@ -232,23 +232,20 @@ export default function FillReport() {
 
       if (reportError) throw reportError;
       if (!report) {
-        await alert({
-          title: 'Draft Not Found',
-          message: 'This draft report could not be found or is no longer available.',
-        });
+        await alert('This draft report could not be found or is no longer available.', 'Draft Not Found');
         navigate('../history');
         return;
       }
 
       // Load the form
-      const { data: formData, error: formError } = await supabase
+      const { data: loadedForm, error: formError } = await supabase
         .from('dynamic_forms')
         .select('*')
         .eq('id', report.form_id)
         .single();
 
       if (formError) throw formError;
-      setForm(formData);
+      setForm(loadedForm);
 
       // Set company info
       if (report.companies) {
@@ -321,10 +318,7 @@ export default function FillReport() {
 
     } catch (error) {
       console.error('Error loading draft report:', error);
-      await alert({
-        title: 'Error',
-        message: 'Failed to load draft report. Please try again.',
-      });
+      await alert('Failed to load draft report. Please try again.', 'Error');
       navigate('../history');
     }
   }

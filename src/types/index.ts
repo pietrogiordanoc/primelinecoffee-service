@@ -122,6 +122,10 @@ export interface ServiceReport {
   sales_representative?: User;
   photos?: ReportPhoto[];
   amendments?: ReportAmendment[];
+  // Supabase join results (plural table names)
+  companies?: { name: string; contact_name?: string; contact_email?: string };
+  dynamic_forms?: { name: string };
+  technicians?: { user_id: string };
 }
 
 export interface ReportPhoto {

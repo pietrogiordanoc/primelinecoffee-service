@@ -486,12 +486,10 @@ export default function ReportHistory() {
             );
           })}
         </div>
-            </div>
-          )}
-        </>
-      )}
+      </div>
+    )}
 
-        {/* Pagination Controls */}
+    {/* Pagination Controls */}
         {totalPages > 1 && (
           <div className="mt-2 flex items-center justify-between">
             <button
@@ -515,9 +513,10 @@ export default function ReportHistory() {
             </button>
           </div>
         )}
-        </>
-      )}
-      </div> {/* End pt-16 wrapper */}
+      </>
+    )}
+  </div> {/* End pt-16 wrapper */}
+
     </div>
   );
 }
