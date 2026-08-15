@@ -41,7 +41,7 @@ interface EquipmentRecord {
 
 export default function FillReport() {
   const navigate = useNavigate();
-  const { formId } = useParams<{ formId?: string; reportId?: string }>();
+  const { formId, reportId } = useParams<{ formId?: string; reportId?: string }>();
   const [searchParams] = useSearchParams();
   const companyId = searchParams.get('company');
   const { userProfile } = useAuthStore();
@@ -50,7 +50,7 @@ export default function FillReport() {
 
   // Check if we're editing a draft (URL contains /edit)
   const isEditMode = window.location.pathname.includes('/edit');
-  const editReportId = isEditMode ? formId : null; // In edit mode, formId param is actually the reportId
+  const editReportId = isEditMode ? reportId : null; // Use reportId from URL params
 
   const [form, setForm] = useState<DynamicForm | null>(null);
   const [loading, setLoading] = useState(true);
