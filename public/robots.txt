@@ -1,0 +1,18 @@
+# Prime Line Coffee Service - Internal Application
+# This is a private business application - DO NOT INDEX
+
+User-agent: *
+Disallow: /
+
+# Specific bots
+User-agent: Googlebot
+Disallow: /
+
+User-agent: Bingbot
+Disallow: /
+
+User-agent: Slurp
+Disallow: /
+
+# Prevent sitemap discovery
+Sitemap:
