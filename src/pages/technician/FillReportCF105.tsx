@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
@@ -9,7 +9,7 @@ import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import SignaturePad from '@/components/ui/SignaturePad';
-import { Coffee, Building2, Upload, X, Edit } from 'lucide-react';
+import { Coffee, Building2, Camera, Image, X, Edit } from 'lucide-react';
 import { optimizeImages } from '@/utils/imageOptimization';
 import type { DynamicForm } from '@/types';
 
@@ -106,6 +106,8 @@ export default function FillReportCF105() {
 
   const [photos, setPhotos] = useState<UploadedFile[]>([]);
   const [customerSignature, setCustomerSignature] = useState('');
+  const [customerPrintName, setCustomerPrintName] = useState('');
+  const [cameraModalOpen, setCameraModalOpen] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -207,6 +209,7 @@ export default function FillReportCF105() {
       setAdditionalNotes(d.additionalNotes || '');
       setEspresso({ ...emptyQuality(), ...(d.espresso || {}) });
       setCoffee({ ...emptyQuality(), ...(d.coffee || {}) });
+      setCustomerPrintName(d.customerPrintName || '');
 
       if (report.signature_url) {
         setCustomerSignature(report.signature_url);
@@ -296,6 +299,41 @@ export default function FillReportCF105() {
     setPhotos((prev) => prev.filter((p) => p.id !== id));
   }
 
+  async function handleCameraCapture(blob: Blob) {
+    try {
+      const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      const optimized = await optimizeImages([file]);
+
+      const fileId = `${Date.now()}`;
+      const fileName = `photo_${fileId}.webp`;
+
+      setPhotos((prev) => [
+        ...prev,
+        { id: fileId, file_url: '', file_name: fileName, file_size: optimized[0].file.size, mime_type: 'image/webp', uploading: true },
+      ]);
+
+      const { error: uploadError } = await supabase.storage
+        .from('service-photos')
+        .upload(fileName, optimized[0].file, { contentType: 'image/webp', cacheControl: '3600', upsert: false });
+
+      if (uploadError) {
+        console.error('Error uploading camera photo:', uploadError);
+        setPhotos((prev) => prev.filter((p) => p.id !== fileId));
+        return;
+      }
+
+      const { data: urlData } = supabase.storage.from('service-photos').getPublicUrl(fileName);
+      setPhotos((prev) =>
+        prev.map((p) => (p.id === fileId ? { ...p, file_url: urlData.publicUrl, uploading: false } : p))
+      );
+
+      setCameraModalOpen(false);
+    } catch (error) {
+      console.error('Error processing camera photo:', error);
+      await alert('Error uploading camera photo. Please try again.', 'Error');
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent, isDraft: boolean = false) {
     e.preventDefault();
 
@@ -318,6 +356,7 @@ export default function FillReportCF105() {
         contactPhone,
         equipmentLocation,
         additionalNotes,
+        customerPrintName,
         espresso_coffeeTypes: espresso.coffeeTypes,
         espresso_machineModel: espresso.machineModel,
         espresso_machineSerial: espresso.machineSerial,
@@ -569,13 +608,9 @@ export default function FillReportCF105() {
 
         <div className="bg-white border border-gray-200 rounded-lg p-3 md:p-4">
           <h2 className="text-sm font-semibold text-gray-900 mb-2">Photos</h2>
-          <label className="flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 text-sm text-gray-500 cursor-pointer hover:border-primary-400 hover:text-primary-600 transition">
-            <Upload className="w-4 h-4" />
-            Choose files or drag here
-            <input type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={handlePhotoUpload} />
-          </label>
+          
           {photos.length > 0 && (
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-2 mt-3">
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-2 mb-3">
               {photos.map((photo) => (
                 <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
                   {photo.uploading ? (
@@ -585,25 +620,74 @@ export default function FillReportCF105() {
                   ) : (
                     <img src={photo.file_url} alt="" className="w-full h-full object-cover" />
                   )}
-                  <button
-                    type="button"
-                    onClick={() => removePhoto(photo.id)}
-                    className="absolute top-1 right-1 p-1 bg-black/60 rounded-full text-white"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
+                  {!photo.uploading && (
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(photo.id)}
+                      className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
           )}
+
+          <div className="grid grid-cols-2 gap-2">
+            {/* Camera Button */}
+            <button
+              type="button"
+              onClick={() => setCameraModalOpen(true)}
+              className="flex flex-col items-center justify-center h-20 w-full border-2 border-dashed border-blue-300 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 active:bg-blue-200 transition"
+            >
+              <Camera className="w-6 h-6 text-blue-600 mb-1" />
+              <span className="text-sm font-medium text-blue-700">Camera</span>
+            </button>
+
+            {/* Gallery Button */}
+            <div>
+              <label 
+                htmlFor="file-gallery"
+                className="flex flex-col items-center justify-center h-20 w-full border-2 border-dashed border-green-300 bg-green-50 rounded-lg cursor-pointer hover:bg-green-100 active:bg-green-200 transition"
+              >
+                <Image className="w-6 h-6 text-green-600 mb-1" />
+                <span className="text-sm font-medium text-green-700">Gallery</span>
+              </label>
+              <input
+                id="file-gallery"
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
+            </div>
+          </div>
         </div>
 
-        <SignaturePad
-          label="Customer Signature"
-          value={customerSignature}
-          onChange={setCustomerSignature}
-          required
-        />
+        <div className="bg-white border border-gray-200 rounded-lg p-3 md:p-4">
+          <SignaturePad
+            label="Customer Signature"
+            value={customerSignature}
+            onChange={setCustomerSignature}
+            required
+          />
+          
+          <div className="mt-3">
+            <Input
+              label="Print Name"
+              value={customerPrintName}
+              onChange={(e) => setCustomerPrintName(e.target.value)}
+              placeholder="Print customer name"
+              required
+            />
+          </div>
+          
+          <p className="text-xs text-gray-500 mt-2">
+            Customer acknowledges services performed
+          </p>
+        </div>
 
         <div className="flex gap-2 sticky bottom-0 bg-white pt-3 pb-1 border-t border-gray-200">
           <Button
@@ -620,6 +704,14 @@ export default function FillReportCF105() {
           </Button>
         </div>
       </form>
+
+      {/* Camera Modal */}
+      {cameraModalOpen && (
+        <CameraModal
+          onCapture={handleCameraCapture}
+          onClose={() => setCameraModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -840,6 +932,274 @@ function QualitySection({
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Camera Modal Component - Simple code that works perfectly
+interface CameraModalProps {
+  onCapture: (blob: Blob) => void;
+  onClose: () => void;
+}
+
+function CameraModal({ onCapture, onClose }: CameraModalProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [currentFacingMode, setCurrentFacingMode] = useState<'environment' | 'user'>('environment');
+  const [error, setError] = useState<string | null>(null);
+
+  // Start camera - Following complete instructions for mobile
+  async function startCamera(facingMode: 'environment' | 'user') {
+    try {
+      setError(null);
+      
+      // Detener stream anterior si existe
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
+      const constraints = {
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+        audio: false
+      };
+
+      console.log('📹 getUserMedia con facingMode:', facingMode);
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      setStream(newStream);
+      console.log('✅ Stream obtenido');
+      
+      if (videoRef.current) {
+        const video = videoRef.current;
+        video.srcObject = newStream;
+        
+        // ⚠️ CRITICAL: Wait for video to load its metadata
+        await new Promise<void>((resolve) => {
+          video.onloadedmetadata = () => {
+            console.log('✅ Video metadata cargado:', video.videoWidth, 'x', video.videoHeight);
+            resolve();
+          };
+        });
+        
+        // ⚠️ CRITICAL: Start playback explicitly
+        await video.play();
+        console.log('✅ Video reproduciendo');
+        
+        // ⚠️ CRITICAL: Additional wait to stabilize
+        await new Promise(r => setTimeout(r, 300));
+        
+        // Verificar dimensiones
+        console.log('📐 Dimensiones finales:', video.videoWidth, 'x', video.videoHeight);
+        console.log('📊 Paused:', video.paused, '| Muted:', video.muted);
+        
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          console.warn('⚠️ Dimensiones 0x0 detectadas');
+        }
+      }
+    } catch (err) {
+      console.error('❌ Error accessing camera:', err);
+      const errorMsg = 'Could not access camera';
+      setError(errorMsg);
+      throw err;
+    }
+  }
+
+  // Capturar foto
+  function capturePhoto() {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+
+    if (!context) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0);
+
+    canvas.toBlob((blob) => {
+      if (blob) {
+        onCapture(blob);
+        cleanup();
+      }
+    }, 'image/jpeg', 0.9);
+  }
+
+  // Toggle between rear and front camera
+  async function toggleCamera() {
+    const previousFacingMode = currentFacingMode;
+    const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+    
+    try {
+      await startCamera(newFacingMode);
+      setCurrentFacingMode(newFacingMode);
+    } catch (err) {
+      // Si falla, mantener la anterior
+      console.error('Error switching camera:', err);
+      setCurrentFacingMode(previousFacingMode);
+      setError('Camera not available');
+      setTimeout(() => setError(null), 3000);
+    }
+  }
+
+  // Limpiar al cerrar
+  function cleanup() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    onClose();
+  }
+
+  // Start camera when modal opens
+  useEffect(() => {
+    startCamera(currentFacingMode);
+    
+    // Event listeners para reactivar video cuando vuelve a la app
+    const handleVisibilityChange = () => {
+      if (!document.hidden && videoRef.current?.srcObject && videoRef.current.paused) {
+        console.log('🔄 Reactivando video (visibilitychange)');
+        videoRef.current.play().catch(e => console.warn('Error reactivando:', e));
+      }
+    };
+    
+    const handleFocus = () => {
+      if (videoRef.current?.srcObject && videoRef.current.paused) {
+        console.log('🔄 Reactivando video (focus)');
+        videoRef.current.play().catch(e => console.warn('Error reactivando:', e));
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
+  return (
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'black',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Video Preview */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+          backgroundColor: '#000',
+        }}
+      />
+
+      {/* Canvas oculto para captura */}
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
+
+      {/* Error Message */}
+      {error && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          color: 'white',
+          backgroundColor: 'rgba(220, 38, 38, 0.9)',
+          padding: '1rem',
+          borderRadius: '0.5rem',
+          textAlign: 'center',
+        }}>
+          {error}
+        </div>
+      )}
+
+      {/* Controles */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: '2rem',
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      }}>
+        {/* Close Button */}
+        <button
+          onClick={cleanup}
+          style={{
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            border: '3px solid white',
+            backgroundColor: 'rgba(220, 38, 38, 0.8)',
+            color: 'white',
+            fontSize: '24px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          ×
+        </button>
+
+        {/* Capture Button */}
+        <button
+          onClick={capturePhoto}
+          style={{
+            width: '70px',
+            height: '70px',
+            borderRadius: '50%',
+            border: '5px solid white',
+            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+            cursor: 'pointer',
+          }}
+        />
+
+        {/* Toggle Camera Button */}
+        <button
+          onClick={toggleCamera}
+          style={{
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            border: '3px solid white',
+            backgroundColor: 'rgba(75, 85, 99, 0.8)',
+            color: 'white',
+            fontSize: '24px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          🔄
+        </button>
       </div>
     </div>
   );
