@@ -100,7 +100,10 @@ export default function FillReportCF105() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [property, setProperty] = useState('');
   const [serviceType, setServiceType] = useState('');
+  const [salesRepresentativeId, setSalesRepresentativeId] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
+
+  const [salesReps, setSalesReps] = useState<Array<{id: string, full_name: string, email: string}>>([]);
 
   const [companyInfo, setCompanyInfo] = useState<{
     name: string;
@@ -130,6 +133,7 @@ export default function FillReportCF105() {
 
   useEffect(() => {
     loadForm();
+    loadSalesRepresentatives();
   }, []);
 
   useEffect(() => {
@@ -158,6 +162,22 @@ export default function FillReportCF105() {
         setCustomerName(companyData.contact_name || '');
         setCustomerEmail(companyData.contact_email || '');
       }
+    }
+  }
+
+  async function loadSalesRepresentatives() {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name, email')
+        .eq('role', 'sales_representative')
+        .eq('is_active', true)
+        .order('full_name');
+
+      if (error) throw error;
+      setSalesReps(data || []);
+    } catch (error) {
+      console.error('Error loading sales representatives:', error);
     }
   }
 
@@ -222,6 +242,7 @@ export default function FillReportCF105() {
       setCustomerEmail(d.customerEmail || '');
       setProperty(d.property || '');
       setServiceType(d.serviceType || '');
+      setSalesRepresentativeId(d.salesRepresentativeId || report.sales_representative_id || '');
       setAdditionalNotes(d.additionalNotes || '');
       setEspresso({ ...emptyQuality(), ...(d.espresso || {}) });
       setCoffee({ ...emptyQuality(), ...(d.coffee || {}) });
@@ -442,6 +463,7 @@ export default function FillReportCF105() {
         customerEmail,
         property,
         serviceType,
+        salesRepresentativeId,
         additionalNotes,
         customerPrintName,
         espresso_location: espresso.location,
@@ -507,6 +529,7 @@ export default function FillReportCF105() {
         const { data: updateData, error: updateError } = await supabase
           .from('service_reports')
           .update({
+            sales_representative_id: salesRepresentativeId || null,
             status: isDraft ? 'draft' : 'submitted',
             form_data: reportData,
             signature_url: signatureUrl || null,
@@ -532,6 +555,7 @@ export default function FillReportCF105() {
             form_id: CF105_FORM_ID,
             technician_id: technicianId,
             company_id: companyId,
+            sales_representative_id: salesRepresentativeId || null,
             status: isDraft ? 'draft' : 'submitted',
             form_data: reportData,
             signature_url: signatureUrl || null,
@@ -718,6 +742,26 @@ export default function FillReportCF105() {
                 <option value="Training">Training</option>
                 <option value="Other">Other</option>
               </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Sales Rep
+              </label>
+              <select
+                value={salesRepresentativeId}
+                onChange={(e) => setSalesRepresentativeId(e.target.value)}
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs md:text-sm"
+              >
+                <option value="">None</option>
+                {salesReps.map((rep) => (
+                  <option key={rep.id} value={rep.id}>
+                    {rep.full_name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Who requested this service?
+              </p>
             </div>
           </div>
         </div>
