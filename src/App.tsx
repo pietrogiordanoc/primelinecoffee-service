@@ -21,6 +21,7 @@ import StorageDashboardPage from '@/pages/admin/StorageDashboard';
 import TechnicianViewPage from '@/pages/admin/TechnicianView';
 import TechnicianHome from '@/pages/technician/Home';
 import FillReport from '@/pages/technician/FillReport';
+import ReportFormGate from '@/pages/technician/ReportFormGate';
 import ReportHistory from '@/pages/technician/History';
 import ViewReport from '@/pages/technician/ViewReport';
 import AmendReport from '@/pages/technician/AmendReport';
@@ -163,8 +164,8 @@ function App() {
           <Route path="technician-view" element={<TechnicianViewPage />} />
           {/* Tech Mode Routes for Admins */}
           <Route path="tech-mode" element={<TechnicianHome />} />
-          <Route path="tech-mode/report/:formId" element={<FillReport />} />
-          <Route path="tech-mode/report/:reportId/edit" element={<FillReport />} />
+          <Route path="tech-mode/report/:formId" element={<ReportFormGate />} />
+          <Route path="tech-mode/report/:reportId/edit" element={<ReportFormGate />} />
           <Route path="tech-mode/report/:reportId/view" element={<ViewReport />} />
           <Route path="tech-mode/report/:reportId/amend" element={<AmendReport />} />
           <Route path="tech-mode/history" element={<ReportHistory />} />
@@ -181,8 +182,8 @@ function App() {
           }
         >
           <Route index element={<TechnicianHome />} />
-          <Route path="report/:formId" element={<FillReport />} />
-          <Route path="report/:reportId/edit" element={<FillReport />} />
+          <Route path="report/:formId" element={<ReportFormGate />} />
+          <Route path="report/:reportId/edit" element={<ReportFormGate />} />
           <Route path="report/:reportId/view" element={<ViewReport />} />
           <Route path="report/:reportId/amend" element={<AmendReport />} />
           <Route path="history" element={<ReportHistory />} />

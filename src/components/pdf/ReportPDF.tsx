@@ -293,7 +293,7 @@ export default function ReportPDF({ report }: ReportPDFProps) {
                 <View key={key} style={styles.tableRow}>
                   <Text style={styles.tableLabel}>{key}:</Text>
                   <Text style={styles.tableValue}>
-                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                    {Array.isArray(value) ? value.join(', ') : typeof value === 'object' ? JSON.stringify(value) : String(value)}
                   </Text>
                 </View>
               ))}
