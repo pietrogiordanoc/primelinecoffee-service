@@ -28,6 +28,7 @@ interface UploadedFile {
 }
 
 interface EquipmentQuality {
+  location: string;
   coffeeTypes: string[];
   machineModel: string;
   machineSerial: string;
@@ -49,6 +50,7 @@ interface EquipmentQuality {
 
 function emptyQuality(): EquipmentQuality {
   return {
+    location: '',
     coffeeTypes: [],
     machineModel: '',
     machineSerial: '',
@@ -87,10 +89,11 @@ export default function FillReportCF105() {
   const [savingDraft, setSavingDraft] = useState(false);
 
   const [serviceDate, setServiceDate] = useState(new Date().toISOString().split('T')[0]);
-  const [primeLineRepresentative, setPrimeLineRepresentative] = useState('');
-  const [contactName, setContactName] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
-  const [equipmentLocation, setEquipmentLocation] = useState('');
+  const [technicianName, setTechnicianName] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [property, setProperty] = useState('');
+  const [serviceType, setServiceType] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
 
   const [companyInfo, setCompanyInfo] = useState<{
@@ -123,7 +126,7 @@ export default function FillReportCF105() {
 
   async function loadCompanyAndTechnicianData() {
     if (userProfile?.full_name) {
-      setPrimeLineRepresentative(userProfile.full_name);
+      setTechnicianName(userProfile.full_name);
     }
     if (companyId) {
       const { data: companyData } = await supabase
@@ -140,8 +143,8 @@ export default function FillReportCF105() {
           address: companyData.address || '',
           phone: companyData.phone || '',
         });
-        setContactName(companyData.contact_name || '');
-        setContactPhone(companyData.contact_phone || '');
+        setCustomerName(companyData.contact_name || '');
+        setCustomerEmail(companyData.contact_email || '');
       }
     }
   }
@@ -202,10 +205,11 @@ export default function FillReportCF105() {
 
       const d = report.form_data || {};
       setServiceDate(d.serviceDate || new Date().toISOString().split('T')[0]);
-      setPrimeLineRepresentative(d.primeLineRepresentative || userProfile?.full_name || '');
-      setContactName(d.contactName || '');
-      setContactPhone(d.contactPhone || '');
-      setEquipmentLocation(d.equipmentLocation || '');
+      setTechnicianName(d.technicianName || userProfile?.full_name || '');
+      setCustomerName(d.customerName || '');
+      setCustomerEmail(d.customerEmail || '');
+      setProperty(d.property || '');
+      setServiceType(d.serviceType || '');
       setAdditionalNotes(d.additionalNotes || '');
       setEspresso({ ...emptyQuality(), ...(d.espresso || {}) });
       setCoffee({ ...emptyQuality(), ...(d.coffee || {}) });
@@ -351,12 +355,14 @@ export default function FillReportCF105() {
 
       const reportData = {
         serviceDate,
-        primeLineRepresentative,
-        contactName,
-        contactPhone,
-        equipmentLocation,
+        technicianName,
+        customerName,
+        customerEmail,
+        property,
+        serviceType,
         additionalNotes,
         customerPrintName,
+        espresso_location: espresso.location,
         espresso_coffeeTypes: espresso.coffeeTypes,
         espresso_machineModel: espresso.machineModel,
         espresso_machineSerial: espresso.machineSerial,
@@ -374,6 +380,7 @@ export default function FillReportCF105() {
         espresso_volumeStatus: espresso.volumeStatus,
         espresso_filterDate: espresso.filterDate,
         espresso_filterStatus: espresso.filterStatus,
+        coffee_location: coffee.location,
         coffee_coffeeTypes: coffee.coffeeTypes,
         coffee_machineModel: coffee.machineModel,
         coffee_machineSerial: coffee.machineSerial,
@@ -570,28 +577,66 @@ export default function FillReportCF105() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="bg-green-50 border border-green-200 rounded-lg p-3 md:p-4">
-          <h2 className="text-sm md:text-base font-semibold text-green-900 mb-3">Visit Details</h2>
+          <h2 className="text-sm md:text-base font-semibold text-green-900 mb-3">Service Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <p className="text-xs font-medium text-gray-600 mb-0.5">Date</p>
               <p className="text-sm md:text-base font-semibold text-gray-900">{serviceDate}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-600 mb-0.5">Prime Line Representative</p>
-              <p className="text-sm md:text-base font-semibold text-gray-900">{primeLineRepresentative}</p>
+              <p className="text-xs font-medium text-gray-600 mb-0.5">Technician</p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">{technicianName}</p>
             </div>
             <Input
-              label="Equipment Location"
-              value={equipmentLocation}
-              onChange={(e) => setEquipmentLocation(e.target.value)}
-              placeholder="e.g., Front Counter, Kitchen"
+              label="Customer Name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Customer name"
+              required
             />
             <Input
-              label="On-site Contact"
-              value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
-              placeholder="Contact person name"
+              label="Customer Email"
+              type="email"
+              value={customerEmail}
+              onChange={(e) => setCustomerEmail(e.target.value)}
+              placeholder="customer@example.com"
+              required
             />
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Property <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={property}
+                onChange={(e) => setProperty(e.target.value)}
+                required
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs md:text-sm"
+              >
+                <option value="">Select...</option>
+                <option value="PLD">PLD</option>
+                <option value="La Colombe">La Colombe</option>
+                <option value="Owner">Owner</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Service Type <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={serviceType}
+                onChange={(e) => setServiceType(e.target.value)}
+                required
+                className="w-full px-2.5 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-xs md:text-sm"
+              >
+                <option value="">Select...</option>
+                <option value="Delivery">Delivery</option>
+                <option value="Pick up">Pick up</option>
+                <option value="Service">Service</option>
+                <option value="Tune up">Tune up</option>
+                <option value="Training">Training</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -813,6 +858,15 @@ function QualitySection({
         {icon}
         {title}
       </h2>
+
+      <div className="mb-3">
+        <Input
+          label="Equipment Location"
+          value={value.location}
+          onChange={(e) => set({ location: e.target.value })}
+          placeholder="e.g., Front Counter, Kitchen, Bar Area"
+        />
+      </div>
 
       <div className="mb-3">
         <p className="text-xs font-medium text-gray-700 mb-1">Coffee Type <span className="text-gray-400 font-normal">(select all that apply)</span></p>
