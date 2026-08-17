@@ -429,9 +429,13 @@ export default function FillReportCF105() {
           .single();
 
         if (updateError) throw updateError;
+        if (!updateData) throw new Error('Failed to update report');
         reportRecordId = updateData.id;
 
-        await supabase.from('report_photos').delete().eq('report_id', reportRecordId);
+        const { error: deletePhotosError } = await supabase.from('report_photos').delete().eq('report_id', reportRecordId);
+        if (deletePhotosError) {
+          console.error('Error deleting old photo records:', deletePhotosError);
+        }
       } else {
         const { data: inserted, error: insertError } = await supabase
           .from('service_reports')
@@ -448,6 +452,7 @@ export default function FillReportCF105() {
           .single();
 
         if (insertError) throw insertError;
+        if (!inserted) throw new Error('Failed to create report');
         reportRecordId = inserted.id;
       }
 
@@ -463,29 +468,39 @@ export default function FillReportCF105() {
         }));
 
         const { error: filesError } = await supabase.from('report_photos').insert(fileRecords);
-        if (filesError) console.error('Error saving photo records:', filesError);
+        if (filesError) {
+          console.error('Error saving photo records:', filesError);
+          throw new Error('Failed to save file records');
+        }
       }
 
       if (!isDraft) {
         try {
+          console.log('📧 Sending notification email...');
           const emailResponse = await fetch('/.netlify/functions/send-report-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ reportId: reportRecordId }),
           });
-          if (!emailResponse.ok) console.warn('Error sending email, but report was saved correctly');
+          
+          if (emailResponse.ok) {
+            console.log('✅ Email sent successfully');
+          } else {
+            console.warn('⚠️ Error sending email, but report was saved correctly');
+          }
         } catch (emailError) {
           console.error('Error sending email:', emailError);
+          // Don't fail entire process if email fails
         }
       }
 
       const successMessage = isEditMode
-        ? isDraft
-          ? 'Draft updated successfully!'
-          : 'Draft submitted successfully!'
-        : isDraft
-        ? 'Draft saved successfully! You can continue it later from History.'
-        : 'Report submitted successfully!';
+        ? (isDraft 
+            ? 'Draft updated successfully!' 
+            : 'Draft submitted successfully!')
+        : (isDraft 
+            ? 'Draft saved successfully! You can continue it later from History.' 
+            : 'Report submitted successfully!');
 
       await alert(successMessage, 'Success');
       navigate('../..');
