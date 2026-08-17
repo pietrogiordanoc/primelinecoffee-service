@@ -9,8 +9,10 @@ import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import SignaturePad from '@/components/ui/SignaturePad';
-import { Coffee, Building2, Camera, Image, X, Edit } from 'lucide-react';
+import { Coffee, Building2, Camera, Image, Video, X, Edit } from 'lucide-react';
+import { compressVideo, getVideoDuration, generateVideoThumbnail } from '@/utils/videoCompression';
 import { optimizeImages } from '@/utils/imageOptimization';
+import VideoRecorderModal from '@/components/media/VideoRecorderModal';
 import type { DynamicForm } from '@/types';
 
 export const CF105_FORM_ID = '00000000-0000-0000-0000-000000000105';
@@ -21,10 +23,14 @@ const BATCH_COFFEE_TYPES = ['Kimbo', 'La Colombe', 'Hausbrandt', 'Beans', 'Fract
 interface UploadedFile {
   id: string;
   file_url: string;
+  thumbnail_url?: string;
   file_name: string;
   file_size: number;
   mime_type: string;
+  type: 'photo' | 'video';
+  duration?: number;
   uploading?: boolean;
+  uploadProgress?: number;
 }
 
 interface EquipmentQuality {
@@ -111,10 +117,16 @@ export default function FillReportCF105() {
   const [customerSignature, setCustomerSignature] = useState('');
   const [customerPrintName, setCustomerPrintName] = useState('');
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [videosEnabled, setVideosEnabled] = useState(true);
 
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    setVideosEnabled(settings?.enable_videos !== false);
+  }, [settings?.enable_videos]);
 
   useEffect(() => {
     loadForm();
@@ -229,9 +241,12 @@ export default function FillReportCF105() {
           reportPhotos.map((p) => ({
             id: p.id,
             file_url: p.file_url,
+            thumbnail_url: p.thumbnail_url || p.file_url,
             file_name: p.file_name,
             file_size: p.file_size,
             mime_type: p.mime_type,
+            type: p.mime_type?.startsWith('video/') ? 'video' as const : 'photo' as const,
+            duration: p.duration || undefined,
           }))
         );
       }
@@ -269,7 +284,7 @@ export default function FillReportCF105() {
 
         setPhotos((prev) => [
           ...prev,
-          { id: fileId, file_url: '', file_name: fileName, file_size: photo.file.size, mime_type: 'image/webp', uploading: true },
+          { id: fileId, file_url: '', file_name: fileName, file_size: photo.file.size, mime_type: 'image/webp', type: 'photo', uploading: true },
         ]);
 
         const { error: uploadError } = await supabase.storage
@@ -313,7 +328,7 @@ export default function FillReportCF105() {
 
       setPhotos((prev) => [
         ...prev,
-        { id: fileId, file_url: '', file_name: fileName, file_size: optimized[0].file.size, mime_type: 'image/webp', uploading: true },
+        { id: fileId, file_url: '', file_name: fileName, file_size: optimized[0].file.size, mime_type: 'image/webp', type: 'photo', uploading: true },
       ]);
 
       const { error: uploadError } = await supabase.storage
@@ -335,6 +350,73 @@ export default function FillReportCF105() {
     } catch (error) {
       console.error('Error processing camera photo:', error);
       await alert('Error uploading camera photo. Please try again.', 'Error');
+    }
+  }
+
+  async function handleVideoCapture(blob: Blob) {
+    if (!videosEnabled) {
+      await alert('Video uploads are currently disabled.', 'Information');
+      return;
+    }
+
+    try {
+      const videoFile = new File([blob], `video_${Date.now()}.webm`, { type: 'video/webm' });
+      const duration = await getVideoDuration(videoFile);
+      const maxDuration = settings?.max_video_duration_seconds || 120;
+
+      if (duration > maxDuration) {
+        await alert(`Video too long (${duration.toFixed(0)}s). Maximum allowed: ${maxDuration}s`, 'Error');
+        return;
+      }
+
+      let finalBlob: Blob = blob;
+      if (settings?.video_compression_enabled) {
+        finalBlob = await compressVideo(videoFile, {
+          maxHeight: settings.video_max_resolution_height || 720,
+          maxWidth: 1280,
+          targetBitrate: settings.video_target_bitrate_mbps || 1.5,
+        });
+      }
+
+      const maxVideoSize = (settings?.max_video_size_mb || 50) * 1024 * 1024;
+      if (finalBlob.size > maxVideoSize) {
+        await alert(`Video too large (${(finalBlob.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed: ${settings?.max_video_size_mb || 50} MB`, 'Error');
+        return;
+      }
+
+      const fileId = `${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      const fileName = `video_${fileId}.mp4`;
+      setPhotos((prev) => [
+        ...prev,
+        { id: fileId, file_url: '', file_name: fileName, file_size: finalBlob.size, mime_type: 'video/mp4', type: 'video', duration, uploading: true },
+      ]);
+
+      const { error: uploadError } = await supabase.storage.from('service-photos').upload(fileName, finalBlob, {
+        contentType: 'video/mp4', cacheControl: '3600', upsert: false,
+      });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('service-photos').getPublicUrl(fileName);
+      let thumbnailUrl = urlData.publicUrl;
+      try {
+        const thumbnailBlob = await generateVideoThumbnail(finalBlob, 0.5);
+        const thumbnailFileName = fileName.replace(/\.mp4$/i, '_thumb.jpg');
+        const { error: thumbnailError } = await supabase.storage.from('service-photos').upload(thumbnailFileName, thumbnailBlob, {
+          contentType: 'image/jpeg', cacheControl: '3600', upsert: false,
+        });
+        if (!thumbnailError) {
+          thumbnailUrl = supabase.storage.from('service-photos').getPublicUrl(thumbnailFileName).data.publicUrl;
+        }
+      } catch (thumbnailError) {
+        console.warn('Could not generate video thumbnail:', thumbnailError);
+      }
+
+      setPhotos((prev) => prev.map((p) => p.id === fileId ? { ...p, file_url: urlData.publicUrl, thumbnail_url: thumbnailUrl, uploading: false } : p));
+      setVideoModalOpen(false);
+    } catch (error) {
+      console.error('Error processing video:', error);
+      await alert('Error uploading video. Please try again.', 'Error');
+      setPhotos((prev) => prev.filter((p) => !p.uploading || p.type !== 'video'));
     }
   }
 
@@ -667,7 +749,7 @@ export default function FillReportCF105() {
         />
 
         <div className="bg-white border border-gray-200 rounded-lg p-3 md:p-4">
-          <h2 className="text-sm font-semibold text-gray-900 mb-2">Photos</h2>
+          <h2 className="text-sm font-semibold text-gray-900 mb-2">{videosEnabled ? 'Photos & Videos' : 'Photos'}</h2>
           
           {photos.length > 0 && (
             <div className="grid grid-cols-3 md:grid-cols-4 gap-2 mb-3">
@@ -676,6 +758,22 @@ export default function FillReportCF105() {
                   {photo.uploading ? (
                     <div className="w-full h-full flex items-center justify-center bg-gray-100">
                       <LoadingSpinner size="sm" />
+                    </div>
+                  ) : photo.type === 'video' ? (
+                    <div className="relative w-full h-full bg-black rounded overflow-hidden">
+                      {photo.thumbnail_url ? (
+                        <img src={photo.thumbnail_url} alt="Video thumbnail" className="w-full h-full object-cover" />
+                      ) : (
+                        <video src={photo.file_url} className="w-full h-full object-cover" muted />
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                        <Video className="w-6 h-6 text-white opacity-80" />
+                      </div>
+                      {photo.duration && (
+                        <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 rounded">
+                          {Math.floor(photo.duration)}s
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <img src={photo.file_url} alt="" className="w-full h-full object-cover" />
@@ -694,7 +792,7 @@ export default function FillReportCF105() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className={`grid gap-2 ${videosEnabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
             {/* Camera Button */}
             <button
               type="button"
@@ -704,6 +802,17 @@ export default function FillReportCF105() {
               <Camera className="w-6 h-6 text-blue-600 mb-1" />
               <span className="text-sm font-medium text-blue-700">Camera</span>
             </button>
+
+            {videosEnabled && (
+              <button
+                type="button"
+                onClick={() => setVideoModalOpen(true)}
+                className="flex flex-col items-center justify-center h-20 w-full border-2 border-dashed border-purple-300 bg-purple-50 rounded-lg cursor-pointer hover:bg-purple-100 active:bg-purple-200 transition"
+              >
+                <Video className="w-6 h-6 text-purple-600 mb-1" />
+                <span className="text-sm font-medium text-purple-700">Video</span>
+              </button>
+            )}
 
             {/* Gallery Button */}
             <div>
@@ -770,6 +879,13 @@ export default function FillReportCF105() {
         <CameraModal
           onCapture={handleCameraCapture}
           onClose={() => setCameraModalOpen(false)}
+        />
+      )}
+      {videoModalOpen && (
+        <VideoRecorderModal
+          onCapture={handleVideoCapture}
+          onClose={() => setVideoModalOpen(false)}
+          maxDuration={settings?.max_video_duration_seconds || 120}
         />
       )}
     </div>
