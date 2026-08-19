@@ -136,7 +136,7 @@ export default function TechnicianHome() {
             <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search company..."
+              placeholder="Search customer..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-6 pr-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs bg-white"
@@ -172,7 +172,7 @@ export default function TechnicianHome() {
         {/* Select Company */}
         <div className="mt-1">
         <div className="flex items-center justify-between mb-1.5">
-          <h2 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Companies</h2>
+          <h2 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Customers</h2>
           {/* Only show New button for admins in technician mode */}
           {(userProfile?.role === 'admin' || userProfile?.role === 'super_admin') && (
             <Button
@@ -189,12 +189,12 @@ export default function TechnicianHome() {
           <Card>
             <div className="p-8 text-center">
               <p className="text-sm text-gray-500 mb-3">
-                {searchQuery ? 'No companies found' : 'No companies available'}
+                {searchQuery ? 'No customers found' : 'No customers available'}
               </p>
               {!searchQuery && (userProfile?.role === 'admin' || userProfile?.role === 'super_admin') && (
                 <Button onClick={() => setIsAddCompanyModalOpen(true)} size="sm">
                   <Plus className="w-4 h-4 mr-1" />
-                  Add Company
+                  Add Customer
                 </Button>
               )}
             </div>

@@ -380,7 +380,7 @@ export default function ReportsPage() {
           onChange={(e) => setCompanyFilter(e.target.value)}
           className="px-1.5 py-1 border border-gray-300 rounded bg-white text-xs"
         >
-          <option value="">All Companies</option>
+          <option value="">All Customers</option>
           {filterOptions.companies.map((company) => (
             <option key={company} value={company}>{company}</option>
           ))}

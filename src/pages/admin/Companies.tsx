@@ -118,7 +118,7 @@ export default function CompaniesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Companies</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Customers</h1>
         <Button onClick={() => setIsModalOpen(true)} size="sm" className="w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-1" />
           Add

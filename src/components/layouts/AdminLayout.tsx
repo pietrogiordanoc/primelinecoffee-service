@@ -35,7 +35,7 @@ export default function AdminLayout() {
     { name: 'Create Report', href: '/admin/create-report', icon: FilePlus },
     { name: 'Reports', href: '/admin/reports', icon: ClipboardList },
     { name: 'STAFF', href: '/admin/technicians', icon: Users },
-    { name: 'Companies', href: '/admin/companies', icon: Building2 },
+    { name: 'Customers', href: '/admin/companies', icon: Building2 },
     { name: 'Forms', href: '/admin/forms', icon: FileText },
     { name: 'Trash', href: '/admin/trash', icon: Trash2 },
     { name: 'Storage', href: '/admin/storage', icon: HardDrive },
@@ -288,7 +288,7 @@ export default function AdminLayout() {
                   'text-xs font-medium',
                   isActive ? 'text-primary-600' : 'text-gray-500'
                 )}>
-                  Companies
+                  Customers
                 </span>
               </>
             )}

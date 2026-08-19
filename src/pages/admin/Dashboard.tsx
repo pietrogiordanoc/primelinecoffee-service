@@ -74,7 +74,7 @@ export default function Dashboard() {
     training: 0,
     other: 0
   });
-  const [activeTab, setActiveTab] = useState<'technicians' | 'companies'>('technicians');
+  const [activeTab, setActiveTab] = useState<'technicians' | 'customers'>('technicians');
   const [showChartsModal, setShowChartsModal] = useState(false);
 
   useEffect(() => {
@@ -413,7 +413,7 @@ export default function Dashboard() {
       color: 'purple',
     },
     {
-      name: 'Companies',
+      name: 'Customers',
       value: stats?.total_companies || 0,
       icon: Building2,
       color: 'indigo',
