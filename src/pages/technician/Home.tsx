@@ -482,10 +482,13 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
       });
 
       if (!response.ok) {
-        throw new Error('Error checking duplicates');
+        const errorData = await response.json();
+        console.error('Duplicate check failed:', response.status, errorData);
+        throw new Error(errorData.error || errorData.details || 'Error checking duplicates');
       }
 
       const result = await response.json();
+      console.log('Duplicate check result:', result);
       return result;
     } catch (error) {
       console.error('Error checking duplicates:', error);

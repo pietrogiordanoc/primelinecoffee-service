@@ -33,6 +33,8 @@ const handler: Handler = async (event: HandlerEvent) => {
     if (data.phone) rpcParams.p_phone = data.phone;
     if (data.excludeId) rpcParams.p_exclude_id = data.excludeId;
 
+    console.log('Calling check_duplicate_customers with params:', rpcParams);
+
     const response = await fetch(
       `${SUPABASE_URL}/rest/v1/rpc/check_duplicate_customers`,
       {
@@ -47,11 +49,13 @@ const handler: Handler = async (event: HandlerEvent) => {
     );
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to check duplicates');
+      const errorText = await response.text();
+      console.error('Supabase RPC error:', response.status, errorText);
+      throw new Error(`Supabase RPC failed (${response.status}): ${errorText}`);
     }
 
     const duplicates = await response.json();
+    console.log('Found duplicates:', duplicates);
 
     // Classify duplicates by confidence level
     const highConfidence = duplicates.filter((d: any) => 
@@ -75,9 +79,13 @@ const handler: Handler = async (event: HandlerEvent) => {
     };
   } catch (error: any) {
     console.error('Error checking duplicates:', error);
+    console.error('Error stack:', error.stack);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Error checking duplicates' }),
+      body: JSON.stringify({ 
+        error: error.message || 'Error checking duplicates',
+        details: error.toString(),
+      }),
     };
   }
 };
