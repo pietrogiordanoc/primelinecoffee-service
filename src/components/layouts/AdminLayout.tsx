@@ -295,36 +295,6 @@ export default function AdminLayout() {
           </NavLink>
 
           <NavLink
-            to="/admin/reports"
-            className={({ isActive }) =>
-              cn(
-                'flex flex-col items-center justify-center flex-1 h-full transition-all',
-                isActive
-                  ? 'text-primary-600'
-                  : 'text-gray-400 hover:text-primary-500'
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <ClipboardList
-                  className={cn(
-                    'w-6 h-6 mb-1 transition-all',
-                    isActive ? 'text-primary-600 scale-110' : 'text-gray-400'
-                  )}
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
-                <span className={cn(
-                  'text-xs font-medium',
-                  isActive ? 'text-primary-600' : 'text-gray-500'
-                )}>
-                  Reports
-                </span>
-              </>
-            )}
-          </NavLink>
-
-          <NavLink
             to="/admin/technicians"
             className={({ isActive }) =>
               cn(
@@ -349,6 +319,36 @@ export default function AdminLayout() {
                   isActive ? 'text-primary-600' : 'text-gray-500'
                 )}>
                   Staff
+                </span>
+              </>
+            )}
+          </NavLink>
+
+          <NavLink
+            to="/admin/reports"
+            className={({ isActive }) =>
+              cn(
+                'flex flex-col items-center justify-center flex-1 h-full transition-all',
+                isActive
+                  ? 'text-primary-600'
+                  : 'text-gray-400 hover:text-primary-500'
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <ClipboardList
+                  className={cn(
+                    'w-6 h-6 mb-1 transition-all',
+                    isActive ? 'text-primary-600 scale-110' : 'text-gray-400'
+                  )}
+                  strokeWidth={isActive ? 2.5 : 2}
+                />
+                <span className={cn(
+                  'text-xs font-medium',
+                  isActive ? 'text-primary-600' : 'text-gray-500'
+                )}>
+                  Reports
                 </span>
               </>
             )}
