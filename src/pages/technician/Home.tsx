@@ -659,9 +659,3 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
     </>
   );
 }
-          </Button>
-        </div>
-      </form>
-    </Modal>
-  );
-}

@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { companySchema, type CompanyInput } from '@/utils/validationSchemas';
 import type { Company, DuplicateCheckResult } from '@/types';
 
-type SortField = 'name' | 'contact_name' | 'city' | 'contact_email' | 'contact_phone';
+type SortField = 'name' | 'customer_code' | 'contact_name' | 'city' | 'contact_email' | 'contact_phone';
 type SortDirection = 'asc' | 'desc';
 
 export default function CompaniesPage() {
