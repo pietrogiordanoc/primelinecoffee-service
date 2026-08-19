@@ -33,10 +33,10 @@ export default function AdminLayout() {
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Create Report', href: '/admin/create-report', icon: FilePlus },
+    { name: 'Reports', href: '/admin/reports', icon: ClipboardList },
     { name: 'STAFF', href: '/admin/technicians', icon: Users },
     { name: 'Companies', href: '/admin/companies', icon: Building2 },
     { name: 'Forms', href: '/admin/forms', icon: FileText },
-    { name: 'Reports', href: '/admin/reports', icon: ClipboardList },
     { name: 'Trash', href: '/admin/trash', icon: Trash2 },
     { name: 'Storage', href: '/admin/storage', icon: HardDrive },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
