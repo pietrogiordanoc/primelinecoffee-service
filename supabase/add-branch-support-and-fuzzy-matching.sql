@@ -17,6 +17,9 @@ CREATE INDEX IF NOT EXISTS idx_companies_is_branch ON public.companies(is_branch
 
 -- Step 4: Create function to check for duplicate customers
 -- Returns potential duplicates based on name, city, and phone similarity
+-- Note: Must drop and recreate if changing return type
+DROP FUNCTION IF EXISTS check_duplicate_customers(text, text, text, uuid);
+
 CREATE OR REPLACE FUNCTION check_duplicate_customers(
   p_name TEXT,
   p_city TEXT DEFAULT NULL,
@@ -32,7 +35,7 @@ RETURNS TABLE(
   address TEXT,
   contact_phone TEXT,
   contact_name TEXT,
-  similarity_score NUMERIC,
+  similarity_score DOUBLE PRECISION,
   match_reason TEXT
 ) AS $$
 BEGIN
@@ -53,7 +56,7 @@ BEGIN
         THEN similarity(LOWER(c.city), LOWER(p_city)) * 0.3 
         ELSE 0 
       END
-    ) AS similarity_score,
+    )::DOUBLE PRECISION AS similarity_score,
     CASE
       WHEN LOWER(c.name) = LOWER(p_name) AND LOWER(COALESCE(c.city, '')) = LOWER(COALESCE(p_city, '')) 
         THEN 'Exact name + city match'
