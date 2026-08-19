@@ -26,14 +26,15 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     // Call the PostgreSQL function to check for duplicates
-    const params = new URLSearchParams();
-    params.append('p_name', data.name);
-    if (data.city) params.append('p_city', data.city);
-    if (data.phone) params.append('p_phone', data.phone);
-    if (data.excludeId) params.append('p_exclude_id', data.excludeId);
+    const rpcParams: any = {
+      p_name: data.name,
+    };
+    if (data.city) rpcParams.p_city = data.city;
+    if (data.phone) rpcParams.p_phone = data.phone;
+    if (data.excludeId) rpcParams.p_exclude_id = data.excludeId;
 
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/rpc/check_duplicate_customers?${params.toString()}`,
+      `${SUPABASE_URL}/rest/v1/rpc/check_duplicate_customers`,
       {
         method: 'POST',
         headers: {
@@ -41,6 +42,7 @@ const handler: Handler = async (event: HandlerEvent) => {
           'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
           'apikey': SERVICE_ROLE_KEY,
         },
+        body: JSON.stringify(rpcParams),
       }
     );
 
