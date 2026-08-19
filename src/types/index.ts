@@ -31,6 +31,7 @@ export interface Technician {
 
 export interface Company {
   id: string;
+  customer_code: string;
   name: string;
   address?: string;
   city?: string;

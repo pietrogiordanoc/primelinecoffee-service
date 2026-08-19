@@ -236,14 +236,22 @@ export default function TechnicianHome() {
                         <p className="text-xs font-semibold text-gray-900 truncate leading-none">
                           {company.name}
                         </p>
-                        {company.last_visit && (
-                          <p className="text-xs text-gray-400 leading-none mt-0.5">
-                            {new Date(company.last_visit).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </p>
-                        )}
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-xs font-mono font-semibold text-indigo-600">
+                            {company.customer_code}
+                          </span>
+                          {(company.city || company.last_visit) && (
+                            <>
+                              <span className="text-xs text-gray-300">•</span>
+                              <span className="text-xs text-gray-400 truncate">
+                                {company.city || (company.last_visit && new Date(company.last_visit).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                }))}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1">

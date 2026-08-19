@@ -185,7 +185,7 @@ export default function CompaniesPage() {
             <table className="w-full min-w-[900px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left px-3 py-2 w-[20%]">
+                  <th className="text-left px-3 py-2 w-[18%]">
                     <button
                       onClick={() => handleSort('name')}
                       className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
@@ -194,7 +194,16 @@ export default function CompaniesPage() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="text-left px-3 py-2 w-[12%]">
+                  <th className="text-left px-3 py-2 w-[10%]">
+                    <button
+                      onClick={() => handleSort('customer_code')}
+                      className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
+                    >
+                      Code
+                      <ArrowUpDown className="w-3 h-3" />
+                    </button>
+                  </th>
+                  <th className="text-left px-3 py-2 w-[10%]">
                     <button
                       onClick={() => handleSort('city')}
                       className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
@@ -203,7 +212,7 @@ export default function CompaniesPage() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="text-left px-3 py-2 w-[15%]">
+                  <th className="text-left px-3 py-2 w-[14%]">
                     <button
                       onClick={() => handleSort('contact_name')}
                       className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
@@ -212,7 +221,7 @@ export default function CompaniesPage() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="text-left px-3 py-2 w-[20%]">
+                  <th className="text-left px-3 py-2 w-[18%]">
                     <button
                       onClick={() => handleSort('contact_email')}
                       className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
@@ -221,7 +230,7 @@ export default function CompaniesPage() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="text-left px-3 py-2 w-[13%]">
+                  <th className="text-left px-3 py-2 w-[12%]">
                     <button
                       onClick={() => handleSort('contact_phone')}
                       className="flex items-center gap-1 text-xs font-medium text-gray-700 hover:text-gray-900"
@@ -230,7 +239,7 @@ export default function CompaniesPage() {
                       <ArrowUpDown className="w-3 h-3" />
                     </button>
                   </th>
-                  <th className="text-left px-3 py-2 w-[10%] text-xs font-medium text-gray-700">
+                  <th className="text-left px-3 py-2 w-[8%] text-xs font-medium text-gray-700">
                     Status
                   </th>
                   <th className="text-right px-3 py-2 w-[10%] text-xs font-medium text-gray-700">
@@ -250,6 +259,11 @@ export default function CompaniesPage() {
                           {company.name}
                         </span>
                       </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className="text-xs font-mono font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                        {company.customer_code}
+                      </span>
                     </td>
                     <td className="px-3 py-2 text-sm text-gray-600">
                       {company.city || '-'}
@@ -322,9 +336,17 @@ export default function CompaniesPage() {
                         <p className="text-xs font-semibold text-gray-900 truncate leading-none">
                           {company.name}
                         </p>
-                        {company.city && (
-                          <p className="text-xs text-gray-400 truncate leading-none mt-0.5">{company.city}</p>
-                        )}
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-xs font-mono font-semibold text-indigo-600">
+                            {company.customer_code}
+                          </span>
+                          {company.city && (
+                            <>
+                              <span className="text-xs text-gray-300">•</span>
+                              <span className="text-xs text-gray-400 truncate">{company.city}</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
