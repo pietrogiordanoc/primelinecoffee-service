@@ -28,8 +28,8 @@ export default function ViewReport() {
   
   // Detect if we're in admin or technician view
   const isAdminView = window.location.pathname.includes('/admin/');
-  const isTechMode = window.location.pathname.includes('/admin/tech-mode/');
-  const backPath = isTechMode ? '/admin/tech-mode/history' : isAdminView ? '/admin/reports' : '/technician/history';
+  const isAdminCreateMode = window.location.pathname.includes('/admin/tech-mode/') || window.location.pathname.includes('/admin/create-report/');
+  const backPath = isAdminCreateMode ? (window.location.pathname.includes('/create-report/') ? '/admin/create-report' : '/admin/tech-mode/history') : isAdminView ? '/admin/reports' : '/technician/history';
   const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'super_admin';
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function ViewReport() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, reportIds, isTechMode, isAdminView]);
+  }, [currentIndex, reportIds, isAdminCreateMode, isAdminView]);
 
   async function loadReport() {
     try {
@@ -169,8 +169,9 @@ export default function ViewReport() {
   function navigateToPrevious() {
     if (currentIndex > 0 && reportIds.length > 0) {
       const prevId = reportIds[currentIndex - 1];
-      if (isTechMode) {
-        navigate(`/admin/tech-mode/report/${prevId}/view`);
+      if (isAdminCreateMode) {
+        const basePath = window.location.pathname.includes('/create-report/') ? '/admin/create-report' : '/admin/tech-mode';
+        navigate(`${basePath}/report/${prevId}/view`);
       } else if (isAdminView) {
         navigate(`/admin/reports/${prevId}`);
       } else {
@@ -182,8 +183,9 @@ export default function ViewReport() {
   function navigateToNext() {
     if (currentIndex < reportIds.length - 1 && reportIds.length > 0) {
       const nextId = reportIds[currentIndex + 1];
-      if (isTechMode) {
-        navigate(`/admin/tech-mode/report/${nextId}/view`);
+      if (isAdminCreateMode) {
+        const basePath = window.location.pathname.includes('/create-report/') ? '/admin/create-report' : '/admin/tech-mode';
+        navigate(`${basePath}/report/${nextId}/view`);
       } else if (isAdminView) {
         navigate(`/admin/reports/${nextId}`);
       } else {
@@ -525,7 +527,9 @@ export default function ViewReport() {
             <div className="flex items-start gap-2">
               <User className="w-4 h-4 md:w-5 md:h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] md:text-xs text-gray-500">Technician</p>
+                <p className="text-[10px] md:text-xs text-gray-500">
+                  {report.technician_id ? 'Technician' : 'Administrator'}
+                </p>
                 <p className="text-sm md:text-base font-medium text-gray-900 truncate">{report.technician?.user?.full_name || report.form_data?.technicianName || 'Admin User'}</p>
                 <p className="text-[11px] md:text-sm text-gray-600 truncate">{report.technician?.user?.email || ''}</p>
               </div>

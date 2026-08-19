@@ -162,7 +162,15 @@ function App() {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="storage" element={<StorageDashboardPage />} />
           <Route path="technician-view" element={<TechnicianViewPage />} />
-          {/* Tech Mode Routes for Admins */}
+          {/* Create Report Routes for Admins */}
+          <Route path="create-report" element={<TechnicianHome />} />
+          <Route path="create-report/report/:formId" element={<ReportFormGate />} />
+          <Route path="create-report/report/:reportId/edit" element={<ReportFormGate />} />
+          <Route path="create-report/report/:reportId/view" element={<ViewReport />} />
+          <Route path="create-report/report/:reportId/amend" element={<AmendReport />} />
+          <Route path="create-report/history" element={<ReportHistory />} />
+          <Route path="create-report/staff" element={<Staff />} />
+          {/* Tech Mode Routes for Admins (legacy, keep for compatibility) */}
           <Route path="tech-mode" element={<TechnicianHome />} />
           <Route path="tech-mode/report/:formId" element={<ReportFormGate />} />
           <Route path="tech-mode/report/:reportId/edit" element={<ReportFormGate />} />

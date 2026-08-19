@@ -12,8 +12,7 @@ import {
   LogOut,
   Menu,
   X,
-  Smartphone,
-  Home,
+  FilePlus,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/authStore';
@@ -24,8 +23,6 @@ export default function AdminLayout() {
   const location = useLocation();
   const { userProfile, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  const isTechMode = location.pathname.startsWith('/admin/tech-mode');
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -35,6 +32,7 @@ export default function AdminLayout() {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { name: 'Create Report', href: '/admin/create-report', icon: FilePlus },
     { name: 'STAFF', href: '/admin/technicians', icon: Users },
     { name: 'Companies', href: '/admin/companies', icon: Building2 },
     { name: 'Forms', href: '/admin/forms', icon: FileText },
@@ -117,28 +115,7 @@ export default function AdminLayout() {
                   <span className="text-xs font-medium text-center">{item.name}</span>
                 </NavLink>
               ))}
-              <NavLink
-                to={isTechMode ? '/admin' : '/admin/tech-mode'}
-                onClick={() => setSidebarOpen(false)}
-                className={cn(
-                  'flex flex-col items-center justify-center p-4 rounded-xl transition-all',
-                  isTechMode
-                    ? 'bg-green-50 text-green-700'
-                    : 'text-gray-600 hover:bg-gray-100'
-                )}
-              >
-                {isTechMode ? (
-                  <>
-                    <Home className="w-7 h-7 mb-2" strokeWidth={2} />
-                    <span className="text-xs font-medium text-center">Version Admin</span>
-                  </>
-                ) : (
-                  <>
-                    <Smartphone className="w-7 h-7 mb-2" strokeWidth={2} />
-                    <span className="text-xs font-medium text-center">Version Tech</span>
-                  </>
-                )}
-              </NavLink>
+
             </div>
           </div>
         </div>
@@ -168,30 +145,7 @@ export default function AdminLayout() {
             </div>
           </div>
 
-          {/* Version Switcher */}
-          <div className="px-4 py-3 border-b border-gray-200">
-            <NavLink
-              to={isTechMode ? '/admin' : '/admin/tech-mode'}
-              className={cn(
-                'flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors',
-                isTechMode
-                  ? 'bg-green-50 text-green-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-              )}
-            >
-              {isTechMode ? (
-                <>
-                  <Home className="w-5 h-5 mr-3" />
-                  Version Admin
-                </>
-              ) : (
-                <>
-                  <Smartphone className="w-5 h-5 mr-3" />
-                  Version Tech
-                </>
-              )}
-            </NavLink>
-          </div>
+
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
@@ -401,33 +355,33 @@ export default function AdminLayout() {
           </NavLink>
 
           <NavLink
-            to={isTechMode ? "/admin" : "/admin/tech-mode"}
-            className={cn(
-              'flex flex-col items-center justify-center flex-1 h-full transition-all',
-              isTechMode
-                ? 'text-green-600'
-                : 'text-gray-400 hover:text-green-500'
-            )}
+            to="/admin/create-report"
+            className={({ isActive }) =>
+              cn(
+                'flex flex-col items-center justify-center flex-1 h-full transition-all',
+                isActive
+                  ? 'text-primary-600'
+                  : 'text-gray-400 hover:text-primary-500'
+              )
+            }
           >
-            <>
-              {isTechMode ? (
-                <Home
-                  className="w-6 h-6 mb-1 transition-all text-green-600 scale-110"
-                  strokeWidth={2.5}
+            {({ isActive }) => (
+              <>
+                <FilePlus
+                  className={cn(
+                    'w-6 h-6 mb-1 transition-all',
+                    isActive ? 'text-primary-600 scale-110' : 'text-gray-400'
+                  )}
+                  strokeWidth={isActive ? 2.5 : 2}
                 />
-              ) : (
-                <Smartphone
-                  className="w-6 h-6 mb-1 transition-all text-gray-400"
-                  strokeWidth={2}
-                />
-              )}
-              <span className={cn(
-                'text-xs font-medium',
-                isTechMode ? 'text-green-600' : 'text-gray-500'
-              )}>
-                {isTechMode ? 'Admin' : 'Tech'}
-              </span>
-            </>
+                <span className={cn(
+                  'text-xs font-medium',
+                  isActive ? 'text-primary-600' : 'text-gray-500'
+                )}>
+                  + New
+                </span>
+              </>
+            )}
           </NavLink>
 
           <button
