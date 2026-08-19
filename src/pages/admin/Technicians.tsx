@@ -582,7 +582,7 @@ export default function TechniciansPage() {
                                   ? 'text-green-700 bg-green-100 hover:bg-green-200'
                                   : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
                               }`}
-                              title={assignmentStatus[technician.id] ? 'Unassign All Companies' : 'Assign All Companies'}
+                              title={assignmentStatus[technician.id] ? 'Unassign All Customers' : 'Assign All Customers'}
                             >
                               <CheckCheck className="w-3.5 h-3.5" />
                               {assignmentStatus[technician.id] ? 'All Assigned' : 'Assign All'}
@@ -844,7 +844,7 @@ export default function TechniciansPage() {
         onSuccess={loadTechnicians}
       />
 
-      {/* Assign Companies Modal */}
+      {/* Assign Customers Modal */}
       <AssignCompaniesModal
         isOpen={isAssignModalOpen}
         onClose={() => {

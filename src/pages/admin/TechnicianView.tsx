@@ -108,11 +108,11 @@ export default function TechnicianViewPage() {
         </p>
       </div>
 
-      {/* Companies Table */}
+      {/* Customers Table */}
       {companies.length === 0 ? (
         <Card>
           <div className="p-12 text-center">
-            <p className="text-gray-500">No companies available</p>
+            <p className="text-gray-500">No customers available</p>
             <p className="text-sm text-gray-400 mt-2">
               Add companies in the admin panel first
             </p>

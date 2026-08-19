@@ -556,15 +556,15 @@ export default function Dashboard() {
                 <span className="hidden md:inline">By Technician</span>
               </button>
               <button
-                onClick={() => setActiveTab('companies')}
+                onClick={() => setActiveTab('customers')}
                 className={`flex-1 md:flex-none px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium rounded-lg transition ${
-                  activeTab === 'companies'
+                  activeTab === 'customers'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <span className="md:hidden">Companies</span>
-                <span className="hidden md:inline">By Company</span>
+                <span className="md:hidden">Customers</span>
+                <span className="hidden md:inline">By Customer</span>
               </button>
             </div>
           </div>
@@ -804,8 +804,8 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Company Statistics */}
-          {activeTab === 'companies' && (
+          {/* Customer Statistics */}
+          {activeTab === 'customers' && (
             <div className="space-y-3 md:space-y-6">
               {/* Mobile: View Charts Button */}
               <button
