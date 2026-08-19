@@ -8,9 +8,10 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import DuplicateWarningModal from '@/components/ui/DuplicateWarningModal';
 import { FileText, ChevronRight, Plus, ChevronDown, Search, MapPin, Phone, Mail, User, Calendar, ArrowUpDown, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import type { DynamicForm, Company } from '@/types';
+import type { DynamicForm, Company, DuplicateCheckResult } from '@/types';
 
 export default function TechnicianHome() {
   const navigate = useNavigate();
@@ -462,9 +463,52 @@ interface AddCompanyModalProps {
 function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const [duplicates, setDuplicates] = useState<DuplicateCheckResult[]>([]);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [pendingData, setPendingData] = useState<any>(null);
+  
+  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm();
 
-  const onSubmit = async (data: any) => {
+  const watchedName = watch('name');
+  const watchedCity = watch('city');
+  const watchedPhone = watch('contact_phone');
+
+  const checkDuplicates = async (name: string, city?: string, phone?: string) => {
+    try {
+      const response = await fetch('/.netlify/functions/check-duplicate-customer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, city, phone }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error checking duplicates');
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error checking duplicates:', error);
+      return { hasDuplicates: false, highConfidence: [], mediumConfidence: [], allMatches: [] };
+    }
+  };
+
+  const handleFormSubmit = async (data: any) => {
+    const duplicateCheck = await checkDuplicates(data.name, data.city, data.contact_phone);
+    
+    if (duplicateCheck.hasDuplicates && duplicateCheck.highConfidence.length > 0) {
+      // Show duplicate warning modal
+      setDuplicates(duplicateCheck.allMatches);
+      setPendingData(data);
+      setShowDuplicateModal(true);
+      return;
+    }
+
+    // If no duplicates, proceed to save
+    await saveCompany(data, false, null);
+  };
+
+  const saveCompany = async (data: any, asBranch: boolean, parentId: string | null) => {
     try {
       setLoading(true);
       setError(null);
@@ -483,11 +527,14 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
           contact_email: data.contact_email || null,
           contact_phone: data.contact_phone || null,
           notes: data.notes || null,
+          is_branch: asBranch,
+          parent_company_id: parentId,
+          branch_name: asBranch && data.city ? data.city : null,
         }),
       });
 
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Error creating company');
+      if (!response.ok) throw new Error(result.error || 'Error creating customer');
 
       // Fetch the created company
       const { data: newCompanyData, error: fetchError } = await supabase
@@ -498,76 +545,120 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
 
       if (fetchError) throw fetchError;
 
+      setShowDuplicateModal(false);
+      setPendingData(null);
+      setDuplicates([]);
       onSuccess(newCompanyData);
       reset();
     } catch (err: any) {
-      setError(err.message || 'Error creating company');
+      setError(err.message || 'Error creating customer');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCreateNew = () => {
+    if (pendingData) {
+      saveCompany(pendingData, false, null);
+    }
+  };
+
+  const handleCreateBranch = (parentId: string) => {
+    if (pendingData) {
+      saveCompany(pendingData, true, parentId);
+    }
+  };
+
+  const handleUseExisting = (existingCompany: DuplicateCheckResult) => {
+    setShowDuplicateModal(false);
+    setPendingData(null);
+    setDuplicates([]);
+    onClose();
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="New Company" size="md">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
-            {error}
+    <>
+      <Modal isOpen={isOpen} onClose={onClose} title="New Customer" size="md">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-3">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          <Input
+            {...register('name', { required: 'Name is required' })}
+            label="Customer Name"
+            placeholder="Ex: Cafe Central"
+            error={errors.name?.message as string}
+            required
+          />
+
+          <Input
+            {...register('address')}
+            label="Address"
+            placeholder="Street and number"
+          />
+
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              {...register('city')}
+              label="City"
+              placeholder="City"
+            />
+            <Input
+              {...register('postal_code')}
+              label="ZIP"
+              placeholder="00000"
+            />
           </div>
-        )}
 
-        <Input
-          {...register('name', { required: 'Name is required' })}
-          label="Company Name"
-          placeholder="Ex: Cafe Central"
-          error={errors.name?.message as string}
-          required
-        />
-
-        <Input
-          {...register('address')}
-          label="Address"
-          placeholder="Street and number"
-        />
-
-        <div className="grid grid-cols-2 gap-3">
           <Input
-            {...register('city')}
-            label="City"
-            placeholder="City"
+            {...register('contact_name')}
+            label="Contact"
+            placeholder="Name"
           />
+
           <Input
-            {...register('postal_code')}
-            label="ZIP"
-            placeholder="00000"
+            {...register('contact_phone')}
+            label="Phone"
+            placeholder="555-1234"
           />
-        </div>
 
-        <Input
-          {...register('contact_name')}
-          label="Contact"
-          placeholder="Name"
-        />
+          <Input
+            {...register('contact_email')}
+            type="email"
+            label="Email"
+            placeholder="contact@company.com"
+          />
 
-        <Input
-          {...register('contact_phone')}
-          label="Phone"
-          placeholder="555-1234"
-        />
+          <div className="flex justify-end gap-2 pt-3">
+            <Button type="button" variant="secondary" onClick={onClose} size="sm">
+              Cancel
+            </Button>
+            <Button type="submit" loading={loading} size="sm">
+              Create
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
-        <Input
-          {...register('contact_email')}
-          type="email"
-          label="Email"
-          placeholder="contact@company.com"
-        />
-
-        <div className="flex justify-end gap-2 pt-3">
-          <Button type="button" variant="secondary" onClick={onClose} size="sm">
-            Cancel
-          </Button>
-          <Button type="submit" loading={loading} size="sm">
-            Create
+      <DuplicateWarningModal
+        isOpen={showDuplicateModal}
+        onClose={() => {
+          setShowDuplicateModal(false);
+          setPendingData(null);
+          setDuplicates([]);
+        }}
+        duplicates={duplicates}
+        onCreateNew={handleCreateNew}
+        onCreateBranch={handleCreateBranch}
+        onUseExisting={handleUseExisting}
+        customerName={pendingData?.name || ''}
+      />
+    </>
+  );
+}
           </Button>
         </div>
       </form>

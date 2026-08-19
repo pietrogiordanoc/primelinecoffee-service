@@ -15,6 +15,9 @@ interface CompanyData {
   contact_phone?: string;
   notes?: string;
   is_active?: boolean;
+  parent_company_id?: string;
+  branch_name?: string;
+  is_branch?: boolean;
 }
 
 const handler: Handler = async (event: HandlerEvent) => {
@@ -77,6 +80,9 @@ const handler: Handler = async (event: HandlerEvent) => {
           contact_phone: data.contact_phone || null,
           notes: data.notes || null,
           is_active: data.is_active !== false,
+          parent_company_id: data.parent_company_id || null,
+          branch_name: data.branch_name || null,
+          is_branch: data.is_branch || false,
         }),
       });
 

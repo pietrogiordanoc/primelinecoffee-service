@@ -42,8 +42,24 @@ export interface Company {
   contact_phone?: string;
   notes?: string;
   is_active: boolean;
+  parent_company_id?: string;
+  branch_name?: string;
+  is_branch: boolean;
   created_at: string;
   updated_at?: string;
+}
+
+export interface DuplicateCheckResult {
+  id: string;
+  customer_code: string;
+  name: string;
+  city?: string;
+  state?: string;
+  address?: string;
+  contact_phone?: string;
+  contact_name?: string;
+  similarity_score: number;
+  match_reason: string;
 }
 
 export interface DynamicForm {
