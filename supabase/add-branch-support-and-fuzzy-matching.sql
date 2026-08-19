@@ -141,6 +141,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Step 7: Add constraint to ensure branch_name is required when is_branch is true
+-- Drop existing constraint if it exists, then recreate it
+ALTER TABLE public.companies DROP CONSTRAINT IF EXISTS check_branch_name;
+
 ALTER TABLE public.companies
 ADD CONSTRAINT check_branch_name 
 CHECK (
