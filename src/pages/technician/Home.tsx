@@ -129,7 +129,7 @@ export default function TechnicianHome() {
   return (
     <div className="pb-6">
       {/* Search Bar - FIXED below header */}
-      <div className="fixed top-[52px] left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2">
+      <div className="fixed top-[52px] left-0 right-0 lg:left-64 z-20 bg-white border-b border-gray-200 shadow-sm px-3 py-2">
         <div className="max-w-full md:max-w-[80%] md:mx-auto space-y-1.5">
           {/* Search Input */}
           <div className="relative">
