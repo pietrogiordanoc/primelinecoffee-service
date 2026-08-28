@@ -19,6 +19,9 @@ export default function SettingsPage() {
   const [notifyAdditionalEmails, setNotifyAdditionalEmails] = useState(true);
   const [additionalEmails, setAdditionalEmails] = useState('');
   const [customerCreationEmails, setCustomerCreationEmails] = useState('');
+  const [notifyCustomerCreationSuperAdmins, setNotifyCustomerCreationSuperAdmins] = useState(true);
+  const [notifyCustomerCreationTechnician, setNotifyCustomerCreationTechnician] = useState(true);
+  const [notifyCustomerCreationAdditionalEmails, setNotifyCustomerCreationAdditionalEmails] = useState(true);
   const [senderName, setSenderName] = useState('Prime Line Coffee Service');
   const [senderEmail, setSenderEmail] = useState('');
 
@@ -60,6 +63,9 @@ export default function SettingsPage() {
       setNotifyAdditionalEmails(settings.notify_additional_emails ?? true);
       setAdditionalEmails(settings.additional_notification_emails.join(', '));
       setCustomerCreationEmails(settings.customer_creation_notification_emails?.join(', ') || '');
+      setNotifyCustomerCreationSuperAdmins(settings.notify_customer_creation_super_admins ?? true);
+      setNotifyCustomerCreationTechnician(settings.notify_customer_creation_technician ?? true);
+      setNotifyCustomerCreationAdditionalEmails(settings.notify_customer_creation_additional_emails ?? true);
       setSenderName(settings.email_sender_name);
       setSenderEmail(settings.email_sender_email || '');
 
@@ -110,6 +116,9 @@ export default function SettingsPage() {
           .split(',')
           .map(e => e.trim())
           .filter(e => e.length > 0),
+        notify_customer_creation_super_admins: notifyCustomerCreationSuperAdmins,
+        notify_customer_creation_technician: notifyCustomerCreationTechnician,
+        notify_customer_creation_additional_emails: notifyCustomerCreationAdditionalEmails,
         email_sender_name: senderName,
         email_sender_email: senderEmail || null,
 
@@ -242,9 +251,36 @@ export default function SettingsPage() {
                           <p className="font-medium text-gray-900">Customer created</p>
                           <p className="text-xs text-gray-500">Alert when a technician creates a customer</p>
                         </td>
-                        <td className="px-4 py-3 text-center text-xs font-semibold text-blue-700">Always</td>
-                        <td className="px-4 py-3 text-center text-xs text-gray-400">Not applicable</td>
-                        <td className="px-4 py-3 text-center text-xs font-semibold text-blue-700">Configured below</td>
+                        <td className="px-4 py-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={notifyCustomerCreationSuperAdmins}
+                            onChange={(e) => setNotifyCustomerCreationSuperAdmins(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                            aria-label="Notify super admins about customer creation"
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={notifyCustomerCreationTechnician}
+                            onChange={(e) => setNotifyCustomerCreationTechnician(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                            aria-label="Notify technician about customer creation"
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={notifyCustomerCreationAdditionalEmails}
+                              onChange={(e) => setNotifyCustomerCreationAdditionalEmails(e.target.checked)}
+                              className="sr-only peer"
+                              aria-label="Send customer creation alerts to additional emails"
+                            />
+                            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          </label>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -265,7 +301,7 @@ export default function SettingsPage() {
                   value={customerCreationEmails}
                   onChange={(e) => setCustomerCreationEmails(e.target.value)}
                   placeholder="admin1@example.com, admin2@example.com"
-                  helperText="Recipients for customer-created alerts. Super admins always receive these alerts."
+                  helperText="Recipients for customer-created alerts. Use the switch above to enable or disable this group."
                 />
 
                 {/* Sender Configuration */}

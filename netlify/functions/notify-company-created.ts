@@ -20,7 +20,7 @@ const handler: Handler = async (event: HandlerEvent) => {
   );
 
   try {
-    const { companyId } = JSON.parse(event.body || '{}');
+    const { companyId, creatorEmail } = JSON.parse(event.body || '{}');
     if (!companyId) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Missing companyId' }) };
     }
@@ -36,8 +36,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     const recipientEmails: string[] = [];
-    // Super admins always receive customer creation alerts.
-    {
+    if (settings.notify_customer_creation_super_admins !== false) {
       const { data: admins } = await supabase
         .from('users')
         .select('email')
@@ -46,9 +45,14 @@ const handler: Handler = async (event: HandlerEvent) => {
       recipientEmails.push(...(admins || []).map((admin) => admin.email).filter(Boolean));
     }
 
-    // Other recipients are explicitly configured for customer creation alerts.
-    for (const email of settings.customer_creation_notification_emails || []) {
+    if (settings.notify_customer_creation_technician !== false && creatorEmail) {
+      recipientEmails.push(creatorEmail);
+    }
+
+    if (settings.notify_customer_creation_additional_emails !== false) {
+      for (const email of settings.customer_creation_notification_emails || []) {
         if (email && !recipientEmails.includes(email)) recipientEmails.push(email);
+      }
     }
 
     if (recipientEmails.length === 0) {

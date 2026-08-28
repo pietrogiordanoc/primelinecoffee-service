@@ -10,6 +10,9 @@ export interface SystemSettings {
   notify_additional_emails: boolean;
   additional_notification_emails: string[];
   customer_creation_notification_emails: string[];
+  notify_customer_creation_super_admins: boolean;
+  notify_customer_creation_technician: boolean;
+  notify_customer_creation_additional_emails: boolean;
   email_sender_name: string;
   email_sender_email: string | null;
   

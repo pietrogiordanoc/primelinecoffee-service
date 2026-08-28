@@ -498,6 +498,7 @@ interface AddCompanyModalProps {
 }
 
 function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
+  const { userProfile } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [duplicates, setDuplicates] = useState<DuplicateCheckResult[]>([]);
@@ -593,7 +594,7 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
         await fetch('/.netlify/functions/notify-company-created', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ companyId: result.id }),
+          body: JSON.stringify({ companyId: result.id, creatorEmail: userProfile?.email || null }),
         });
       } catch (notificationError) {
         console.warn('Customer created, but administrator notification failed:', notificationError);
