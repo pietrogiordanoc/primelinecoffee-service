@@ -7,6 +7,7 @@ export interface SystemSettings {
   email_notifications_enabled: boolean;
   notify_technician: boolean;
   notify_super_admins: boolean;
+  notify_additional_emails: boolean;
   additional_notification_emails: string[];
   email_sender_name: string;
   email_sender_email: string | null;

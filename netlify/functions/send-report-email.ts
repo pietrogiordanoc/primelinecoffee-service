@@ -108,7 +108,7 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     // Add additional emails from settings
-    if (settings.additional_notification_emails && settings.additional_notification_emails.length > 0) {
+    if (settings.notify_additional_emails !== false && settings.additional_notification_emails && settings.additional_notification_emails.length > 0) {
       settings.additional_notification_emails.forEach((email: string) => {
         if (email && !recipientEmails.includes(email)) {
           recipientEmails.push(email);

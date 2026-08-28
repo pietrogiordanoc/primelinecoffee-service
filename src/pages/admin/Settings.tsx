@@ -16,6 +16,7 @@ export default function SettingsPage() {
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [notifyTechnician, setNotifyTechnician] = useState(true);
   const [notifySuperAdmins, setNotifySuperAdmins] = useState(true);
+  const [notifyAdditionalEmails, setNotifyAdditionalEmails] = useState(true);
   const [additionalEmails, setAdditionalEmails] = useState('');
   const [senderName, setSenderName] = useState('Prime Line Coffee Service');
   const [senderEmail, setSenderEmail] = useState('');
@@ -55,6 +56,7 @@ export default function SettingsPage() {
       setEmailEnabled(settings.email_notifications_enabled);
       setNotifyTechnician(settings.notify_technician);
       setNotifySuperAdmins(settings.notify_super_admins);
+      setNotifyAdditionalEmails(settings.notify_additional_emails ?? true);
       setAdditionalEmails(settings.additional_notification_emails.join(', '));
       setSenderName(settings.email_sender_name);
       setSenderEmail(settings.email_sender_email || '');
@@ -100,6 +102,7 @@ export default function SettingsPage() {
         email_notifications_enabled: emailEnabled,
         notify_technician: notifyTechnician,
         notify_super_admins: notifySuperAdmins,
+        notify_additional_emails: notifyAdditionalEmails,
         additional_notification_emails: emailArray,
         email_sender_name: senderName,
         email_sender_email: senderEmail || null,
@@ -218,6 +221,23 @@ export default function SettingsPage() {
                   placeholder="email1@example.com, email2@example.com"
                   helperText="Separate multiple emails with commas"
                 />
+
+                {/* Additional email recipients */}
+                <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                  <div>
+                    <label className="font-medium text-gray-900 text-sm">Send to additional emails</label>
+                    <p className="text-xs text-gray-600">Turn off for tests to avoid sending copies to the added recipients</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={notifyAdditionalEmails}
+                      onChange={(e) => setNotifyAdditionalEmails(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
 
                 {/* Sender Configuration */}
                 <div className="grid grid-cols-2 gap-4">
