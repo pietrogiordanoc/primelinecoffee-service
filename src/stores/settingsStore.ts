@@ -9,6 +9,7 @@ export interface SystemSettings {
   notify_super_admins: boolean;
   notify_additional_emails: boolean;
   additional_notification_emails: string[];
+  customer_creation_notification_emails: string[];
   email_sender_name: string;
   email_sender_email: string | null;
   

@@ -18,6 +18,7 @@ export default function SettingsPage() {
   const [notifySuperAdmins, setNotifySuperAdmins] = useState(true);
   const [notifyAdditionalEmails, setNotifyAdditionalEmails] = useState(true);
   const [additionalEmails, setAdditionalEmails] = useState('');
+  const [customerCreationEmails, setCustomerCreationEmails] = useState('');
   const [senderName, setSenderName] = useState('Prime Line Coffee Service');
   const [senderEmail, setSenderEmail] = useState('');
 
@@ -58,6 +59,7 @@ export default function SettingsPage() {
       setNotifySuperAdmins(settings.notify_super_admins);
       setNotifyAdditionalEmails(settings.notify_additional_emails ?? true);
       setAdditionalEmails(settings.additional_notification_emails.join(', '));
+      setCustomerCreationEmails(settings.customer_creation_notification_emails?.join(', ') || '');
       setSenderName(settings.email_sender_name);
       setSenderEmail(settings.email_sender_email || '');
 
@@ -104,6 +106,10 @@ export default function SettingsPage() {
         notify_super_admins: notifySuperAdmins,
         notify_additional_emails: notifyAdditionalEmails,
         additional_notification_emails: emailArray,
+        customer_creation_notification_emails: customerCreationEmails
+          .split(',')
+          .map(e => e.trim())
+          .filter(e => e.length > 0),
         email_sender_name: senderName,
         email_sender_email: senderEmail || null,
 
@@ -238,6 +244,15 @@ export default function SettingsPage() {
                     <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
+
+                <Input
+                  label="Customer creation notification emails"
+                  type="text"
+                  value={customerCreationEmails}
+                  onChange={(e) => setCustomerCreationEmails(e.target.value)}
+                  placeholder="admin1@example.com, admin2@example.com"
+                  helperText="Super admins always receive these alerts. Add specific admin or other addresses here."
+                />
 
                 {/* Sender Configuration */}
                 <div className="grid grid-cols-2 gap-4">

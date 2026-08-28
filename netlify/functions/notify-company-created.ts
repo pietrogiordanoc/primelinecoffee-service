@@ -36,19 +36,19 @@ const handler: Handler = async (event: HandlerEvent) => {
     }
 
     const recipientEmails: string[] = [];
-    if (settings.notify_super_admins) {
+    // Super admins always receive customer creation alerts.
+    {
       const { data: admins } = await supabase
         .from('users')
         .select('email')
-        .in('role', ['admin', 'super_admin'])
+        .eq('role', 'super_admin')
         .eq('is_active', true);
       recipientEmails.push(...(admins || []).map((admin) => admin.email).filter(Boolean));
     }
 
-    if (settings.notify_additional_emails !== false) {
-      for (const email of settings.additional_notification_emails || []) {
+    // Other recipients are explicitly configured for customer creation alerts.
+    for (const email of settings.customer_creation_notification_emails || []) {
         if (email && !recipientEmails.includes(email)) recipientEmails.push(email);
-      }
     }
 
     if (recipientEmails.length === 0) {

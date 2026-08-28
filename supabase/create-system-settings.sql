@@ -15,6 +15,7 @@ CREATE TABLE public.system_settings (
   notify_super_admins BOOLEAN DEFAULT true,
   notify_additional_emails BOOLEAN NOT NULL DEFAULT true,
   additional_notification_emails TEXT[] DEFAULT '{}', -- Array of additional emails
+  customer_creation_notification_emails TEXT[] NOT NULL DEFAULT '{}',
   email_sender_name TEXT DEFAULT 'Prime Line Coffee Service',
   email_sender_email TEXT,
   
