@@ -7,6 +7,67 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { Mail, Building2, Settings as SettingsIcon, FileText, AlertCircle, HardDrive } from 'lucide-react';
 import { useConfirm } from '@/contexts/ConfirmContext';
 
+interface NotificationEventBoxProps {
+  title: string;
+  description: string;
+  superAdmins: boolean;
+  onSuperAdminsChange: (value: boolean) => void;
+  technician: boolean;
+  onTechnicianChange: (value: boolean) => void;
+  additionalEmails: boolean;
+  onAdditionalEmailsChange: (value: boolean) => void;
+  emailList: string;
+  onEmailListChange: (value: string) => void;
+  technicianLabel?: string;
+}
+
+function NotificationEventBox({
+  title,
+  description,
+  superAdmins,
+  onSuperAdminsChange,
+  technician,
+  onTechnicianChange,
+  additionalEmails,
+  onAdditionalEmailsChange,
+  emailList,
+  onEmailListChange,
+  technicianLabel = 'Technician involved',
+}: NotificationEventBoxProps) {
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-gray-50 px-4 py-3">
+        <p className="font-medium text-gray-900">{title}</p>
+        <p className="text-xs text-gray-500">{description}</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 px-4 py-3 border-b border-gray-100">
+        <label className="flex items-center justify-between sm:block text-xs text-gray-600">
+          Super admins
+          <input type="checkbox" checked={superAdmins} onChange={(event) => onSuperAdminsChange(event.target.checked)} className="w-4 h-4 text-blue-600" />
+        </label>
+        <label className="flex items-center justify-between sm:block text-xs text-gray-600">
+          {technicianLabel}
+          <input type="checkbox" checked={technician} onChange={(event) => onTechnicianChange(event.target.checked)} className="w-4 h-4 text-blue-600" />
+        </label>
+        <label className="flex items-center justify-between sm:block text-xs text-gray-600">
+          Additional emails
+          <input type="checkbox" checked={additionalEmails} onChange={(event) => onAdditionalEmailsChange(event.target.checked)} className="w-4 h-4 text-blue-600" />
+        </label>
+      </div>
+      <div className="px-4 py-3">
+        <Input
+          label="Additional emails"
+          type="text"
+          value={emailList}
+          onChange={(event) => onEmailListChange(event.target.value)}
+          placeholder="email1@example.com, email2@example.com"
+          helperText="Separate multiple emails with commas."
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const { settings, loading, fetchSettings, updateSettings } = useSettingsStore();
   const { alert } = useConfirm();
@@ -223,147 +284,57 @@ export default function SettingsPage() {
 
             {emailEnabled && (
               <>
-                <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                  <table className="w-full min-w-[650px] text-sm">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Event</th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700">Super admins</th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700">Technician</th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700">Report additional emails</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      <tr>
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-gray-900">Report submitted</p>
-                          <p className="text-xs text-gray-500">Send a copy of the service report</p>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <input
-                            type="checkbox"
-                            checked={notifySuperAdmins}
-                            onChange={(e) => setNotifySuperAdmins(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                            aria-label="Notify super admins about submitted reports"
-                          />
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <input
-                            type="checkbox"
-                            checked={notifyTechnician}
-                            onChange={(e) => setNotifyTechnician(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                            aria-label="Notify technician about submitted reports"
-                          />
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={notifyAdditionalEmails}
-                              onChange={(e) => setNotifyAdditionalEmails(e.target.checked)}
-                              className="sr-only peer"
-                              aria-label="Send submitted reports to additional emails"
-                            />
-                            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                          </label>
-                        </td>
-                      </tr>
-                      <tr className="bg-blue-50/40">
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-gray-900">Customer created</p>
-                          <p className="text-xs text-gray-500">Alert when a technician creates a customer</p>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <input
-                            type="checkbox"
-                            checked={notifyCustomerCreationSuperAdmins}
-                            onChange={(e) => setNotifyCustomerCreationSuperAdmins(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                            aria-label="Notify super admins about customer creation"
-                          />
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <input
-                            type="checkbox"
-                            checked={notifyCustomerCreationTechnician}
-                            onChange={(e) => setNotifyCustomerCreationTechnician(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                            aria-label="Notify technician about customer creation"
-                          />
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={notifyCustomerCreationAdditionalEmails}
-                              onChange={(e) => setNotifyCustomerCreationAdditionalEmails(e.target.checked)}
-                              className="sr-only peer"
-                              aria-label="Send customer creation alerts to additional emails"
-                            />
-                            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                          </label>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-gray-900">Amendment submitted</p>
-                          <p className="text-xs text-gray-500">Alert when a correction or cancellation is recorded</p>
-                        </td>
-                        <td className="px-4 py-3 text-center"><input type="checkbox" checked={notifyAmendmentSuperAdmins} onChange={(e) => setNotifyAmendmentSuperAdmins(e.target.checked)} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" aria-label="Notify super admins about amendments" /></td>
-                        <td className="px-4 py-3 text-center"><input type="checkbox" checked={notifyAmendmentTechnician} onChange={(e) => setNotifyAmendmentTechnician(e.target.checked)} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" aria-label="Notify technician about amendments" /></td>
-                        <td className="px-4 py-3 text-center"><label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" checked={notifyAmendmentAdditionalEmails} onChange={(e) => setNotifyAmendmentAdditionalEmails(e.target.checked)} className="sr-only peer" aria-label="Send amendments to additional emails" /><div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div></label></td>
-                      </tr>
-                      <tr className="bg-gray-50">
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-gray-900">Admin comment on report</p>
-                          <p className="text-xs text-gray-500">Alert when an admin adds a comment</p>
-                        </td>
-                        <td className="px-4 py-3 text-center"><input type="checkbox" checked={notifyCommentSuperAdmins} onChange={(e) => setNotifyCommentSuperAdmins(e.target.checked)} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" aria-label="Notify super admins about comments" /></td>
-                        <td className="px-4 py-3 text-center"><input type="checkbox" checked={notifyCommentTechnician} onChange={(e) => setNotifyCommentTechnician(e.target.checked)} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" aria-label="Notify technician about comments" /></td>
-                        <td className="px-4 py-3 text-center"><label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" checked={notifyCommentAdditionalEmails} onChange={(e) => setNotifyCommentAdditionalEmails(e.target.checked)} className="sr-only peer" aria-label="Send comments to additional emails" /><div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div></label></td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div className="space-y-4">
+                    <NotificationEventBox
+                      title="Report submitted"
+                      description="Send a copy of the service report"
+                      superAdmins={notifySuperAdmins}
+                      onSuperAdminsChange={setNotifySuperAdmins}
+                      technician={notifyTechnician}
+                      onTechnicianChange={setNotifyTechnician}
+                      additionalEmails={notifyAdditionalEmails}
+                      onAdditionalEmailsChange={setNotifyAdditionalEmails}
+                      emailList={additionalEmails}
+                      onEmailListChange={setAdditionalEmails}
+                    />
+                    <NotificationEventBox
+                      title="Customer created"
+                      description="Alert when a technician creates a customer"
+                      superAdmins={notifyCustomerCreationSuperAdmins}
+                      onSuperAdminsChange={setNotifyCustomerCreationSuperAdmins}
+                      technician={notifyCustomerCreationTechnician}
+                      onTechnicianChange={setNotifyCustomerCreationTechnician}
+                      additionalEmails={notifyCustomerCreationAdditionalEmails}
+                      onAdditionalEmailsChange={setNotifyCustomerCreationAdditionalEmails}
+                      emailList={customerCreationEmails}
+                      onEmailListChange={setCustomerCreationEmails}
+                    />
+                    <NotificationEventBox
+                      title="Amendment submitted"
+                      description="Alert when a correction or cancellation is recorded"
+                      superAdmins={notifyAmendmentSuperAdmins}
+                      onSuperAdminsChange={setNotifyAmendmentSuperAdmins}
+                      technician={notifyAmendmentTechnician}
+                      onTechnicianChange={setNotifyAmendmentTechnician}
+                      additionalEmails={notifyAmendmentAdditionalEmails}
+                      onAdditionalEmailsChange={setNotifyAmendmentAdditionalEmails}
+                      emailList={amendmentEmails}
+                      onEmailListChange={setAmendmentEmails}
+                    />
+                    <NotificationEventBox
+                      title="Admin comment on report"
+                      description="Alert when an admin adds a comment"
+                      superAdmins={notifyCommentSuperAdmins}
+                      onSuperAdminsChange={setNotifyCommentSuperAdmins}
+                      technician={notifyCommentTechnician}
+                      onTechnicianChange={setNotifyCommentTechnician}
+                      additionalEmails={notifyCommentAdditionalEmails}
+                      onAdditionalEmailsChange={setNotifyCommentAdditionalEmails}
+                      emailList={commentEmails}
+                      onEmailListChange={setCommentEmails}
+                      technicianLabel="Report creator involved"
+                    />
                 </div>
-
-                <Input
-                  label="Report additional emails"
-                  type="text"
-                  value={additionalEmails}
-                  onChange={(e) => setAdditionalEmails(e.target.value)}
-                  placeholder="email1@example.com, email2@example.com"
-                  helperText="Recipients for submitted reports. Separate multiple emails with commas."
-                />
-
-                <Input
-                  label="Customer creation notification emails"
-                  type="text"
-                  value={customerCreationEmails}
-                  onChange={(e) => setCustomerCreationEmails(e.target.value)}
-                  placeholder="admin1@example.com, admin2@example.com"
-                  helperText="Recipients for customer-created alerts. Use the switch above to enable or disable this group."
-                />
-
-                <Input
-                  label="Amendment notification emails"
-                  type="text"
-                  value={amendmentEmails}
-                  onChange={(e) => setAmendmentEmails(e.target.value)}
-                  placeholder="admin1@example.com, admin2@example.com"
-                  helperText="Recipients for amendment alerts. Controlled by the Amendment submitted switch."
-                />
-
-                <Input
-                  label="Admin comment notification emails"
-                  type="text"
-                  value={commentEmails}
-                  onChange={(e) => setCommentEmails(e.target.value)}
-                  placeholder="admin1@example.com, admin2@example.com"
-                  helperText="Recipients for admin comment alerts. Controlled by the Admin comment on report switch."
-                />
-
                 {/* Sender Configuration */}
                 <div className="grid grid-cols-2 gap-4">
                   <Input
