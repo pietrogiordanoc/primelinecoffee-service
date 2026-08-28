@@ -174,17 +174,14 @@ export default function TechnicianHome() {
         <div className="mt-1">
         <div className="flex items-center justify-between mb-1.5">
           <h2 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Customers</h2>
-          {/* Only show New button for admins in technician mode */}
-          {(userProfile?.role === 'admin' || userProfile?.role === 'super_admin') && (
-            <Button
-              onClick={() => setIsAddCompanyModalOpen(true)}
-              variant="secondary"
-              size="sm"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              New
-            </Button>
-          )}
+          <Button
+            onClick={() => setIsAddCompanyModalOpen(true)}
+            variant="secondary"
+            size="sm"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            New
+          </Button>
         </div>
         {filteredCompanies.length === 0 ? (
           <Card>
@@ -192,7 +189,7 @@ export default function TechnicianHome() {
               <p className="text-sm text-gray-500 mb-3">
                 {searchQuery ? 'No customers found' : 'No customers available'}
               </p>
-              {!searchQuery && (userProfile?.role === 'admin' || userProfile?.role === 'super_admin') && (
+              {!searchQuery && (
                 <Button onClick={() => setIsAddCompanyModalOpen(true)} size="sm">
                   <Plus className="w-4 h-4 mr-1" />
                   Add Customer
