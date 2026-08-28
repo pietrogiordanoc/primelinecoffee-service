@@ -238,7 +238,7 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
   };
   
   const formDataHtml = Object.entries(report.form_data)
-    .filter(([key]) => key !== 'customerSignature' && key !== 'customerPrintName') // Exclude signature data from table
+    .filter(([key]) => !['customerSignature', 'customerPrintName', 'equipmentRecords', 'summary'].includes(key)) // Render complex sections separately
     .map(
       ([key, value]) => {
         // Replace newlines with <br> for better Outlook compatibility
@@ -256,6 +256,54 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
       }
     )
     .join('');
+
+  const equipmentRecords = Array.isArray(report.form_data?.equipmentRecords)
+    ? report.form_data.equipmentRecords
+    : [];
+
+  const equipmentRecordsHtml = equipmentRecords.map((equipment: any, index: number) => {
+    const detailCell = (label: string, value: any, extraStyle = '') => value !== undefined && value !== null && value !== '' ? `
+      <td width="${label === 'Serial Number' ? '34%' : '33%'}" valign="top" style="padding: 12px; border-right: 1px solid #e5e7eb; ${extraStyle}">
+        <p style="margin: 0 0 4px 0; color: #6b7280; font-size: 10px; font-weight: bold; text-transform: uppercase; font-family: Arial, sans-serif;">${label}</p>
+        <p style="margin: 0; color: #1f2937; font-size: 13px; font-weight: bold; font-family: Arial, sans-serif; word-break: break-word;">${formatValue(value)}</p>
+      </td>
+    ` : '';
+
+    const textBlock = (label: string, value: any) => value ? `
+      <tr>
+        <td style="padding: 12px 14px; border-top: 1px solid #e5e7eb;">
+          <p style="margin: 0 0 5px 0; color: #6b7280; font-size: 10px; font-weight: bold; text-transform: uppercase; font-family: Arial, sans-serif;">${label}</p>
+          <p style="margin: 0; color: #374151; font-size: 13px; line-height: 1.55; font-family: Arial, sans-serif;">${formatValue(value).replace(/\n/g, '<br>')}</p>
+        </td>
+      </tr>
+    ` : '';
+
+    return `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 14px; border: 1px solid #dbe3ea; background-color: #ffffff;">
+        <tr>
+          <td style="padding: 12px 14px; background-color: #eef4f8; border-bottom: 1px solid #dbe3ea;">
+            <span style="color: #003f7f; font-size: 14px; font-weight: bold; font-family: Arial, sans-serif;">Equipment ${index + 1}</span>
+            ${equipment.photoCount > 0 ? `<span style="float: right; color: #6b7280; font-size: 11px; font-family: Arial, sans-serif;">${equipment.photoCount} ${equipment.photoCount === 1 ? 'photo' : 'photos'}</span>` : ''}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 0;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+              <tr>
+                ${detailCell('Brand', equipment.brand)}
+                ${detailCell('Model', equipment.model)}
+                ${detailCell('Serial Number', equipment.serial, 'border-right: 0;')}
+              </tr>
+              ${equipment.hours !== undefined && equipment.hours !== null ? `<tr><td colspan="3" style="padding: 0 12px 10px; color: #4b5563; font-size: 12px; font-family: Arial, sans-serif;">Labor: <strong>${equipment.hours} ${equipment.hours === 1 ? 'hour' : 'hours'}</strong></td></tr>` : ''}
+              ${textBlock('Problem / Issue', equipment.problem)}
+              ${textBlock('Work Performed', equipment.work_performed)}
+              ${textBlock('Parts Used', equipment.parts_used)}
+            </table>
+          </td>
+        </tr>
+      </table>
+    `;
+  }).join('');
 
   return `
 <!DOCTYPE html>
@@ -399,6 +447,16 @@ function generateEmailHtml(report: any, photoLinks: string[], appUrl: string): s
               </table>
             </td>
           </tr>
+
+          ${equipmentRecordsHtml ? `
+          <!-- Equipment Records -->
+          <tr>
+            <td style="padding: 8px 20px 16px 20px;">
+              <h3 style="color: #1f2937; margin: 0 0 12px 0; font-size: 15px; font-weight: bold; font-family: Arial, sans-serif;">Equipment Serviced</h3>
+              ${equipmentRecordsHtml}
+            </td>
+          </tr>
+          ` : ''}
 
           ${report.signature_url ? `
           <!-- Customer Signature -->
