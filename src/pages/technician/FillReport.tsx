@@ -767,10 +767,11 @@ export default function FillReport() {
     }
 
     // Only require signature for final submission
-    if (!isDraft && !customerSignature) {
-      await alert('Customer signature is required.', 'Error');
-      return;
-    }
+    // Signature is now optional - customer can submit without signing
+    // if (!isDraft && !customerSignature) {
+    //   await alert('Customer signature is required.', 'Error');
+    //   return;
+    // }
 
     try {
       if (isDraft) {
@@ -796,6 +797,7 @@ export default function FillReport() {
         serviceType,
         additionalNotes,
         customerPrintName,
+        customerSignature: customerSignature || null,
         technicianLocalTime: localTimeString,
         technicianTimeZone: timeZone,
         equipmentRecords: equipmentRecords.map(r => ({
@@ -1400,7 +1402,6 @@ export default function FillReport() {
             label="Customer Signature"
             value={customerSignature}
             onChange={setCustomerSignature}
-            required
           />
           
           <div className="mt-3">
@@ -1409,7 +1410,6 @@ export default function FillReport() {
               value={customerPrintName}
               onChange={(e) => setCustomerPrintName(e.target.value)}
               placeholder="Print customer name"
-              required
             />
           </div>
           

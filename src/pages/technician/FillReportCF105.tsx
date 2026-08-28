@@ -448,10 +448,11 @@ export default function FillReportCF105() {
       await alert('No company selected.', 'Error');
       return;
     }
-    if (!isDraft && !customerSignature) {
-      await alert('Customer signature is required.', 'Error');
-      return;
-    }
+    // Signature is now optional for both draft and submission
+    // if (!isDraft && !customerSignature) {
+    //   await alert('Customer signature is required.', 'Error');
+    //   return;
+    // }
 
     try {
       isDraft ? setSavingDraft(true) : setSubmitting(true);
@@ -466,6 +467,7 @@ export default function FillReportCF105() {
         salesRepresentativeId,
         additionalNotes,
         customerPrintName,
+        customerSignature: customerSignature || null,
         espresso_location: espresso.location,
         espresso_coffeeTypes: espresso.coffeeTypes,
         espresso_machineModel: espresso.machineModel,
@@ -884,7 +886,6 @@ export default function FillReportCF105() {
             label="Customer Signature"
             value={customerSignature}
             onChange={setCustomerSignature}
-            required
           />
           
           <div className="mt-3">
@@ -893,7 +894,6 @@ export default function FillReportCF105() {
               value={customerPrintName}
               onChange={(e) => setCustomerPrintName(e.target.value)}
               placeholder="Print customer name"
-              required
             />
           </div>
           
