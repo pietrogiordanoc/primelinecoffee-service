@@ -25,6 +25,7 @@ export const companySchema = z.object({
   contact_email: z.string().email('Invalid email').optional().or(z.literal('')),
   contact_phone: z.string().optional(),
   notes: z.string().optional(),
+  branch_name: z.string().optional(),
   is_active: z.boolean().default(true),
 });
 

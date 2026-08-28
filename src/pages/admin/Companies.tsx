@@ -528,6 +528,7 @@ function CompanyModal({ isOpen, onClose, company, onSuccess }: CompanyModalProps
       setValue('contact_email', company.contact_email || '');
       setValue('contact_phone', company.contact_phone || '');
       setValue('notes', company.notes || '');
+      setValue('branch_name', company.branch_name || '');
       setIsBranch(false);
       setParentCompanyId(null);
     } else if (!company && isOpen) {
@@ -594,7 +595,7 @@ function CompanyModal({ isOpen, onClose, company, onSuccess }: CompanyModalProps
             ...data,
             is_branch: asBranch,
             parent_company_id: parentId,
-            branch_name: asBranch && data.city ? data.city : null,
+            branch_name: asBranch ? data.branch_name?.trim() || null : null,
           };
 
       const response = await fetch('/.netlify/functions/upsert-company', {
@@ -629,6 +630,11 @@ function CompanyModal({ isOpen, onClose, company, onSuccess }: CompanyModalProps
   };
 
   const handleCreateBranch = (parentId: string) => {
+    if (pendingData && !pendingData.branch_name?.trim()) {
+      setError('Enter a Branch / Location Name before creating a branch.');
+      setShowDuplicateModal(false);
+      return;
+    }
     if (pendingData) {
       saveCompany(pendingData, true, parentId);
     }
@@ -664,6 +670,16 @@ function CompanyModal({ isOpen, onClose, company, onSuccess }: CompanyModalProps
                 label="Customer Name"
                 error={errors.name?.message}
                 required
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <Input
+                {...register('branch_name')}
+                label="Branch / Location Name"
+                placeholder="Only needed when creating a branch"
+                helperText="Leave blank for a main customer"
+                error={errors.branch_name?.message}
               />
             </div>
 

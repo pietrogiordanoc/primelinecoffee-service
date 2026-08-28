@@ -529,7 +529,7 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
           notes: data.notes || null,
           is_branch: asBranch,
           parent_company_id: parentId,
-          branch_name: asBranch && data.city ? data.city : null,
+          branch_name: asBranch ? data.branch_name?.trim() || null : null,
         }),
       });
 
@@ -575,6 +575,11 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
   };
 
   const handleCreateBranch = (parentId: string) => {
+    if (pendingData && !pendingData.branch_name?.trim()) {
+      setError('Enter a Branch / Location Name before creating a branch.');
+      setShowDuplicateModal(false);
+      return;
+    }
     if (pendingData) {
       saveCompany(pendingData, true, parentId);
     }
@@ -603,6 +608,13 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
             placeholder="Ex: Cafe Central"
             error={errors.name?.message as string}
             required
+          />
+
+          <Input
+            {...register('branch_name')}
+            label="Branch / Location Name"
+            placeholder="Only needed when creating a branch"
+            helperText="Leave blank for a main customer"
           />
 
           <Input
