@@ -104,6 +104,16 @@ export default function AmendReport() {
 
       if (updateError) throw updateError;
 
+      fetch('/.netlify/functions/notify-report-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reportId,
+          eventType: 'amendment',
+          message: `${amendmentType === 'void' ? 'Report cancelled' : 'Report information corrected'}: ${reason.trim()}`,
+        }),
+      }).catch((notificationError) => console.warn('Amendment saved, but notification failed:', notificationError));
+
       const successMessage = amendmentType === 'void'
         ? 'Report has been voided successfully.'
         : 'Amendment has been recorded successfully.';

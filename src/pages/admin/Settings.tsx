@@ -22,6 +22,14 @@ export default function SettingsPage() {
   const [notifyCustomerCreationSuperAdmins, setNotifyCustomerCreationSuperAdmins] = useState(true);
   const [notifyCustomerCreationTechnician, setNotifyCustomerCreationTechnician] = useState(true);
   const [notifyCustomerCreationAdditionalEmails, setNotifyCustomerCreationAdditionalEmails] = useState(true);
+  const [notifyAmendmentSuperAdmins, setNotifyAmendmentSuperAdmins] = useState(true);
+  const [notifyAmendmentTechnician, setNotifyAmendmentTechnician] = useState(true);
+  const [notifyAmendmentAdditionalEmails, setNotifyAmendmentAdditionalEmails] = useState(true);
+  const [amendmentEmails, setAmendmentEmails] = useState('');
+  const [notifyCommentSuperAdmins, setNotifyCommentSuperAdmins] = useState(true);
+  const [notifyCommentTechnician, setNotifyCommentTechnician] = useState(true);
+  const [notifyCommentAdditionalEmails, setNotifyCommentAdditionalEmails] = useState(true);
+  const [commentEmails, setCommentEmails] = useState('');
   const [senderName, setSenderName] = useState('Prime Line Coffee Service');
   const [senderEmail, setSenderEmail] = useState('');
 
@@ -66,6 +74,14 @@ export default function SettingsPage() {
       setNotifyCustomerCreationSuperAdmins(settings.notify_customer_creation_super_admins ?? true);
       setNotifyCustomerCreationTechnician(settings.notify_customer_creation_technician ?? true);
       setNotifyCustomerCreationAdditionalEmails(settings.notify_customer_creation_additional_emails ?? true);
+      setNotifyAmendmentSuperAdmins(settings.notify_amendment_super_admins ?? true);
+      setNotifyAmendmentTechnician(settings.notify_amendment_technician ?? true);
+      setNotifyAmendmentAdditionalEmails(settings.notify_amendment_additional_emails ?? true);
+      setAmendmentEmails(settings.amendment_notification_emails?.join(', ') || '');
+      setNotifyCommentSuperAdmins(settings.notify_comment_super_admins ?? true);
+      setNotifyCommentTechnician(settings.notify_comment_technician ?? true);
+      setNotifyCommentAdditionalEmails(settings.notify_comment_additional_emails ?? true);
+      setCommentEmails(settings.comment_notification_emails?.join(', ') || '');
       setSenderName(settings.email_sender_name);
       setSenderEmail(settings.email_sender_email || '');
 
@@ -119,6 +135,14 @@ export default function SettingsPage() {
         notify_customer_creation_super_admins: notifyCustomerCreationSuperAdmins,
         notify_customer_creation_technician: notifyCustomerCreationTechnician,
         notify_customer_creation_additional_emails: notifyCustomerCreationAdditionalEmails,
+        notify_amendment_super_admins: notifyAmendmentSuperAdmins,
+        notify_amendment_technician: notifyAmendmentTechnician,
+        notify_amendment_additional_emails: notifyAmendmentAdditionalEmails,
+        amendment_notification_emails: amendmentEmails.split(',').map(e => e.trim()).filter(Boolean),
+        notify_comment_super_admins: notifyCommentSuperAdmins,
+        notify_comment_technician: notifyCommentTechnician,
+        notify_comment_additional_emails: notifyCommentAdditionalEmails,
+        comment_notification_emails: commentEmails.split(',').map(e => e.trim()).filter(Boolean),
         email_sender_name: senderName,
         email_sender_email: senderEmail || null,
 
@@ -282,6 +306,24 @@ export default function SettingsPage() {
                           </label>
                         </td>
                       </tr>
+                      <tr>
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-gray-900">Amendment submitted</p>
+                          <p className="text-xs text-gray-500">Alert when a correction or cancellation is recorded</p>
+                        </td>
+                        <td className="px-4 py-3 text-center"><input type="checkbox" checked={notifyAmendmentSuperAdmins} onChange={(e) => setNotifyAmendmentSuperAdmins(e.target.checked)} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" aria-label="Notify super admins about amendments" /></td>
+                        <td className="px-4 py-3 text-center"><input type="checkbox" checked={notifyAmendmentTechnician} onChange={(e) => setNotifyAmendmentTechnician(e.target.checked)} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" aria-label="Notify technician about amendments" /></td>
+                        <td className="px-4 py-3 text-center"><label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" checked={notifyAmendmentAdditionalEmails} onChange={(e) => setNotifyAmendmentAdditionalEmails(e.target.checked)} className="sr-only peer" aria-label="Send amendments to additional emails" /><div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div></label></td>
+                      </tr>
+                      <tr className="bg-gray-50">
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-gray-900">Admin comment on report</p>
+                          <p className="text-xs text-gray-500">Alert when an admin adds a comment</p>
+                        </td>
+                        <td className="px-4 py-3 text-center"><input type="checkbox" checked={notifyCommentSuperAdmins} onChange={(e) => setNotifyCommentSuperAdmins(e.target.checked)} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" aria-label="Notify super admins about comments" /></td>
+                        <td className="px-4 py-3 text-center"><input type="checkbox" checked={notifyCommentTechnician} onChange={(e) => setNotifyCommentTechnician(e.target.checked)} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" aria-label="Notify technician about comments" /></td>
+                        <td className="px-4 py-3 text-center"><label className="relative inline-flex items-center cursor-pointer"><input type="checkbox" checked={notifyCommentAdditionalEmails} onChange={(e) => setNotifyCommentAdditionalEmails(e.target.checked)} className="sr-only peer" aria-label="Send comments to additional emails" /><div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div></label></td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -302,6 +344,24 @@ export default function SettingsPage() {
                   onChange={(e) => setCustomerCreationEmails(e.target.value)}
                   placeholder="admin1@example.com, admin2@example.com"
                   helperText="Recipients for customer-created alerts. Use the switch above to enable or disable this group."
+                />
+
+                <Input
+                  label="Amendment notification emails"
+                  type="text"
+                  value={amendmentEmails}
+                  onChange={(e) => setAmendmentEmails(e.target.value)}
+                  placeholder="admin1@example.com, admin2@example.com"
+                  helperText="Recipients for amendment alerts. Controlled by the Amendment submitted switch."
+                />
+
+                <Input
+                  label="Admin comment notification emails"
+                  type="text"
+                  value={commentEmails}
+                  onChange={(e) => setCommentEmails(e.target.value)}
+                  placeholder="admin1@example.com, admin2@example.com"
+                  helperText="Recipients for admin comment alerts. Controlled by the Admin comment on report switch."
                 />
 
                 {/* Sender Configuration */}

@@ -13,6 +13,14 @@ export interface SystemSettings {
   notify_customer_creation_super_admins: boolean;
   notify_customer_creation_technician: boolean;
   notify_customer_creation_additional_emails: boolean;
+  notify_amendment_super_admins: boolean;
+  notify_amendment_technician: boolean;
+  notify_amendment_additional_emails: boolean;
+  amendment_notification_emails: string[];
+  notify_comment_super_admins: boolean;
+  notify_comment_technician: boolean;
+  notify_comment_additional_emails: boolean;
+  comment_notification_emails: string[];
   email_sender_name: string;
   email_sender_email: string | null;
   

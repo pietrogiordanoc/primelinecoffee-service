@@ -217,6 +217,11 @@ export default function ViewReport() {
 
       setComments([data, ...comments]);
       setNewComment('');
+      fetch('/.netlify/functions/notify-report-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportId, eventType: 'comment', message: newComment.trim() }),
+      }).catch((notificationError) => console.warn('Comment saved, but notification failed:', notificationError));
     } catch (error) {
       console.error('Error adding comment:', error);
       alert('Error adding comment. Please try again.');
