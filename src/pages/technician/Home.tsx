@@ -545,6 +545,17 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
 
       if (fetchError) throw fetchError;
 
+      // Notify administrators after the customer has been saved.
+      try {
+        await fetch('/.netlify/functions/notify-company-created', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyId: result.id }),
+        });
+      } catch (notificationError) {
+        console.warn('Customer created, but administrator notification failed:', notificationError);
+      }
+
       setShowDuplicateModal(false);
       setPendingData(null);
       setDuplicates([]);
