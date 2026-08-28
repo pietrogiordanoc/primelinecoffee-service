@@ -1193,16 +1193,7 @@ export default function FillReport() {
 
                     {/* Parts Used */}
                     <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-xs md:text-sm font-medium text-gray-700">Parts Used</label>
-                        <button
-                          type="button"
-                          onClick={() => addPartToEquipment(equipment.id)}
-                          className="text-xs text-primary-600 hover:text-primary-700"
-                        >
-                          + Add Part
-                        </button>
-                      </div>
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Parts Used</label>
                       {equipment.parts_used.length > 0 && (
                         <div className="space-y-1">
                           {equipment.parts_used.map((part, partIdx) => (
@@ -1232,6 +1223,13 @@ export default function FillReport() {
                           ))}
                         </div>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => addPartToEquipment(equipment.id)}
+                        className="mt-2 text-xs text-primary-600 hover:text-primary-700"
+                      >
+                        + Add Part
+                      </button>
                     </div>
 
                     {/* Photos & Videos */}
