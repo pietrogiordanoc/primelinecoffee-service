@@ -8,9 +8,12 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import Textarea from '@/components/ui/Textarea';
 import DuplicateWarningModal from '@/components/ui/DuplicateWarningModal';
 import { FileText, ChevronRight, Plus, ChevronDown, Search, MapPin, Phone, Mail, User, Calendar, ArrowUpDown, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { companySchema, type CompanyInput } from '@/utils/validationSchemas';
 import type { DynamicForm, Company, DuplicateCheckResult } from '@/types';
 
 export default function TechnicianHome() {
@@ -464,7 +467,10 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [pendingData, setPendingData] = useState<any>(null);
   
-  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm();
+  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<CompanyInput>({
+    resolver: zodResolver(companySchema),
+    defaultValues: { is_active: true },
+  });
 
   const watchedName = watch('name');
   const watchedCity = watch('city');
@@ -493,7 +499,7 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
     }
   };
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: CompanyInput) => {
     const duplicateCheck = await checkDuplicates(data.name, data.city, data.contact_phone);
     
     if (duplicateCheck.hasDuplicates && duplicateCheck.highConfidence.length > 0) {
@@ -603,10 +609,10 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
           )}
 
           <Input
-            {...register('name', { required: 'Name is required' })}
+            {...register('name')}
             label="Customer Name"
             placeholder="Ex: Cafe Central"
-            error={errors.name?.message as string}
+            error={errors.name?.message}
             required
           />
 
@@ -621,6 +627,7 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
             {...register('address')}
             label="Address"
             placeholder="Street and number"
+            error={errors.address?.message}
           />
 
           <div className="grid grid-cols-2 gap-3">
@@ -628,31 +635,50 @@ function AddCompanyModal({ isOpen, onClose, onSuccess }: AddCompanyModalProps) {
               {...register('city')}
               label="City"
               placeholder="City"
+              error={errors.city?.message}
             />
             <Input
-              {...register('postal_code')}
-              label="ZIP"
-              placeholder="00000"
+              {...register('state')}
+              label="State/Province"
+              placeholder="State"
+              error={errors.state?.message}
             />
           </div>
 
           <Input
-            {...register('contact_name')}
-            label="Contact"
-            placeholder="Name"
+            {...register('postal_code')}
+            label="Postal Code"
+            placeholder="00000"
+            error={errors.postal_code?.message}
           />
 
           <Input
-            {...register('contact_phone')}
-            label="Phone"
-            placeholder="555-1234"
+            {...register('contact_name')}
+            label="Contact Name"
+            placeholder="Name"
+            error={errors.contact_name?.message}
           />
 
           <Input
             {...register('contact_email')}
             type="email"
-            label="Email"
+            label="Contact Email"
             placeholder="contact@company.com"
+            error={errors.contact_email?.message}
+          />
+
+          <Input
+            {...register('contact_phone')}
+            label="Contact Phone"
+            placeholder="555-1234"
+            error={errors.contact_phone?.message}
+          />
+
+          <Textarea
+            {...register('notes')}
+            label="Notes"
+            placeholder="Additional customer information"
+            error={errors.notes?.message}
           />
 
           <div className="flex justify-end gap-2 pt-3">
