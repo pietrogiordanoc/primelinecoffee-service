@@ -120,41 +120,6 @@ export default function FillReport() {
     loadCompanyAndTechnicianData();
   }, [companyId, userProfile]);
 
-  // Check HTTPS and camera permissions
-  useEffect(() => {
-    const isHTTPS = window.location.protocol === 'https:';
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    
-    console.log('🔒 Protocolo:', window.location.protocol);
-    console.log('🌐 URL completa:', window.location.href);
-    console.log('✅ HTTPS activo:', isHTTPS);
-    console.log('🏠 Es localhost:', isLocalhost);
-    
-    if (!isHTTPS && !isLocalhost) {
-      console.error('❌ WARNING: Site is NOT using HTTPS. Camera may not work on mobile devices.');
-      console.error('❌ Solution: Make sure to access via https:// or wait for Netlify deployment');
-    } else {
-      console.log('✅ Secure site for camera use (HTTPS or localhost)');
-    }
-
-    // Verificar disponibilidad de API de medios
-    if (navigator.mediaDevices) {
-      console.log('✅ API navigator.mediaDevices available');
-      
-      // Intentar verificar permisos (puede no funcionar en todos los navegadores)
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(() => {
-          console.log('✅ Camera permissions granted or available');
-        })
-        .catch((err) => {
-          console.warn('⚠️ Camera permissions not available:', err.message);
-          console.log('ℹ️ This is normal if you haven\'t used the camera yet. Permissions will be requested when taking a photo.');
-        });
-    } else {
-      console.error('❌ API navigator.mediaDevices NOT available in this browser');
-    }
-  }, []);
-
   async function loadCompanyAndTechnicianData() {
     try {
       // Auto-fill technician name from logged-in user
@@ -1527,7 +1492,20 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
       };
 
       console.log('📹 getUserMedia con facingMode:', facingMode);
-      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('Camera API is unavailable. Use HTTPS and a supported browser.');
+      }
+
+      let newStream: MediaStream;
+      try {
+        newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (cameraError: any) {
+        // Some mobile browsers reject facingMode even when a camera is available.
+        if (cameraError?.name !== 'OverconstrainedError' && cameraError?.name !== 'NotFoundError') {
+          throw cameraError;
+        }
+        newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
       setStream(newStream);
       console.log('✅ Stream obtenido');
       

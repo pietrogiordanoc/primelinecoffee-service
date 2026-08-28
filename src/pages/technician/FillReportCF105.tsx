@@ -1199,7 +1199,20 @@ function CameraModal({ onCapture, onClose }: CameraModalProps) {
       };
 
       console.log('📹 getUserMedia con facingMode:', facingMode);
-      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('Camera API is unavailable. Use HTTPS and a supported browser.');
+      }
+
+      let newStream: MediaStream;
+      try {
+        newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (cameraError: any) {
+        // Some mobile browsers reject facingMode even when a camera is available.
+        if (cameraError?.name !== 'OverconstrainedError' && cameraError?.name !== 'NotFoundError') {
+          throw cameraError;
+        }
+        newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
       setStream(newStream);
       console.log('✅ Stream obtenido');
       
