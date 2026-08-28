@@ -21,6 +21,29 @@ interface NotificationEventBoxProps {
   technicianLabel?: string;
 }
 
+interface NotificationSwitchProps {
+  label: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}
+
+function NotificationSwitch({ label, checked, onChange }: NotificationSwitchProps) {
+  return (
+    <label className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-3 py-2.5 cursor-pointer hover:border-blue-300 hover:bg-blue-50/30 transition-colors">
+      <span className="text-xs font-medium text-gray-700">{label}</span>
+      <span className="relative inline-flex flex-shrink-0">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(event) => onChange(event.target.checked)}
+          className="sr-only peer"
+        />
+        <span className="h-5 w-9 rounded-full bg-gray-300 transition-colors peer-checked:bg-blue-600 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-400 peer-focus-visible:ring-offset-2 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:after:translate-x-4" />
+      </span>
+    </label>
+  );
+}
+
 function NotificationEventBox({
   title,
   description,
@@ -32,7 +55,7 @@ function NotificationEventBox({
   onAdditionalEmailsChange,
   emailList,
   onEmailListChange,
-  technicianLabel = 'Technician involved',
+  technicianLabel = 'The Technician',
 }: NotificationEventBoxProps) {
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -40,19 +63,10 @@ function NotificationEventBox({
         <p className="font-medium text-gray-900">{title}</p>
         <p className="text-xs text-gray-500">{description}</p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 px-4 py-3 border-b border-gray-100">
-        <label className="flex items-center justify-between sm:block text-xs text-gray-600">
-          Super admins
-          <input type="checkbox" checked={superAdmins} onChange={(event) => onSuperAdminsChange(event.target.checked)} className="w-4 h-4 text-blue-600" />
-        </label>
-        <label className="flex items-center justify-between sm:block text-xs text-gray-600">
-          {technicianLabel}
-          <input type="checkbox" checked={technician} onChange={(event) => onTechnicianChange(event.target.checked)} className="w-4 h-4 text-blue-600" />
-        </label>
-        <label className="flex items-center justify-between sm:block text-xs text-gray-600">
-          Additional emails
-          <input type="checkbox" checked={additionalEmails} onChange={(event) => onAdditionalEmailsChange(event.target.checked)} className="w-4 h-4 text-blue-600" />
-        </label>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 px-4 py-3 border-b border-gray-100">
+        <NotificationSwitch label="Super admin" checked={superAdmins} onChange={onSuperAdminsChange} />
+        <NotificationSwitch label={technicianLabel} checked={technician} onChange={onTechnicianChange} />
+        <NotificationSwitch label="Additional emails" checked={additionalEmails} onChange={onAdditionalEmailsChange} />
       </div>
       <div className="px-4 py-3">
         <Input
@@ -332,7 +346,7 @@ export default function SettingsPage() {
                       onAdditionalEmailsChange={setNotifyCommentAdditionalEmails}
                       emailList={commentEmails}
                       onEmailListChange={setCommentEmails}
-                      technicianLabel="Report creator involved"
+                      technicianLabel="The Technician"
                     />
                 </div>
                 {/* Sender Configuration */}
