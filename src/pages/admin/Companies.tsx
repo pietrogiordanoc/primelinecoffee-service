@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useCompanyStore } from '@/stores/companyStore';
 import { useConfirm } from '@/contexts/ConfirmContext';
@@ -55,11 +55,18 @@ export default function CompaniesPage() {
     return (a.branch_name || '').localeCompare(b.branch_name || '');
   });
 
+  const customerGroups = sortedCompanies
+    .filter(company => !company.parent_company_id)
+    .map(parent => ({
+      parent,
+      branches: sortedCompanies.filter(company => company.parent_company_id === parent.id),
+    }));
+
   // Pagination
-  const totalPages = Math.ceil(sortedCompanies.length / itemsPerPage);
+  const totalPages = Math.ceil(customerGroups.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedCompanies = sortedCompanies.slice(startIndex, endIndex);
+  const paginatedCustomerGroups = customerGroups.slice(startIndex, endIndex);
 
   // Reset to page 1 when sorting changes
   useEffect(() => {
@@ -255,56 +262,55 @@ export default function CompaniesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {paginatedCompanies.map((company) => (
-                  <tr key={company.id} className="hover:bg-gray-50">
+                {paginatedCustomerGroups.map(({ parent, branches }) => (
+                  <React.Fragment key={parent.id}>
+                  <tr className="hover:bg-gray-50">
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
                           <Building2 className="w-3 h-3" />
                         </div>
-                        <span className={`text-sm font-medium ${company.parent_company_id ? 'text-gray-700' : 'text-gray-900'}`}>
-                          {company.parent_company_id ? `↳ ${company.branch_name || company.city || 'Branch'}` : company.name}
+                        <span className="text-sm font-medium text-gray-900">
+                          {parent.name}
                         </span>
-                        {company.parent_company_id && (
-                          <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full">Branch</span>
-                        )}
+                        {branches.length > 0 && <span className="text-[10px] text-gray-500">{branches.length} {branches.length === 1 ? 'branch' : 'branches'}</span>}
                       </div>
                     </td>
                     <td className="px-3 py-2">
                       <span className="text-xs font-mono font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
-                        {company.customer_code}
+                        {parent.customer_code}
                       </span>
                     </td>
                     <td className="px-3 py-2 text-sm text-gray-600">
-                      {company.city || '-'}
+                      {parent.city || '-'}
                     </td>
                     <td className="px-3 py-2 text-sm text-gray-900">
-                      {company.contact_name || '-'}
+                      {parent.contact_name || '-'}
                     </td>
                     <td className="px-3 py-2 text-sm text-gray-600">
-                      <div className="truncate" title={company.contact_email}>
-                        {company.contact_email || '-'}
+                      <div className="truncate" title={parent.contact_email}>
+                        {parent.contact_email || '-'}
                       </div>
                     </td>
                     <td className="px-3 py-2 text-sm text-gray-600">
-                      {company.contact_phone || '-'}
+                      {parent.contact_phone || '-'}
                     </td>
                     <td className="px-3 py-2">
                       <span
                         className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${
-                          company.is_active
+                          parent.is_active
                             ? 'bg-green-100 text-green-700'
                             : 'bg-red-100 text-red-700'
                         }`}
                       >
-                        {company.is_active ? 'Active' : 'Inactive'}
+                        {parent.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => {
-                            setEditingCompany(company);
+                            setEditingCompany(parent);
                             setIsModalOpen(true);
                           }}
                           className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
@@ -313,7 +319,7 @@ export default function CompaniesPage() {
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(company)}
+                          onClick={() => handleDelete(parent)}
                           className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                           title="Delete"
                         >
@@ -322,6 +328,25 @@ export default function CompaniesPage() {
                       </div>
                     </td>
                   </tr>
+                  {branches.map(branch => (
+                    <tr key={branch.id} className="bg-emerald-50/40 hover:bg-emerald-50 border-l-4 border-emerald-300">
+                      <td className="px-3 py-2 pl-9">
+                        <span className="text-sm text-gray-700">↳ {branch.branch_name || branch.city || 'Branch'}</span>
+                        <span className="ml-2 text-[10px] font-medium text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-full">Branch</span>
+                      </td>
+                      <td className="px-3 py-2"><span className="text-xs font-mono font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">{branch.customer_code}</span></td>
+                      <td className="px-3 py-2 text-sm text-gray-600">{branch.city || '-'}</td>
+                      <td className="px-3 py-2 text-sm text-gray-900">{branch.contact_name || '-'}</td>
+                      <td className="px-3 py-2 text-sm text-gray-600">{branch.contact_email || '-'}</td>
+                      <td className="px-3 py-2 text-sm text-gray-600">{branch.contact_phone || '-'}</td>
+                      <td className="px-3 py-2"><span className="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">{branch.is_active ? 'Active' : 'Inactive'}</span></td>
+                      <td className="px-3 py-2"><div className="flex items-center justify-end gap-2">
+                        <button onClick={() => { setEditingCompany(branch); setIsModalOpen(true); }} className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(branch)} className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                      </div></td>
+                    </tr>
+                  ))}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
@@ -329,14 +354,14 @@ export default function CompaniesPage() {
 
           {/* Mobile Cards */}
           <div className="md:hidden divide-y divide-gray-200">
-            {paginatedCompanies.map((company) => {
-              const isExpanded = expandedCompany === company.id;
+            {paginatedCustomerGroups.map(({ parent, branches }) => {
+              const isExpanded = expandedCompany === parent.id;
               return (
-                <div key={company.id} className="bg-white">
+                <div key={parent.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                   {/* Company Header */}
                   <div
                     className="flex items-center justify-between p-2 cursor-pointer hover:bg-gray-50"
-                    onClick={() => setExpandedCompany(isExpanded ? null : company.id)}
+                    onClick={() => setExpandedCompany(isExpanded ? null : parent.id)}
                   >
                     <div className="flex items-center gap-1.5 flex-1 min-w-0">
                       <div className="w-7 h-7 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
@@ -344,20 +369,17 @@ export default function CompaniesPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-gray-900 truncate leading-none">
-                          {company.parent_company_id ? `↳ ${company.branch_name || company.city || 'Branch'}` : company.name}
+                          {parent.name}
                         </p>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="text-xs font-mono font-semibold text-indigo-600">
-                            {company.customer_code}
+                            {parent.customer_code}
                           </span>
-                          {company.city && (
+                          {parent.city && (
                             <>
                               <span className="text-xs text-gray-300">•</span>
-                              <span className="text-xs text-gray-400 truncate">{company.city}</span>
+                              <span className="text-xs text-gray-400 truncate">{parent.city}</span>
                             </>
-                          )}
-                          {company.parent_company_id && (
-                            <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full">Branch</span>
                           )}
                         </div>
                       </div>
@@ -365,12 +387,12 @@ export default function CompaniesPage() {
                     <div className="flex items-center gap-1">
                       <span
                         className={`px-1.5 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${
-                          company.is_active
+                          parent.is_active
                             ? 'bg-green-100 text-green-700'
                             : 'bg-red-100 text-red-700'
                         }`}
                       >
-                        {company.is_active ? 'Active' : 'Inactive'}
+                        {parent.is_active ? 'Active' : 'Inactive'}
                       </span>
                       {isExpanded ? (
                         <ChevronDown className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
@@ -384,33 +406,33 @@ export default function CompaniesPage() {
                   {isExpanded && (
                     <div className="px-2 pb-2 space-y-1.5 border-t border-gray-100 bg-gray-50">
                       {/* Contact Info */}
-                      {company.contact_name && (
+                      {parent.contact_name && (
                         <div className="flex items-center gap-1 pt-1.5">
                           <User className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                          <p className="text-xs text-gray-900 truncate">{company.contact_name}</p>
+                          <p className="text-xs text-gray-900 truncate">{parent.contact_name}</p>
                         </div>
                       )}
-                      {company.contact_phone && (
+                      {parent.contact_phone && (
                         <div className="flex items-center gap-1">
                           <Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                          <a href={`tel:${company.contact_phone}`} className="text-xs text-primary-600 hover:underline">
-                            {company.contact_phone}
+                          <a href={`tel:${parent.contact_phone}`} className="text-xs text-primary-600 hover:underline">
+                            {parent.contact_phone}
                           </a>
                         </div>
                       )}
-                      {company.contact_email && (
+                      {parent.contact_email && (
                         <div className="flex items-center gap-1">
                           <Mail className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                          <a href={`mailto:${company.contact_email}`} className="text-xs text-primary-600 hover:underline truncate">
-                            {company.contact_email}
+                          <a href={`mailto:${parent.contact_email}`} className="text-xs text-primary-600 hover:underline truncate">
+                            {parent.contact_email}
                           </a>
                         </div>
                       )}
-                      {company.address && (
+                      {parent.address && (
                         <div className="flex items-start gap-1">
                           <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
                           <p className="text-xs text-gray-600">
-                            {company.address}, {company.city}{company.state && `, ${company.state}`} {company.postal_code}
+                            {parent.address}, {parent.city}{parent.state && `, ${parent.state}`} {parent.postal_code}
                           </p>
                         </div>
                       )}
@@ -420,7 +442,7 @@ export default function CompaniesPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setEditingCompany(company);
+                            setEditingCompany(parent);
                             setIsModalOpen(true);
                           }}
                           className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition"
@@ -431,7 +453,7 @@ export default function CompaniesPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(company);
+                            handleDelete(parent);
                           }}
                           className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded transition"
                         >

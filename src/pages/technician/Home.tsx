@@ -114,11 +114,18 @@ export default function TechnicianHome() {
       return (a.branch_name || '').localeCompare(b.branch_name || '');
     });
 
+  const customerGroups = filteredCompanies
+    .filter(company => !company.parent_company_id)
+    .map(parent => ({
+      parent,
+      branches: filteredCompanies.filter(company => company.parent_company_id === parent.id),
+    }));
+
   // Pagination
-  const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
+  const totalPages = Math.ceil(customerGroups.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedCompanies = filteredCompanies.slice(startIndex, endIndex);
+  const paginatedCustomerGroups = customerGroups.slice(startIndex, endIndex);
 
   // Reset to page 1 when search/filter changes
   useEffect(() => {
@@ -206,7 +213,8 @@ export default function TechnicianHome() {
         ) : (
           <>
             <div className="space-y-1">
-              {paginatedCompanies.map((company: any) => {
+              {paginatedCustomerGroups.map(({ parent, branches }: any) => {
+              const company = parent;
               const isExpanded = expandedCompany === company.id;
               const isSelected = selectedCompany?.id === company.id;
               
@@ -329,6 +337,29 @@ export default function TechnicianHome() {
                           </p>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {branches.length > 0 && (
+                    <div className="border-t border-emerald-100 bg-emerald-50/40 px-2 py-1.5 space-y-1">
+                      {branches.map((branch: any) => (
+                        <button
+                          key={branch.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCompany(branch);
+                            setIsServiceTypeModalOpen(true);
+                            setExpandedCompany(null);
+                          }}
+                          className="w-full flex items-center justify-between gap-2 rounded px-2 py-1.5 text-left hover:bg-emerald-50"
+                        >
+                          <span className="text-xs text-gray-700 truncate">↳ {branch.branch_name || branch.city || 'Branch'}</span>
+                          <span className="flex items-center gap-1 flex-shrink-0">
+                            <span className="text-[10px] font-medium text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-full">Branch</span>
+                            <span className="text-[10px] font-mono text-emerald-700">{branch.customer_code}</span>
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
