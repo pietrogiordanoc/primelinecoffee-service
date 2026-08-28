@@ -190,60 +190,74 @@ export default function SettingsPage() {
 
             {emailEnabled && (
               <>
-                {/* Notify Technician */}
-                <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                  <div>
-                    <label className="font-medium text-gray-900 text-sm">Notify technician</label>
-                    <p className="text-xs text-gray-600">Send copy of report to the technician who created it</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={notifyTechnician}
-                    onChange={(e) => setNotifyTechnician(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                  />
+                <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                  <table className="w-full min-w-[650px] text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Event</th>
+                        <th className="px-4 py-3 text-center font-semibold text-gray-700">Super admins</th>
+                        <th className="px-4 py-3 text-center font-semibold text-gray-700">Technician</th>
+                        <th className="px-4 py-3 text-center font-semibold text-gray-700">Report additional emails</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      <tr>
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-gray-900">Report submitted</p>
+                          <p className="text-xs text-gray-500">Send a copy of the service report</p>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={notifySuperAdmins}
+                            onChange={(e) => setNotifySuperAdmins(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                            aria-label="Notify super admins about submitted reports"
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={notifyTechnician}
+                            onChange={(e) => setNotifyTechnician(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                            aria-label="Notify technician about submitted reports"
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={notifyAdditionalEmails}
+                              onChange={(e) => setNotifyAdditionalEmails(e.target.checked)}
+                              className="sr-only peer"
+                              aria-label="Send submitted reports to additional emails"
+                            />
+                            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          </label>
+                        </td>
+                      </tr>
+                      <tr className="bg-blue-50/40">
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-gray-900">Customer created</p>
+                          <p className="text-xs text-gray-500">Alert when a technician creates a customer</p>
+                        </td>
+                        <td className="px-4 py-3 text-center text-xs font-semibold text-blue-700">Always</td>
+                        <td className="px-4 py-3 text-center text-xs text-gray-400">Not applicable</td>
+                        <td className="px-4 py-3 text-center text-xs font-semibold text-blue-700">Configured below</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
 
-                {/* Notify Super Admins */}
-                <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                  <div>
-                    <label className="font-medium text-gray-900 text-sm">Notify super admins</label>
-                    <p className="text-xs text-gray-600">Send to all users with Super Admin role</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={notifySuperAdmins}
-                    onChange={(e) => setNotifySuperAdmins(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                </div>
-
-                {/* Additional Emails */}
                 <Input
-                  label="Additional emails (optional)"
+                  label="Report additional emails"
                   type="text"
                   value={additionalEmails}
                   onChange={(e) => setAdditionalEmails(e.target.value)}
                   placeholder="email1@example.com, email2@example.com"
-                  helperText="Separate multiple emails with commas"
+                  helperText="Recipients for submitted reports. Separate multiple emails with commas."
                 />
-
-                {/* Additional email recipients */}
-                <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                  <div>
-                    <label className="font-medium text-gray-900 text-sm">Send to additional emails</label>
-                    <p className="text-xs text-gray-600">Turn off for tests to avoid sending copies to the added recipients</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={notifyAdditionalEmails}
-                      onChange={(e) => setNotifyAdditionalEmails(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
 
                 <Input
                   label="Customer creation notification emails"
@@ -251,7 +265,7 @@ export default function SettingsPage() {
                   value={customerCreationEmails}
                   onChange={(e) => setCustomerCreationEmails(e.target.value)}
                   placeholder="admin1@example.com, admin2@example.com"
-                  helperText="Super admins always receive these alerts. Add specific admin or other addresses here."
+                  helperText="Recipients for customer-created alerts. Super admins always receive these alerts."
                 />
 
                 {/* Sender Configuration */}
