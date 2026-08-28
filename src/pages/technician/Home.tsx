@@ -104,11 +104,14 @@ export default function TechnicianHome() {
       company.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .sort((a, b) => {
-      if (sortOrder === 'asc') {
-        return a.name.localeCompare(b.name);
-      } else {
-        return b.name.localeCompare(a.name);
-      }
+      const aParent = a.parent_company_id ? companies.find(company => company.id === a.parent_company_id) : a;
+      const bParent = b.parent_company_id ? companies.find(company => company.id === b.parent_company_id) : b;
+      const direction = sortOrder === 'asc' ? 1 : -1;
+      const parentResult = (aParent?.name || a.name).localeCompare(bParent?.name || b.name) * direction;
+      if (parentResult !== 0) return parentResult;
+      if (a.parent_company_id && !b.parent_company_id) return 1;
+      if (!a.parent_company_id && b.parent_company_id) return -1;
+      return (a.branch_name || '').localeCompare(b.branch_name || '');
     });
 
   // Pagination
@@ -235,7 +238,7 @@ export default function TechnicianHome() {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-gray-900 truncate leading-none">
-                          {company.name}
+                          {company.parent_company_id ? `↳ ${company.branch_name || company.city || 'Branch'}` : company.name}
                         </p>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="text-xs font-mono font-semibold text-indigo-600">
@@ -251,6 +254,9 @@ export default function TechnicianHome() {
                                 }))}
                               </span>
                             </>
+                          )}
+                          {company.parent_company_id && (
+                            <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full">Branch</span>
                           )}
                         </div>
                       </div>
