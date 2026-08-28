@@ -1105,10 +1105,6 @@ export default function FillReport() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xs md:text-sm font-semibold text-gray-900">Equipment Service Records</h2>
-            <Button type="button" onClick={addEquipmentRecord} size="sm" variant="secondary">
-              <Plus className="w-4 h-4 mr-1" />
-              Add Equipment
-            </Button>
           </div>
 
           <div className="space-y-2">
@@ -1345,6 +1341,17 @@ export default function FillReport() {
               </div>
             ))}
           </div>
+
+          <Button
+            type="button"
+            onClick={addEquipmentRecord}
+            size="sm"
+            variant="secondary"
+            className="mt-2 w-full"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Equipment
+          </Button>
         </div>
 
         {/* Additional Notes */}
